@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { SITE } from "@/lib/site-data";
+import { cn } from "@/lib/utils";
 
 const APPOINTMENT_TOPICS = [
   { value: "Open an Account", label: "Open an Account" },
@@ -29,9 +30,22 @@ async function postJson(url: string, body: object) {
   return { ok: res.ok, error: (data as { error?: string }).error };
 }
 
-function SuccessBanner({ message, onReset }: { message: string; onReset?: () => void }) {
+function SuccessBanner({
+  message,
+  onReset,
+  className,
+}: {
+  message: string;
+  onReset?: () => void;
+  className?: string;
+}) {
   return (
-    <div className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+    <div
+      className={cn(
+        "flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4",
+        className
+      )}
+    >
       <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600 mt-0.5" />
       <div className="flex-1">
         <p className="text-sm font-medium text-emerald-800">{message}</p>
@@ -106,16 +120,16 @@ export function ContactMessageForm() {
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1.5">Topic</label>
         <select
-          className="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm"
+          className={fieldClass}
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
         >
-          <option>Investment & Portfolio Inquiry</option>
-          <option>Open an Account</option>
-          <option>Account Support</option>
-          <option>Withdrawal / Deposit Request</option>
-          <option>Institutional Partnership</option>
-          <option>Other</option>
+          <option className="bg-white text-slate-900">Investment & Portfolio Inquiry</option>
+          <option className="bg-white text-slate-900">Open an Account</option>
+          <option className="bg-white text-slate-900">Account Support</option>
+          <option className="bg-white text-slate-900">Withdrawal / Deposit Request</option>
+          <option className="bg-white text-slate-900">Institutional Partnership</option>
+          <option className="bg-white text-slate-900">Other</option>
         </select>
       </div>
       <div>
@@ -140,11 +154,13 @@ export function WaitlistForm({
   buttonLabel,
   inputClassName,
   buttonClassName,
+  variant = "light",
 }: {
   listType: "newsletter" | "products" | "credit_cards" | "loans";
   buttonLabel: string;
   inputClassName?: string;
   buttonClassName?: string;
+  variant?: "light" | "dark";
 }) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -162,12 +178,19 @@ export function WaitlistForm({
   };
 
   if (done) {
-    return <SuccessBanner message="You're on the list — we'll email you when it's ready." />;
+    return (
+      <SuccessBanner
+        message="You're on the list — we'll email you when it's ready."
+        className={variant === "dark" ? "border-emerald-500/30 bg-emerald-950/40" : undefined}
+      />
+    );
   }
+
+  const onDark = variant === "dark";
 
   return (
     <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-end max-w-xl">
-      <div className="flex-1">
+      <div className="flex-1 w-full">
         <Input
           label="Email Address"
           type="email"
@@ -175,13 +198,20 @@ export function WaitlistForm({
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className={inputClassName}
+          labelClassName={onDark ? "text-slate-200" : undefined}
+          className={
+            onDark
+              ? "border-slate-600 bg-white text-slate-900 placeholder:text-slate-400"
+              : inputClassName
+          }
         />
       </div>
-      <Button type="submit" loading={loading} className={`sm:mb-0 h-11 shrink-0 ${buttonClassName ?? ""}`}>
+      <Button type="submit" loading={loading} className={`w-full sm:w-auto sm:mb-0 h-11 shrink-0 ${buttonClassName ?? ""}`}>
         {buttonLabel}
       </Button>
-      {error && <p className="text-sm text-red-400 sm:col-span-2">{error}</p>}
+      {error && (
+        <p className={`text-sm w-full ${onDark ? "text-red-300" : "text-red-600"}`}>{error}</p>
+      )}
     </form>
   );
 }

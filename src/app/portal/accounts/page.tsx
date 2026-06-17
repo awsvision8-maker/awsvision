@@ -3,6 +3,7 @@
 import { Plus } from "lucide-react";
 import { PortalHeader } from "@/components/portal/sidebar";
 import { Badge } from "@/components/ui/badge";
+import { MobileDataCard } from "@/components/ui/mobile-data-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getInvestmentPlan } from "@/lib/investment-plans";
@@ -124,7 +125,28 @@ export default function AccountsPage() {
             </p>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
+            <div className="space-y-3 md:hidden">
+              {RETURN_TIERS.map((tier) => (
+                <MobileDataCard
+                  key={tier.label}
+                  title={tier.label}
+                  fields={[
+                    {
+                      label: "Range",
+                      value: `$${tier.min.toLocaleString()} — ${
+                        tier.max === Infinity ? "Unlimited" : `$${tier.max.toLocaleString()}`
+                      }`,
+                    },
+                    { label: "Return", value: `${tier.rate}% p.a.`, highlight: true },
+                    {
+                      label: "Type",
+                      value: tier.max === Infinity ? "Fixed Deposit" : "Savings",
+                    },
+                  ]}
+                />
+              ))}
+            </div>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-200 text-left">

@@ -66,7 +66,7 @@ export default function WithdrawPage() {
     return (
       <>
         <PortalHeader title="Withdraw Funds" />
-        <div className="flex flex-col items-center justify-center p-12 text-center">
+        <div className="flex flex-col items-center justify-center px-4 py-12 sm:p-12 text-center">
           <CheckCircle2 className="h-16 w-16 text-emerald-500" />
           <h2 className="mt-4 text-xl font-bold">Withdrawal Request Placed</h2>
           <p className="mt-2 max-w-md text-slate-500">

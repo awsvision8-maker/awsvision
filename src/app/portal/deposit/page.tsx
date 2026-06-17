@@ -122,17 +122,17 @@ export default function DepositPage() {
                   <Smartphone className="h-5 w-5" />
                   <span className="font-semibold">Zelle payment instructions</span>
                 </div>
-                <div className="flex justify-between gap-3 border-b border-slate-100 pb-3">
+                <div className="flex flex-col gap-1 border-b border-slate-100 pb-3 sm:flex-row sm:justify-between sm:gap-3">
                   <span className="text-slate-500">Zelle email</span>
-                  <span className="font-medium text-slate-900">{ZELLE_DEPOSIT.email}</span>
+                  <span className="font-medium text-slate-900 break-all">{ZELLE_DEPOSIT.email}</span>
                 </div>
-                <div className="flex justify-between gap-3 border-b border-slate-100 pb-3">
+                <div className="flex flex-col gap-1 border-b border-slate-100 pb-3 sm:flex-row sm:justify-between sm:gap-3">
                   <span className="text-slate-500">Amount to send</span>
                   <span className="font-bold text-slate-900">{formatCurrency(Number(amount))}</span>
                 </div>
-                <div className="flex justify-between gap-3">
+                <div className="flex flex-col gap-1 sm:flex-row sm:justify-between sm:gap-3">
                   <span className="text-slate-500">Memo / note</span>
-                  <span className="font-mono text-sm font-medium">{reference}</span>
+                  <span className="font-mono text-sm font-medium break-all">{reference}</span>
                 </div>
               </CardContent>
             </Card>

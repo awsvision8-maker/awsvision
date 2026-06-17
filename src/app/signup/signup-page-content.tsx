@@ -494,7 +494,7 @@ export default function SignupPageContent() {
             <p className="mt-4 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-4 py-3">{error}</p>
           )}
 
-          <div className="mt-8 flex justify-between gap-4 border-t border-slate-100 pt-6">
+          <div className="mt-8 flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-between sm:gap-4">
             <Button variant="outline" onClick={goBack} disabled={step === 0}>
               Back
             </Button>

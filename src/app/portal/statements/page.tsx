@@ -78,9 +78,9 @@ export default function StatementsPage() {
             <CardTitle>Statement Preview — May 2025</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="rounded-lg border border-slate-200 bg-white p-8">
+            <div className="rounded-lg border border-slate-200 bg-white p-4 sm:p-8">
               <div className="border-b border-slate-200 pb-6">
-                <div className="flex justify-between">
+                <div className="flex flex-col gap-4 sm:flex-row sm:justify-between">
                   <div>
                     <p className="text-xl font-bold text-slate-900">AWS Vision</p>
                     <p className="text-xs text-slate-500">Global Investment & Wealth Management</p>

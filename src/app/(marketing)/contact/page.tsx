@@ -12,9 +12,9 @@ import { OFFICES, SITE } from "@/lib/site-data";
 export default function ContactPage() {
   return (
     <div>
-      <section className="bg-gradient-to-br from-slate-950 to-teal-950 py-16 text-white">
-        <div className="mx-auto max-w-7xl px-6">
-          <h1 className="text-4xl font-bold">Contact Us</h1>
+      <section className="bg-gradient-to-br from-slate-950 to-teal-950 py-12 sm:py-16 text-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <h1 className="text-3xl font-bold sm:text-4xl md:text-5xl">Contact Us</h1>
           <p className="mt-4 max-w-2xl text-slate-300 leading-relaxed">
             Reach the AWS Vision team for investment inquiries, account support, or
             partnership opportunities. {SITE.licenses}.
@@ -22,7 +22,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      <div className="mx-auto max-w-7xl px-6 py-16">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12 sm:py-16">
         <div className="grid gap-10 lg:grid-cols-3">
           <div className="space-y-6">
             <ContactCard
@@ -49,7 +49,7 @@ export default function ContactPage() {
             />
           </div>
 
-          <div className="lg:col-span-2 rounded-xl border border-slate-200 p-8">
+          <div className="lg:col-span-2 rounded-xl border border-slate-200 p-5 sm:p-8">
             <h2 className="text-xl font-bold">Send Us a Message</h2>
             <p className="mt-1 text-sm text-slate-500">
               Or email us directly at{" "}
@@ -95,19 +95,16 @@ export default function ContactPage() {
           </div>
         </section>
 
-        <section className="mt-16 rounded-xl bg-slate-950 p-8 text-white">
+        <section className="mt-16 rounded-xl bg-slate-950 p-5 sm:p-8 text-white">
           <h2 className="text-xl font-bold">Sign Up for Our Newsletter</h2>
           <p className="mt-2 text-sm text-slate-400">
             Market insights, performance updates, and AWS Vision news. We do not share your
             data with anybody, and only use it for its intended purpose.
           </p>
-          <WaitlistForm
-            listType="newsletter"
-            buttonLabel="Subscribe"
-            inputClassName="bg-slate-900 border-slate-700 text-white"
-          />        </section>
+          <WaitlistForm listType="newsletter" buttonLabel="Subscribe" variant="dark" />
+        </section>
 
-        <section id="coming-soon" className="mt-16 rounded-xl border-2 border-amber-200 bg-amber-50 p-8">
+        <section id="coming-soon" className="mt-16 rounded-xl border-2 border-amber-200 bg-amber-50 p-5 sm:p-8">
           <h2 className="text-2xl font-bold text-slate-900">Products Opening Soon — Waitlist</h2>
           <p className="mt-2 text-slate-600 max-w-2xl">
             We currently offer Savings accounts, Fixed Deposit (FD) accounts, and Investment
@@ -116,19 +113,16 @@ export default function ContactPage() {
           </p>
           <ProductsWaitlistSection />        </section>
 
-        <section id="notify" className="mt-16 rounded-xl bg-slate-900 p-8 text-white">
+        <section id="notify" className="mt-16 rounded-xl bg-slate-900 p-5 sm:p-8 text-white">
           <h2 className="text-2xl font-bold">Credit Card Launch Waitlist</h2>
           <p className="mt-2 text-slate-400 max-w-xl">
             AWS Vision credit cards are launching soon. Join the waitlist and we&apos;ll notify you
             when applications open for our Customized Cash, Travel, Premium, Student, and Business cards.
           </p>
-          <WaitlistForm
-            listType="credit_cards"
-            buttonLabel="Notify Me at Launch"
-            inputClassName="bg-slate-800 border-slate-600 text-white placeholder:text-slate-500"
-          />        </section>
+          <WaitlistForm listType="credit_cards" buttonLabel="Notify Me at Launch" variant="dark" />
+        </section>
 
-        <section id="loan-notify" className="mt-16 rounded-xl bg-teal-900 p-8 text-white">
+        <section id="loan-notify" className="mt-16 rounded-xl bg-teal-900 p-5 sm:p-8 text-white">
           <h2 className="text-2xl font-bold">Loan Facility Launch Waitlist</h2>
           <p className="mt-2 text-teal-100 max-w-xl">
             Home mortgages, auto loans, personal loans, and business lending are launching soon.
@@ -137,11 +131,12 @@ export default function ContactPage() {
           <WaitlistForm
             listType="loans"
             buttonLabel="Join Loan Waitlist"
-            inputClassName="bg-teal-950/50 border-teal-600 text-white placeholder:text-teal-300/50"
+            variant="dark"
             buttonClassName="bg-white text-teal-800 hover:bg-teal-50"
-          />        </section>
+          />
+        </section>
 
-        <section id="appointment" className="mt-16 rounded-xl bg-teal-700 p-8 text-white">
+        <section id="appointment" className="mt-16 rounded-xl bg-teal-700 p-5 sm:p-8 text-white">
           <h2 className="text-2xl font-bold">Schedule an Appointment</h2>
           <p className="mt-2 text-teal-100 max-w-xl">
             Meet with an AWS Vision specialist at your convenience — in person at our Delaware
