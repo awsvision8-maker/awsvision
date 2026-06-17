@@ -8,6 +8,9 @@ import {
   WHAT_WE_DO_NOT_OFFER,
   WHAT_WE_OFFER,
 } from "@/lib/firm-positioning";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata("/personal/checking");
 
 const ICONS = {
   "Savings Accounts": PiggyBank,

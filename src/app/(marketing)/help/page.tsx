@@ -2,6 +2,9 @@ import Link from "next/link";
 import { HelpCircle, Phone, Mail, MessageCircle, FileText, Shield, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SITE } from "@/lib/site-config";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata("/help");
 
 const HELP_TOPICS = [
   { icon: Wallet, title: "Accounts & Deposits", desc: "Open accounts, deposits, withdrawals, and statements", href: "/faq" },

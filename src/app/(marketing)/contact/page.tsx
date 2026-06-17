@@ -8,6 +8,9 @@ import {
   WaitlistForm,
 } from "@/components/marketing/contact-forms";
 import { OFFICES, SITE } from "@/lib/site-data";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata("/contact");
 
 export default function ContactPage() {
   return (

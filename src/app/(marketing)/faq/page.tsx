@@ -2,10 +2,15 @@ import Link from "next/link";
 import { FAQ_CATEGORIES } from "@/lib/boa-content";
 import { Button } from "@/components/ui/button";
 import { SITE } from "@/lib/site-config";
+import { pageMetadata } from "@/lib/seo";
+import { FaqJsonLd } from "@/components/seo/faq-json-ld";
+
+export const metadata = pageMetadata("/faq");
 
 export default function FAQPage() {
   return (
     <div>
+      <FaqJsonLd />
       <section className="bg-gradient-to-br from-slate-950 to-teal-950 py-16 text-white">
         <div className="mx-auto max-w-7xl px-6">
           <h1 className="text-4xl font-bold">Frequently Asked Questions</h1>

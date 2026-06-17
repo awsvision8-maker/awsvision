@@ -8,6 +8,9 @@ import {
   WHAT_WE_DO_NOT_OFFER,
 } from "@/lib/firm-positioning";
 import { OPEN_NOW_MESSAGE } from "@/lib/product-availability";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata("/personal");
 
 export default function PersonalOverviewPage() {
   const openAccounts = [

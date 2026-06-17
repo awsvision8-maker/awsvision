@@ -2,6 +2,9 @@ import Link from "next/link";
 import { BookOpen, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EDUCATION_ARTICLES } from "@/lib/site-data";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata("/financial-education");
 
 export default function FinancialEducationPage() {
   const categories = ["All", "Investing", "Savings", "Credit", "Home", "Business", "Security", "Retirement"];

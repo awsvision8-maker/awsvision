@@ -1,5 +1,8 @@
 import { Suspense } from "react";
 import NonprofitSignupContent from "./nonprofit-signup-content";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata("/signup/nonprofit");
 
 export default function NonprofitSignupPage() {
   return (

@@ -2,6 +2,9 @@ import Link from "next/link";
 import { Globe, Users, TrendingUp, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SITE } from "@/lib/site-data";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata("/about");
 
 export default function AboutPage() {
   return (

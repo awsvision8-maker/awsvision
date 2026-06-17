@@ -5,6 +5,9 @@ import { RATES_DATA } from "@/lib/site-data";
 import { getFdRates } from "@/lib/fd-rates";
 import { getActiveFdPromo } from "@/lib/promotions";
 import { OPEN_NOW_MESSAGE, COMING_SOON_MESSAGE } from "@/lib/product-availability";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata("/rates");
 
 export default function RatesPage() {
   const fdRates = getFdRates();

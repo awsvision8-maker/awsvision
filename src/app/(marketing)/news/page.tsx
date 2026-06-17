@@ -2,6 +2,9 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { NEWS_ARTICLES } from "@/lib/boa-content";
 import { Button } from "@/components/ui/button";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata("/news");
 
 export default function NewsPage() {
   return (

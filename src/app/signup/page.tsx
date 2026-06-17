@@ -1,5 +1,8 @@
 import { Suspense } from "react";
 import SignupPageContent from "./signup-page-content";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata("/signup");
 
 export default function SignupPage() {
   return (
