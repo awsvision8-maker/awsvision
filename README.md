@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AWS Vision — Client Investment Portal
+
+Global investment platform for **awsvision.com**. Client-facing web application with savings accounts, fixed deposits, portfolio monitoring, monthly statements, and full financial services.
+
+## Features
+
+### Public Website
+- Marketing landing page with features, return tiers, and how-it-works
+- Sign up / Sign in flows
+
+### Client Portal
+- **Dashboard** — Portfolio analytics, advanced charts, recent transactions
+- **Accounts** — Savings & Fixed Deposit account management
+- **Deposit** — Online deposits via wire, ACH, or card
+- **Withdraw** — Withdrawal request placement
+- **Portfolio** — Real-time investment monitoring (sectors, regions, holdings)
+- **Statements** — Downloadable professional PDF monthly profit statements
+- **Credit Cards** — Apply for Platinum, Gold, or Standard cards
+- **Loans** — Personal, portfolio-backed, and business loans with calculator
+- **Insurance** — Life, health, and investment protection
+- **Mortgage** — Multi-step mortgage application with payment calculator
+
+### Onboarding
+- Multi-step KYC verification (personal info, address, identity documents)
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+cd awsvision
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Demo Login
+Use any email and password on the login page to access the portal with demo data.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Tech Stack
 
-## Learn More
+- **Next.js 15** (App Router)
+- **TypeScript**
+- **Tailwind CSS**
+- **Recharts** — Advanced investment charts
+- **jsPDF** — Professional PDF statement generation
+- **Lucide React** — Icons
 
-To learn more about Next.js, take a look at the following resources:
+## Project Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/
+├── app/
+│   ├── page.tsx              # Landing page
+│   ├── login/ signup/ kyc/   # Auth flows
+│   └── portal/               # Client dashboard & features
+├── components/
+│   ├── landing/              # Marketing site
+│   ├── portal/               # Dashboard sidebar
+│   ├── charts/               # Investment charts
+│   └── ui/                   # Reusable UI components
+├── lib/
+│   ├── auth-context.tsx      # Client auth state
+│   ├── mock-data.ts          # Demo data
+│   └── pdf-generator.ts      # Statement PDF export
+└── types/                    # TypeScript definitions
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Next Steps
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Owner portal (admin dashboard)
+- Branch manager portal
+- Backend API & database integration
+- Real payment processing & KYC verification
