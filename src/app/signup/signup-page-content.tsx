@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Logo } from "@/components/ui/logo";
 import { StepProgress } from "@/components/signup/step-progress";
+import { DeveloperCredit } from "@/components/marketing/developer-credit";
 import { DocumentUpload } from "@/components/signup/document-upload";
 import { SelfieCapture } from "@/components/signup/selfie-capture";
 import { InvestmentPlanPicker } from "@/components/signup/investment-plan-picker";
@@ -46,6 +47,10 @@ export default function SignupPageContent() {
   useEffect(() => {
     const account = searchParams.get("account");
     const plan = searchParams.get("plan");
+    const ref = searchParams.get("ref");
+    if (ref) {
+      setForm((prev) => ({ ...prev, referralCode: ref.trim().toUpperCase() }));
+    }
     if (account === "investment" || plan) {
       setForm((prev) => ({
         ...prev,
@@ -92,7 +97,7 @@ export default function SignupPageContent() {
     try {
       await signup(form);
       setSubmitted(true);
-      setTimeout(() => router.push("/portal/dashboard"), 2500);
+      setTimeout(() => router.push("/kyc"), 2500);
     } catch {
       setError("Application submission failed. Please try again.");
     } finally {
@@ -336,6 +341,15 @@ export default function SignupPageContent() {
                 onChange={(e) => update("confirmPassword", e.target.value)}
                 required
               />
+              <Input
+                label="Brand Ambassador Referral Code (optional)"
+                value={form.referralCode ?? ""}
+                onChange={(e) => update("referralCode", e.target.value.toUpperCase().replace(/\s/g, ""))}
+                placeholder="e.g. AV-ABC123"
+              />
+              <p className="text-xs text-slate-500">
+                Enter your ambassador&apos;s code if you were referred. Leave blank if you are signing up on your own.
+              </p>
               <div className="rounded-lg bg-slate-50 p-4 text-xs text-slate-600 space-y-1">
                 <p className="font-medium text-slate-700">Passcode requirements:</p>
                 <ul className="list-disc list-inside space-y-0.5">
@@ -449,6 +463,9 @@ export default function SignupPageContent() {
                       ]
                     : []),
                   ["Online ID", form.onlineId],
+                  ...(form.referralCode?.trim()
+                    ? [["Referral Code", form.referralCode.trim().toUpperCase()] as const]
+                    : []),
                   ["ID Document", `${form.idType.replace("_", " ")} — ${form.idNumber}`],
                   ["Documents", [form.idFrontName, form.idBackName, form.selfieName].filter(Boolean).join(", ") || "—"],
                 ].map(([label, value]) => (
@@ -514,6 +531,7 @@ export default function SignupPageContent() {
             Sign in to Online Banking
           </Link>
         </p>
+        <DeveloperCredit className="mt-4 text-center" />
       </div>
     </div>
   );

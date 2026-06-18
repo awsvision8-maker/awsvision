@@ -1,4 +1,5 @@
 import { applicationToKYC } from "@/lib/application-to-kyc";
+import { getAmbassadorByReferralCode } from "@/lib/server/ambassador-service";
 import { createIndividualUser } from "@/lib/server/auth-service";
 import { jsonError, jsonOk } from "@/lib/server/api";
 import { notifySignup } from "@/lib/server/notifications";
@@ -16,7 +17,19 @@ export async function POST(request: Request) {
       return jsonError("Missing required fields", 400);
     }
 
-    const user = await createIndividualUser(data, applicationToKYC(data));
+    let ambassadorId: string | undefined;
+    if (data.referralCode?.trim()) {
+      const ambassador = await getAmbassadorByReferralCode(data.referralCode.trim());
+      if (!ambassador) {
+        return jsonError(
+          "Invalid referral code. Leave the field blank if you were not referred by a brand ambassador.",
+          400
+        );
+      }
+      ambassadorId = ambassador.id;
+    }
+
+    const user = await createIndividualUser(data, applicationToKYC(data), ambassadorId ?? null);
     const token = await createSession(user.id);
     await setSessionCookie(token);
 

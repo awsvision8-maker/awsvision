@@ -20,6 +20,7 @@ import {
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/logo";
+import { DeveloperCredit } from "@/components/marketing/developer-credit";
 import { useAuth } from "@/lib/auth-context";
 
 const navItems = [
@@ -101,6 +102,7 @@ export function PortalSidebar() {
           <LogOut className="h-4 w-4" />
           Sign Out
         </button>
+        <DeveloperCredit className="mt-4 px-1 text-slate-600" />
       </div>
     </aside>
   );

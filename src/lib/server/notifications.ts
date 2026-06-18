@@ -4,6 +4,7 @@ import {
   contactAckEmail,
   contactAdminEmail,
   depositAdminEmail,
+  depositApprovedEmail,
   depositConfirmationEmail,
   kycVerifiedEmail,
   loginAlertEmail,
@@ -14,9 +15,13 @@ import {
   welcomeSignupEmail,
   withdrawalAdminEmail,
   withdrawalConfirmationEmail,
+  ambassadorApplicationAckEmail,
+  ambassadorApplicationAdminEmail,
+  ambassadorApprovedEmail,
+  ambassadorRejectedEmail,
 } from "@/lib/server/email-templates";
 import { adminEmail, sendMailAsync } from "@/lib/server/mail";
-import { getAccountLabel } from "@/lib/portfolio-engine";
+import { getAccountLabel, PROFIT_HOLD_DAYS } from "@/lib/portfolio-engine";
 import type { User } from "@/types";
 
 export function notifySignup(user: User, accountType: string) {
@@ -48,6 +53,25 @@ export function notifyDeposit(user: User, amount: number, description: string, a
   const admin = depositAdminEmail(user, amount, description);
   sendMailAsync({ to: user.email, ...client });
   sendMailAsync({ to: adminEmail(), ...admin });
+}
+
+export function notifyDepositApproved(
+  user: User,
+  amount: number,
+  description: string,
+  accountId: string
+) {
+  const account = user.portfolio?.accounts.find((a) => a.id === accountId);
+  const label = account ? getAccountLabel(account) : "Account";
+  const profitDate = account?.profitEligibleAt
+    ? new Date(account.profitEligibleAt).toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      })
+    : `in ${PROFIT_HOLD_DAYS} days`;
+  const client = depositApprovedEmail(user, amount, description, label, profitDate);
+  sendMailAsync({ to: user.email, ...client });
 }
 
 export function notifyWithdrawal(
@@ -108,4 +132,35 @@ export function notifyLogin(user: User) {
 export function notifyKycVerified(user: User) {
   const msg = kycVerifiedEmail(user);
   sendMailAsync({ to: user.email, ...msg });
+}
+
+export function notifyAmbassadorApplication(data: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  message: string;
+}) {
+  const ack = ambassadorApplicationAckEmail(data.firstName);
+  const admin = ambassadorApplicationAdminEmail(data);
+  sendMailAsync({ to: data.email, ...ack });
+  sendMailAsync({ to: adminEmail(), ...admin, replyTo: data.email });
+}
+
+export function notifyAmbassadorApproved(data: {
+  email: string;
+  firstName: string;
+  username: string;
+  password: string;
+  loginUrl: string;
+  referralCode: string;
+  referralUrl: string;
+}) {
+  const msg = ambassadorApprovedEmail(data);
+  sendMailAsync({ to: data.email, ...msg });
+}
+
+export function notifyAmbassadorRejected(email: string, firstName: string, note?: string) {
+  const msg = ambassadorRejectedEmail(firstName, note);
+  sendMailAsync({ to: email, ...msg });
 }

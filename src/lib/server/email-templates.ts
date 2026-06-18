@@ -1,4 +1,4 @@
-import { SITE } from "@/lib/site-config";
+import { formatSitePhones, formatUsHeadquarters, SITE } from "@/lib/site-config";
 import { formatCurrency } from "@/lib/utils";
 import type { User } from "@/types";
 
@@ -16,8 +16,8 @@ function layout(title: string, body: string) {
         </td></tr>
         <tr><td style="padding:32px;color:#334155;font-size:15px;line-height:1.6;">${body}</td></tr>
         <tr><td style="padding:20px 32px;background:#f8fafc;border-top:1px solid #e2e8f0;color:#64748b;font-size:12px;">
-          ${SITE.name} · ${SITE.email} · ${SITE.phone}<br>
-          ${SITE.address.full}
+          ${SITE.name} · ${SITE.email} · ${formatSitePhones()}<br>
+          ${formatUsHeadquarters()}
         </td></tr>
       </table>
     </td></tr>
@@ -42,7 +42,7 @@ export function welcomeSignupEmail(user: User, accountType: string) {
     p(`<strong>Online ID:</strong> ${user.onlineId ?? "—"}<br><strong>Email:</strong> ${user.email}`),
     p("Once verified, you can sign in to the client portal to track portfolio growth, download statements, and manage deposits."),
     btn(`${SITE.url}/login`, "Sign In to Portal"),
-    p(`Questions? Reply to this email or call ${SITE.phone}.`),
+    p(`Questions? Reply to this email or call ${formatSitePhones(" or ")}.`),
   ].join("");
   return {
     subject: `Welcome to AWS Vision — Application Received`,
@@ -58,7 +58,7 @@ export function welcomeNonprofitEmail(user: User, orgName: string) {
     p(`Thank you for enrolling <strong>${orgName}</strong> in the AWS Vision Non-Profit Program.`),
     p("Our team will review your organization documents and fund capital enrollment within 1–2 business days."),
     btn(`${SITE.url}/login`, "Organization Sign In"),
-    p(`Support: ${SITE.email} · ${SITE.phone}`),
+    p(`Support: ${SITE.email} · ${formatSitePhones()}`),
   ].join("");
   return {
     subject: `Non-Profit Enrollment Received — ${orgName}`,
@@ -78,8 +78,8 @@ export function depositConfirmationEmail(
     p(`Hello ${name},`),
     p(`We received your deposit request of <strong>${formatCurrency(amount)}</strong> to your <strong>${accountLabel}</strong> account.`),
     p(`<strong>Method:</strong> ${description}`),
-    p("Funds will be credited after processing (Wire: 1–2 days, ACH: 3–5 days, Zelle: same day, eCheck: 2–4 days after verification)."),
-    btn(`${SITE.url}/portal/deposit`, "View Deposit Details"),
+    p("Your deposit is <strong>pending admin review</strong>. Funds will appear in your balance after approval. Monthly profit accrual begins 30 days after your first approved deposit."),
+    btn(`${SITE.url}/portal/dashboard`, "View Dashboard"),
   ].join("");
   return {
     subject: `Deposit Request Received — ${formatCurrency(amount)}`,
@@ -93,11 +93,34 @@ export function depositAdminEmail(user: User, amount: number, description: strin
     p(`<strong>Client:</strong> ${user.firstName} ${user.lastName} (${user.email})`),
     p(`<strong>Amount:</strong> ${formatCurrency(amount)}`),
     p(`<strong>Details:</strong> ${description}`),
+    p(`<strong>Action required:</strong> Review and approve in the <a href="${SITE.url}/admin/deposits">Admin Deposits</a> portal.`),
   ].join("");
   return {
-    subject: `[Admin] New Deposit — ${formatCurrency(amount)} from ${user.email}`,
-    html: layout("New Deposit", body),
-    text: `New deposit ${formatCurrency(amount)} from ${user.email}`,
+    subject: `[Admin] Pending Deposit — ${formatCurrency(amount)} from ${user.email}`,
+    html: layout("Pending Deposit", body),
+    text: `Pending deposit ${formatCurrency(amount)} from ${user.email} — approve in admin portal`,
+  };
+}
+
+export function depositApprovedEmail(
+  user: User,
+  amount: number,
+  description: string,
+  accountLabel: string,
+  profitEligibleDate: string
+) {
+  const name = `${user.firstName} ${user.lastName}`;
+  const body = [
+    p(`Hello ${name},`),
+    p(`Your deposit of <strong>${formatCurrency(amount)}</strong> to <strong>${accountLabel}</strong> has been <strong>approved</strong>.`),
+    p(`<strong>Reference:</strong> ${description}`),
+    p(`The funds are now reflected in your account balance. Monthly profit accrual will begin on <strong>${profitEligibleDate}</strong> (30 days after approval).`),
+    btn(`${SITE.url}/portal/dashboard`, "View Dashboard"),
+  ].join("");
+  return {
+    subject: `Deposit Approved — ${formatCurrency(amount)}`,
+    html: layout("Deposit Approved", body),
+    text: `Deposit of ${formatCurrency(amount)} approved. Profit accrual begins ${profitEligibleDate}.`,
   };
 }
 
@@ -147,7 +170,7 @@ export function contactAckEmail(firstName: string, topic: string) {
     p(`Hello ${firstName},`),
     p(`Thank you for contacting AWS Vision regarding <strong>${topic}</strong>.`),
     p("A relationship manager will respond within 1 business day."),
-    p(`For urgent matters, call ${SITE.phone}.`),
+    p(`For urgent matters, call ${formatSitePhones(" or ")}.`),
   ].join("");
   return {
     subject: `We received your message — AWS Vision`,
@@ -211,7 +234,7 @@ export function appointmentConfirmationEmail(data: {
     p(`Your appointment request for <strong>${data.topic}</strong> has been received.`),
     data.preferredDate ? p(`<strong>Preferred date:</strong> ${data.preferredDate}`) : "",
     p("Our team will confirm your appointment by email or phone within 1 business day."),
-    p(`Direct line: ${SITE.phone}`),
+    p(`Direct line: ${formatSitePhones(" or ")}`),
   ].join("");
   return {
     subject: `Appointment Request Received — AWS Vision`,
@@ -245,7 +268,7 @@ export function loginAlertEmail(user: User) {
   const body = [
     p(`Hello ${name},`),
     p(`A sign-in to your AWS Vision client portal was detected at <strong>${new Date().toLocaleString("en-US", { timeZone: "America/New_York" })} ET</strong>.`),
-    p("If this wasn't you, contact us immediately at " + SITE.phone + "."),
+    p("If this wasn't you, contact us immediately at " + formatSitePhones(" or ") + "."),
     btn(`${SITE.url}/portal/dashboard`, "View Account"),
   ].join("");
   return {
@@ -266,6 +289,78 @@ export function kycVerifiedEmail(user: User) {
     subject: `Identity Verification Approved — AWS Vision`,
     html: layout("KYC Verified", body),
     text: `KYC approved for ${name}.`,
+  };
+}
+
+export function ambassadorApplicationAckEmail(firstName: string) {
+  const body = [
+    p(`Hello ${firstName},`),
+    p("Thank you for applying to the AWS Vision Brand Ambassador & Referral Program. Our team will review your application and respond within 2–3 business days."),
+    p("If approved, you will receive your manager portal username, password, and personal referral link by email."),
+    btn(`${SITE.url}/referral-program`, "View Program Details"),
+  ].join("");
+  return {
+    subject: "Brand Ambassador Application Received — AWS Vision",
+    html: layout("Application Received", body),
+    text: `We received your brand ambassador application, ${firstName}.`,
+  };
+}
+
+export function ambassadorApplicationAdminEmail(data: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  message: string;
+}) {
+  const body = [
+    p(`<strong>${data.firstName} ${data.lastName}</strong> applied to join the Brand Ambassador program.`),
+    p(`Email: ${data.email}<br>Phone: ${data.phone}`),
+    p(data.message),
+    btn(`${SITE.url}/admin/ambassadors`, "Review in Admin Portal"),
+  ].join("");
+  return {
+    subject: `[Ambassador] New application — ${data.firstName} ${data.lastName}`,
+    html: layout("New Ambassador Application", body),
+    text: `New ambassador application from ${data.email}`,
+  };
+}
+
+export function ambassadorApprovedEmail(data: {
+  firstName: string;
+  username: string;
+  password: string;
+  loginUrl: string;
+  referralCode: string;
+  referralUrl: string;
+}) {
+  const body = [
+    p(`Congratulations ${data.firstName}!`),
+    p("Your AWS Vision Brand Ambassador application has been <strong>approved</strong>. You can now access your dedicated manager portal to refer clients and track performance."),
+    p(`<strong>Manager portal:</strong> <a href="${data.loginUrl}">${data.loginUrl}</a>`),
+    p(`<strong>Username:</strong> ${data.username}<br><strong>Temporary password:</strong> ${data.password}`),
+    p(`<strong>Your referral code:</strong> ${data.referralCode}<br><strong>Referral link:</strong> <a href="${data.referralUrl}">${data.referralUrl}</a>`),
+    p("Please sign in and change your password after your first login. Share your referral link or code with prospective investors — you earn a 3% one-time commission on each client's first approved opening deposit, credited after the calendar month ends."),
+    btn(data.loginUrl, "Sign In to Manager Portal"),
+  ].join("");
+  return {
+    subject: "Welcome — AWS Vision Brand Ambassador Portal Access",
+    html: layout("Ambassador Approved", body),
+    text: `Approved. Login: ${data.loginUrl} Username: ${data.username} Password: ${data.password}`,
+  };
+}
+
+export function ambassadorRejectedEmail(firstName: string, note?: string) {
+  const body = [
+    p(`Hello ${firstName},`),
+    p("Thank you for your interest in the AWS Vision Brand Ambassador program. After review, we are unable to approve your application at this time."),
+    note ? p(note) : "",
+    p(`You may contact us at ${SITE.email} if you have questions.`),
+  ].join("");
+  return {
+    subject: "Brand Ambassador Application Update — AWS Vision",
+    html: layout("Application Update", body),
+    text: `Application not approved at this time.`,
   };
 }
 

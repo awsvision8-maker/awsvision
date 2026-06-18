@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Logo } from "@/components/ui/logo";
 import { StepProgress } from "@/components/signup/step-progress";
+import { DeveloperCredit } from "@/components/marketing/developer-credit";
 import { DocumentUpload } from "@/components/signup/document-upload";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -83,7 +84,7 @@ export default function NonprofitSignupContent() {
     try {
       await signupNonprofit(form);
       setSubmitted(true);
-      setTimeout(() => router.push("/portal/dashboard"), 2500);
+      setTimeout(() => router.push("/kyc"), 2500);
     } catch {
       setError("Application submission failed. Please try again.");
     } finally {
@@ -478,6 +479,7 @@ export default function NonprofitSignupContent() {
             Individual enrollment
           </Link>
         </p>
+        <DeveloperCredit className="mt-4 text-center" />
       </div>
     </div>
   );

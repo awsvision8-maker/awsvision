@@ -54,10 +54,16 @@ export default function SecurityPage() {
           <p className="mt-2 text-red-800">
             Contact us immediately if you notice unauthorized transactions or suspect your account has been compromised:
           </p>
-          <div className="mt-4 flex items-center gap-2">
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
             <Phone className="h-5 w-5 text-red-700" />
-            <p className="text-lg font-bold text-red-900">{SITE.phone}</p>
-            <a href={`mailto:${SITE.email}`} className="mt-1 block text-sm text-red-700 hover:underline">
+            <div className="flex flex-col gap-1">
+              {SITE.phones.map((p) => (
+                <a key={p.tel} href={`tel:${p.tel}`} className="text-lg font-bold text-red-900 hover:underline">
+                  {p.display}
+                </a>
+              ))}
+            </div>
+            <a href={`mailto:${SITE.email}`} className="text-sm text-red-700 hover:underline">
               {SITE.email}
             </a>
           </div>

@@ -8,8 +8,13 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
+        allow: ["/", "/signup", "/signup/nonprofit"],
+        disallow: ["/portal/", "/admin/", "/api/", "/kyc", "/login"],
+      },
+      {
+        userAgent: "Googlebot",
         allow: "/",
-        disallow: ["/portal/", "/api/", "/kyc", "/login"],
+        disallow: ["/portal/", "/admin/", "/api/", "/kyc", "/login"],
       },
     ],
     sitemap: `${base}/sitemap.xml`,

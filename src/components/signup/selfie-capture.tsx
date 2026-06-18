@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Camera, Upload, X, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 interface SelfieCaptureProps {
   preview?: string;
@@ -20,29 +19,76 @@ export function SelfieCapture({ preview, fileName, onCapture, onClear }: SelfieC
 
   const [mode, setMode] = useState<"choose" | "camera">("choose");
   const [cameraError, setCameraError] = useState("");
+  const [videoReady, setVideoReady] = useState(false);
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
+    setVideoReady(false);
   }, []);
 
   useEffect(() => () => stopCamera(), [stopCamera]);
 
+  /** Attach stream after <video> mounts (ref is null until mode === "camera"). */
+  useEffect(() => {
+    if (mode !== "camera") return;
+
+    const video = videoRef.current;
+    const stream = streamRef.current;
+    if (!video || !stream) return;
+
+    setVideoReady(false);
+    video.srcObject = stream;
+
+    const onReady = () => {
+      if (video.videoWidth > 0 && video.videoHeight > 0) {
+        setVideoReady(true);
+      }
+    };
+
+    video.addEventListener("loadedmetadata", onReady);
+    video.addEventListener("loadeddata", onReady);
+
+    void video.play().catch(() => {
+      setCameraError("Could not start camera preview. Try upload instead.");
+    });
+
+    return () => {
+      video.removeEventListener("loadedmetadata", onReady);
+      video.removeEventListener("loadeddata", onReady);
+      video.srcObject = null;
+    };
+  }, [mode]);
+
   const startCamera = async () => {
     setCameraError("");
+    stopCamera();
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraError("Camera is not supported in this browser. Please upload a photo instead.");
+      return;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
+        video: {
+          facingMode: { ideal: "user" },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
         audio: false,
       });
       streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
       setMode("camera");
-    } catch {
-      setCameraError("Camera access denied or unavailable. Please upload a photo instead.");
+    } catch (err) {
+      const denied =
+        err instanceof DOMException &&
+        (err.name === "NotAllowedError" || err.name === "PermissionDeniedError");
+      setCameraError(
+        denied
+          ? "Camera access denied. Allow camera permission in your browser, or upload a photo instead."
+          : "Camera unavailable. Please upload a photo instead."
+      );
     }
   };
 
@@ -51,20 +97,36 @@ export function SelfieCapture({ preview, fileName, onCapture, onClear }: SelfieC
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    const width = video.videoWidth;
+    const height = video.videoHeight;
+    if (!width || !height) {
+      setCameraError("Camera is still loading. Wait a moment, then try again.");
+      return;
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    ctx.drawImage(video, 0, 0);
 
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+    // Mirror to match the live preview the user sees
+    ctx.translate(width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0, width, height);
+
     canvas.toBlob(
       (blob) => {
-        if (!blob) return;
+        if (!blob) {
+          setCameraError("Could not capture photo. Please try again or upload instead.");
+          return;
+        }
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
         const file = new File([blob], `selfie-${Date.now()}.jpg`, { type: "image/jpeg" });
         onCapture(file, dataUrl);
         stopCamera();
         setMode("choose");
+        setCameraError("");
       },
       "image/jpeg",
       0.9
@@ -116,12 +178,22 @@ export function SelfieCapture({ preview, fileName, onCapture, onClear }: SelfieC
             className="w-full aspect-[3/4] object-cover [transform:scaleX(-1)]"
           />
           <canvas ref={canvasRef} className="hidden" />
+          {!videoReady && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-sm text-white">
+              Starting camera…
+            </div>
+          )}
         </div>
+        {cameraError && (
+          <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-center">
+            {cameraError}
+          </p>
+        )}
         <p className="text-center text-sm text-slate-500">
           Position your face in the frame. Remove glasses and hats if possible.
         </p>
         <div className="flex flex-wrap justify-center gap-3">
-          <Button type="button" onClick={capturePhoto}>
+          <Button type="button" onClick={capturePhoto} disabled={!videoReady}>
             <Camera className="h-4 w-4" /> Capture Selfie
           </Button>
           <Button
@@ -130,6 +202,7 @@ export function SelfieCapture({ preview, fileName, onCapture, onClear }: SelfieC
             onClick={() => {
               stopCamera();
               setMode("choose");
+              setCameraError("");
             }}
           >
             Cancel

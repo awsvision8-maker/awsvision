@@ -17,7 +17,7 @@ import {
   HelpCircle,
   type LucideIcon,
 } from "lucide-react";
-import { SITE } from "@/lib/site-config";
+import { SITE, formatSitePhones } from "@/lib/site-config";
 
 /** Homepage product tabs — AWS Vision core offerings first */
 export const PRODUCT_TABS: {
@@ -127,7 +127,7 @@ export const CONNECT_LINKS: {
   {
     label: "Find a location",
     href: "/contact#branches",
-    desc: "Visit our Delaware headquarters or UAE operations",
+    desc: "Visit our Delaware or Maryland headquarters",
     icon: MapPin,
     accent: "group-hover:border-teal-300",
     iconBg: "bg-gradient-to-br from-teal-500 to-teal-700",
@@ -193,7 +193,7 @@ export const FAQ_CATEGORIES = [
   {
     title: "Security & Support",
     items: [
-      { q: "How do I report fraud?", a: `Call ${SITE.phone} immediately or lock your card in the mobile app. Email ${SITE.email}.` },
+      { q: "How do I report fraud?", a: `Call ${formatSitePhones(" or ")} immediately or lock your card in the mobile app. Email ${SITE.email}.` },
       { q: "Is my money FDIC insured?", a: "Deposit products are FDIC insured up to $250,000 per depositor. Investment products are not FDIC insured and may lose value." },
       { q: "How do I reset my Online ID or passcode?", a: "Use Forgot ID/Passcode on the login page or contact us for assistance." },
     ],

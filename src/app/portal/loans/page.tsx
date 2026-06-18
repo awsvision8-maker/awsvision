@@ -42,9 +42,13 @@ export default function LoansPage() {
           {LOAN_PRODUCTS.filter((p) => p.category !== "home").map((product) => (
             <Card key={product.id} className="overflow-hidden">
               <CardContent className="p-6">
-                <div className="flex flex-col gap-6 sm:flex-row">
-                  <LoanProductVisual product={product} className="mx-auto sm:mx-0" />
-                  <div className="flex-1">
+                <div className="grid items-start gap-6 sm:grid-cols-[minmax(0,220px)_1fr] sm:gap-8">
+                  <LoanProductVisual
+                    product={product}
+                    embedded
+                    className="mx-auto w-full max-w-[280px] sm:mx-0 sm:max-w-none"
+                  />
+                  <div className="min-w-0">
                     <div className="flex flex-wrap gap-2">
                       <Badge variant="warning">Launching Soon</Badge>
                       <Badge>{product.rateLabel}</Badge>

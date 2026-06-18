@@ -18,6 +18,7 @@ model User {
   kycStatus    String   @default("pending")
   profileType  String   @default("individual")
   kycData      String?
+  ambassadorId String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -26,6 +27,9 @@ model User {
   transactions        Transaction[]
   sessions            Session[]
   withdrawalRequests  WithdrawalRequest[]
+  ambassador          BrandAmbassador? @relation(fields: [ambassadorId], references: [id], onDelete: SetNull)
+
+  @@index([ambassadorId])
 }
 
 model NonprofitProfile {
@@ -56,6 +60,7 @@ model PortfolioAccount {
   investmentPlanId   String?
   maturityDate       DateTime?
   status             String    @default("active")
+  profitEligibleAt   DateTime?
   createdAt          DateTime  @default(now())
 
   transactions Transaction[]
@@ -134,4 +139,142 @@ model WithdrawalRequest {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+model Admin {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  passwordHash String
+  name         String
+  role         String         @default("admin")
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  sessions     AdminSession[]
+  chats        ChatConversation[] @relation("AssignedAdmin")
+}
+
+model AdminSession {
+  id        String   @id @default(cuid())
+  adminId   String
+  admin     Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([adminId])
+  @@index([token])
+}
+
+model ChatConversation {
+  id              String        @id @default(cuid())
+  visitorName     String
+  visitorEmail    String
+  userId          String?
+  visitorIp       String?
+  visitorCity     String?
+  visitorRegion   String?
+  visitorCountry  String?
+  visitorLocation String?
+  lastSeenAt      DateTime?
+  humanTakeoverAt DateTime?
+  status          String        @default("open")
+  assignedToId    String?
+  assignedTo      Admin?        @relation("AssignedAdmin", fields: [assignedToId], references: [id], onDelete: SetNull)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  messages        ChatMessage[]
+
+  @@index([status])
+  @@index([updatedAt])
+  @@index([lastSeenAt])
+}
+
+model VisitorPresence {
+  id             String   @id @default(cuid())
+  sessionToken   String   @unique
+  userId         String?
+  visitorName    String?
+  visitorEmail   String?
+  conversationId String?
+  currentPath    String   @default("/")
+  ipAddress      String?
+  city           String?
+  region         String?
+  country        String?
+  locationLabel  String?
+  status         String   @default("website")
+  lastSeenAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  @@index([status, lastSeenAt])
+  @@index([lastSeenAt])
+}
+
+model ChatMessage {
+  id             String           @id @default(cuid())
+  conversationId String
+  conversation   ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderType     String
+  senderName     String
+  body           String
+  createdAt      DateTime         @default(now())
+  readAt         DateTime?
+
+  @@index([conversationId])
+  @@index([createdAt])
+}
+
+model BrandAmbassadorApplication {
+  id         String           @id @default(cuid())
+  firstName  String
+  lastName   String
+  email      String
+  phone      String
+  city       String?
+  state      String?
+  linkedin   String?
+  experience String?
+  message    String
+  status     String           @default("pending")
+  reviewNote String?
+  reviewedAt DateTime?
+  createdAt  DateTime         @default(now())
+  ambassador BrandAmbassador?
+
+  @@index([status, createdAt])
+  @@index([email])
+}
+
+model BrandAmbassador {
+  id            String                     @id @default(cuid())
+  applicationId String?                    @unique
+  application   BrandAmbassadorApplication? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  username      String                      @unique
+  email         String                      @unique
+  passwordHash  String
+  firstName     String
+  lastName      String
+  phone         String
+  referralCode  String                      @unique
+  status        String                      @default("active")
+  approvedAt    DateTime                    @default(now())
+  createdAt     DateTime                    @default(now())
+  updatedAt     DateTime                    @updatedAt
+  sessions      ManagerSession[]
+  referrals     User[]
+
+  @@index([referralCode])
+  @@index([status])
+}
+
+model ManagerSession {
+  id           String          @id @default(cuid())
+  ambassadorId String
+  ambassador   BrandAmbassador @relation(fields: [ambassadorId], references: [id], onDelete: Cascade)
+  token        String          @unique
+  expiresAt    DateTime
+  createdAt    DateTime        @default(now())
+
+  @@index([ambassadorId])
+  @@index([token])
 }

@@ -36,7 +36,13 @@ export default function FAQPage() {
         <div className="rounded-xl bg-slate-50 p-8 text-center">
           <p className="text-slate-600">Still have questions?</p>
           <p className="mt-2 text-sm">
-            Call <a href={`tel:${SITE.phoneDisplay}`} className="text-teal-700 font-medium">{SITE.phone}</a>
+            Call{" "}
+            {SITE.phones.map((p, i) => (
+              <span key={p.tel}>
+                {i > 0 ? " or " : ""}
+                <a href={`tel:${p.tel}`} className="text-teal-700 font-medium">{p.display}</a>
+              </span>
+            ))}
             {" or email "}
             <a href={`mailto:${SITE.email}`} className="text-teal-700 font-medium">{SITE.email}</a>
           </p>

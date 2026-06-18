@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Globe, Users, TrendingUp, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { SITE } from "@/lib/site-data";
+import { MARYLAND_HEADQUARTERS, SITE } from "@/lib/site-data";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata("/about");
@@ -46,7 +46,8 @@ export default function AboutPage() {
               worldwide — with profits credited to clients every month.
             </p>
             <p className="mt-4 text-slate-600 leading-relaxed">
-              {SITE.licenses}. Our registered office is located at {SITE.address.full}.
+              {SITE.licenses}. Our registered office is at {SITE.address.full}, United States.
+              Our U.S. headquarters is also located at {MARYLAND_HEADQUARTERS.full}, United States.
               Visit us at{" "}
               <a href={SITE.url} className="text-teal-600 hover:underline" target="_blank" rel="noopener noreferrer">
                 awsvision.com
@@ -66,7 +67,9 @@ export default function AboutPage() {
               We offer competitive benefits, professional development, and opportunities to make
               an impact in communities worldwide.
             </p>
-            <Button className="mt-4" variant="outline">Search Career Opportunities</Button>
+            <Link href="/help?q=careers" className="mt-4 inline-block">
+              <Button className="mt-0" variant="outline">Search Career Opportunities</Button>
+            </Link>
           </div>
 
           <div id="investors" className="mt-8 rounded-xl bg-slate-50 p-8">

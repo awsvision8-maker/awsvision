@@ -97,17 +97,30 @@ export default function DepositPage() {
   if (submitted) {
     return (
       <>
-        <PortalHeader title="Deposit Funds" />
-        <div className="mx-auto max-w-2xl space-y-6 p-4 sm:p-6 lg:p-8">
+        <PortalHeader
+          title="Deposit Funds"
+          subtitle="Deposits require admin approval before they appear in your balance"
+        />
+        <div className="space-y-6 p-4 sm:p-6 lg:p-8">
+          {portfolio.pendingDepositTotal > 0 && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-4">
+              <p className="font-semibold text-amber-900">You have a deposit pending approval</p>
+              <p className="mt-1 text-sm text-amber-800">
+                {formatCurrency(portfolio.pendingDepositTotal)} is awaiting admin review. Your balance
+                will update once approved — you can submit another deposit if needed.
+              </p>
+            </div>
+          )}
           <div className="flex flex-col items-center text-center">
             <CheckCircle2 className="h-16 w-16 text-emerald-500" />
             <h2 className="mt-4 text-xl font-bold text-slate-900">Deposit Request Submitted</h2>
             <p className="mt-2 max-w-md text-slate-500 leading-relaxed">
-              Your deposit of {formatCurrency(Number(amount))} has been recorded.
+              Your deposit of {formatCurrency(Number(amount))} has been submitted for admin review.
+              It will <strong>not</strong> appear in your balance until approved.
               {method === "wire_ach" &&
                 " Complete your wire or ACH transfer using the bank details below and include your reference."}
               {method === "echeck" &&
-                " Your check images are being reviewed. Funds will be credited after verification (2–4 business days)."}
+                " Your check images are attached. Funds will be credited after admin verification and approval."}
               {method === "zelle" &&
                 ` Send ${formatCurrency(Number(amount))} via Zelle to ${ZELLE_DEPOSIT.email} and include reference ${reference} in the memo.`}
             </p>
@@ -162,9 +175,18 @@ export default function DepositPage() {
     <>
       <PortalHeader
         title="Deposit Funds"
-        subtitle="Add funds by wire, ACH, eCheck, or Zelle"
+        subtitle="Deposits require admin approval before they appear in your balance"
       />
       <div className="mx-auto max-w-2xl space-y-6 p-4 sm:p-6 lg:p-8">
+        {portfolio.pendingDepositTotal > 0 && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-4">
+            <p className="font-semibold text-amber-900">Deposit pending admin approval</p>
+            <p className="mt-1 text-sm text-amber-800">
+              {formatCurrency(portfolio.pendingDepositTotal)} is awaiting review. Balance updates only
+              after approval.
+            </p>
+          </div>
+        )}
         <Card>
           <CardHeader>
             <CardTitle>Select Deposit Method</CardTitle>

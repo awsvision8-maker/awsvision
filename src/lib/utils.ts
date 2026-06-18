@@ -25,6 +25,14 @@ export function formatDate(date: string | Date) {
   }).format(new Date(date));
 }
 
+/** Full month + year, e.g. "July 2026" */
+export function formatMonthYear(date: string | Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    year: "numeric",
+  }).format(new Date(date));
+}
+
 export function generateAccountNumber() {
   return `AV${Date.now().toString().slice(-10)}`;
 }

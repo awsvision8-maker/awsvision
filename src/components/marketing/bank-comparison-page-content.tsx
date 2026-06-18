@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ArrowRight,
   Building2,
-  CheckCircle2,
+  Loader2,
   Sparkles,
   TrendingUp,
   Trophy,
@@ -19,32 +19,52 @@ import {
   COMPARISON_SCENARIOS,
   COMPARISON_SOURCES,
   COMPETITOR_BANKS,
-  annualApyEarnings,
-  awsTierForPrincipal,
+  bestComparableApy,
+  type ComparisonReport,
   formatComparePercent,
   formatCompareUsd,
-  getCdComparisonRows,
-  getInvestmentComparisonRows,
-  getSavingsComparisonRows,
   monthlyProgramEarnings,
   multiplierLabel,
 } from "@/lib/bank-comparison";
 import { NONPROFIT_CAPITAL_TIERS } from "@/lib/nonprofit-program";
 
-const AWS = COMPETITOR_BANKS.find((b) => b.isAwsVision)!;
-
 export function BankComparisonPageContent() {
   const [principal, setPrincipal] = useState(50_000);
+  const [report, setReport] = useState<ComparisonReport | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const tier = useMemo(() => awsTierForPrincipal(principal), [principal]);
-  const savingsRows = useMemo(() => getSavingsComparisonRows(principal), [principal]);
-  const cdRows = useMemo(() => getCdComparisonRows(principal), [principal]);
-  const investment = useMemo(() => getInvestmentComparisonRows(principal), [principal]);
+  const loadReport = useCallback(async (amount: number) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/compare/rates?principal=${amount}`);
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Failed to load comparison");
+      setReport(json.report);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load comparison");
+      setReport(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const awsSavingsYear = annualApyEarnings(principal, AWS.savingsApy);
-  const awsMonthlyYear = monthlyProgramEarnings(principal, tier.monthlyRate, 12);
-  const chaseSavingsYear = annualApyEarnings(principal, 0.01);
-  const chaseCdYear = annualApyEarnings(principal, 1.5);
+  useEffect(() => {
+    loadReport(principal);
+  }, [principal, loadReport]);
+
+  const tier = report?.aws.investmentTier;
+  const savingsTier = report?.aws.savingsTier;
+  const savingsRows = report?.savings.filter((r) => !r.isAws) ?? [];
+  const cdStandardRows = report?.cds.filter((r) => !r.isPromo) ?? [];
+  const cdPromoRows = report?.cds.filter((r) => r.isPromo) ?? [];
+  const investment = report?.investment;
+  const hero = report?.hero;
+
+  const awsSavingsYear = report?.aws.savingsYearEarnings ?? 0;
+  const awsInvestmentYear = report?.aws.investmentYearCompound ?? 0;
+  const chaseCdYear = hero?.chaseCdYear ?? 0;
 
   return (
     <div className="overflow-x-hidden">
@@ -60,38 +80,54 @@ export function BankComparisonPageContent() {
               See How AWS Vision Stacks Up Against the Big Banks
             </h1>
             <p className="mt-5 text-lg text-slate-300 leading-relaxed">
-              We compared savings, CD, and wealth-program yields from Bank of America, Chase,
-              Wells Fargo, Capital One, and Citibank against AWS Vision&apos;s investment, fixed
-              deposit, and non-profit fund programs — using publicly published rates.
+              We compared savings and CD APY from Bank of America, Chase, Wells Fargo, Capital One,
+              and Citibank against AWS Vision&apos;s tier-matched savings APY and investment program
+              returns — calculated from published bank rates and our official program terms.
             </p>
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
-              {[
-                {
-                  stat: multiplierLabel(awsMonthlyYear, chaseCdYear),
-                  label: "vs Chase 12-mo CD",
-                  sub: `on ${formatCompareUsd(principal)}`,
-                },
-                {
-                  stat: formatComparePercent(tier.monthlyRate, 1),
-                  label: "Your AWS Vision tier",
-                  sub: `${tier.name} · ${tier.monthlyRate}% monthly`,
-                },
-                {
-                  stat: formatCompareUsd(awsMonthlyYear),
-                  label: "Est. 12-mo profit",
-                  sub: "AWS Vision program (simple model)",
-                },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className="rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
-                >
-                  <p className="text-2xl font-black text-amber-300">{item.stat}</p>
-                  <p className="mt-1 text-sm font-semibold text-white">{item.label}</p>
-                  <p className="text-xs text-slate-400">{item.sub}</p>
+              {loading ? (
+                <div className="col-span-3 flex items-center gap-2 text-slate-400">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Calculating comparison…
                 </div>
-              ))}
+              ) : (
+                [
+                  {
+                    stat: hero?.multiplierVsChaseCd ?? "—",
+                    label: "vs Chase 12-mo CD",
+                    sub: `on ${formatCompareUsd(principal)}`,
+                  },
+                  {
+                    stat: tier ? formatComparePercent(tier.monthlyRate, 1) : "—",
+                    label: "Your AWS Vision tier",
+                    sub: tier
+                      ? `${tier.name} · ${tier.monthlyRate}% monthly`
+                      : "Select deposit size below",
+                  },
+                  {
+                    stat: formatCompareUsd(awsInvestmentYear),
+                    label: "Est. 12-mo program profit",
+                    sub: tier?.compoundInterest
+                      ? "Compound monthly model"
+                      : "Simple monthly model",
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
+                  >
+                    <p className="text-2xl font-black text-amber-300">{item.stat}</p>
+                    <p className="mt-1 text-sm font-semibold text-white">{item.label}</p>
+                    <p className="text-xs text-slate-400">{item.sub}</p>
+                  </div>
+                ))
+              )}
             </div>
+            {error && (
+              <p className="mt-4 text-sm text-red-300">
+                {error}. Refresh the page or try another deposit size.
+              </p>
+            )}
             <div className="mt-8 flex flex-wrap gap-4">
               <Link href="/signup">
                 <Button size="lg">
@@ -134,8 +170,15 @@ export function BankComparisonPageContent() {
             ))}
           </div>
           <p className="mt-3 text-xs text-slate-500">
-            Showing projections for <strong>{formatCompareUsd(principal)}</strong> — AWS Vision{" "}
-            <strong>{tier.name}</strong> tier ({tier.monthlyRate}% monthly program rate).
+            Showing projections for <strong>{formatCompareUsd(principal)}</strong>
+            {tier && savingsTier && (
+              <>
+                {" "}
+                — AWS Vision <strong>{tier.name}</strong> investment tier ({tier.monthlyRate}%
+                monthly) · <strong>{savingsTier.label}</strong> at{" "}
+                {formatComparePercent(savingsTier.apy)} APY
+              </>
+            )}
           </p>
         </div>
       </section>
@@ -143,11 +186,13 @@ export function BankComparisonPageContent() {
       {/* Savings comparison */}
       <section className="py-14 bg-slate-50">
         <div className="page-container">
-          <h2 className="text-2xl font-bold text-slate-900">Savings Account Yields</h2>
+          <h2 className="text-2xl font-bold text-slate-900">Best Published Deposit APY</h2>
           <p className="mt-2 max-w-2xl text-slate-600">
-            Megabank standard savings accounts typically pay 0.01% APY. AWS Vision Investment
-            Savings elite tier pays up to 9.5% APY on qualifying balances — plus monthly and yearly
-            gratuity on savings and FD accounts.
+            Each bank&apos;s highest advertised savings or promotional CD APY (June 2026 rate sheets &
+            roundups). Standard branch savings at Chase, BoA, and Wells Fargo remain near 0.01% — these
+            figures reflect the best published deposit products. AWS Vision savings APY is tier-matched to
+            your balance — from {formatComparePercent(0.01)} Advantage through{" "}
+            {formatComparePercent(9.5)} Elite at $100K+.
           </p>
 
           <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -155,7 +200,7 @@ export function BankComparisonPageContent() {
               <thead>
                 <tr className="bg-slate-950 text-white">
                   <th className="px-4 py-3 text-left font-medium sm:px-6">Institution</th>
-                  <th className="px-4 py-3 text-left font-medium sm:px-6">Savings APY</th>
+                  <th className="px-4 py-3 text-left font-medium sm:px-6">Best Deposit APY</th>
                   <th className="px-4 py-3 text-left font-medium sm:px-6">
                     Est. 1-Year Earnings on {formatCompareUsd(principal)}
                   </th>
@@ -170,35 +215,53 @@ export function BankComparisonPageContent() {
                       AWS Vision
                     </span>
                   </td>
-                  <td className="px-4 py-4 font-bold text-teal-700 sm:px-6">Up to 9.50%</td>
+                  <td className="px-4 py-4 font-bold text-teal-700 sm:px-6">
+                    {savingsTier
+                      ? `${formatComparePercent(savingsTier.apy)} (${savingsTier.label})`
+                      : "—"}
+                  </td>
                   <td className="px-4 py-4 font-bold text-teal-700 sm:px-6">
                     {formatCompareUsd(awsSavingsYear)}
                   </td>
                   <td className="px-4 py-4 text-teal-700 sm:px-6">—</td>
                 </tr>
-                {savingsRows.map((row) => (
-                  <tr key={row.bank.id} className="border-b border-slate-100">
-                    <td className="px-4 py-4 font-medium text-slate-900 sm:px-6">{row.bank.name}</td>
-                    <td className="px-4 py-4 text-slate-600 sm:px-6">
-                      {formatComparePercent(row.bank.savingsApy)}
-                    </td>
-                    <td className="px-4 py-4 text-slate-600 sm:px-6">
-                      {formatCompareUsd(row.earnings)}
-                    </td>
-                    <td className="px-4 py-4 sm:px-6">
-                      <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-800">
-                        {multiplierLabel(awsSavingsYear, row.earnings)}
-                      </span>
+                {loading ? (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
+                      <Loader2 className="mx-auto h-6 w-6 animate-spin" />
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  savingsRows.map((row) => (
+                    <tr key={row.bank.id} className="border-b border-slate-100">
+                      <td className="px-4 py-4 font-medium text-slate-900 sm:px-6">
+                        {row.bank.name}
+                      </td>
+                      <td className="px-4 py-4 text-slate-600 sm:px-6">
+                        {formatComparePercent(row.apy)}
+                      </td>
+                      <td className="px-4 py-4 text-slate-600 sm:px-6">
+                        {formatCompareUsd(row.earnings)}
+                      </td>
+                      <td className="px-4 py-4 sm:px-6">
+                        <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-800">
+                          {multiplierLabel(awsSavingsYear, row.earnings)}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
           <p className="mt-3 text-xs text-slate-500">
-            On {formatCompareUsd(principal)}, Chase/BofA/Wells standard savings earn about{" "}
-            {formatCompareUsd(chaseSavingsYear)} per year. AWS Vision elite savings:{" "}
-            {formatCompareUsd(awsSavingsYear)}.
+            Formula: 1-year earnings = principal × (APY ÷ 100). Competitor APY is each institution&apos;s
+            best published savings or promotional CD rate. On {formatCompareUsd(principal)}, Bank of
+            America&apos;s top advertised tier earns about{" "}
+            {formatCompareUsd(
+              savingsRows.find((r) => r.bank.id === "bofa")?.earnings ?? 0
+            )}
+            /yr vs AWS Vision {formatCompareUsd(awsSavingsYear)}/yr at your matched savings tier.
           </p>
         </div>
       </section>
@@ -206,11 +269,13 @@ export function BankComparisonPageContent() {
       {/* CD / FD comparison */}
       <section className="py-14 bg-white">
         <div className="page-container">
-          <h2 className="text-2xl font-bold text-slate-900">CD vs Fixed Deposit & Investment Programs</h2>
+          <h2 className="text-2xl font-bold text-slate-900">
+            CD vs Investment & Fixed Deposit Programs
+          </h2>
           <p className="mt-2 max-w-2xl text-slate-600">
-            Traditional 12-month CDs from major banks top out around 1.5%–3.75% APY. AWS Vision
-            fixed deposit and investment tiers pay <strong>monthly gratuity from 2% to 7%</strong> on
-            capital — with total program returns up to <strong>420%</strong> on Executive tier.
+            Bank CDs use APY (annual percentage yield). AWS Vision investment programs use monthly
+            profit on capital — shown here as estimated 12-month program earnings using{" "}
+            {tier?.compoundInterest ? "compound" : "simple"} monthly accrual at your matched tier.
           </p>
 
           <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
@@ -218,38 +283,34 @@ export function BankComparisonPageContent() {
               <thead>
                 <tr className="bg-slate-950 text-white">
                   <th className="px-4 py-3 text-left sm:px-6">Institution</th>
-                  <th className="px-4 py-3 text-left sm:px-6">12-Mo CD / Best Promo</th>
-                  <th className="px-4 py-3 text-left sm:px-6">1-Year Earnings</th>
-                  <th className="px-4 py-3 text-left sm:px-6">AWS Vision Advantage</th>
+                  <th className="px-4 py-3 text-left sm:px-6">12-Mo CD (standard)</th>
+                  <th className="px-4 py-3 text-left sm:px-6">1-Year CD Earnings</th>
+                  <th className="px-4 py-3 text-left sm:px-6">vs AWS Vision Program</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-b border-amber-100 bg-gradient-to-r from-amber-50 to-teal-50">
                   <td className="px-4 py-4 font-bold text-slate-900 sm:px-6">
-                    AWS Vision — {tier.name} ({tier.monthlyRate}%/mo)
+                    AWS Vision — {tier?.name ?? "—"} ({tier?.monthlyRate ?? "—"}%/mo)
                   </td>
                   <td className="px-4 py-4 text-slate-700 sm:px-6">
-                    {tier.totalReturn}% total over {tier.termMonths} mo program
+                    {tier
+                      ? `${tier.totalRoiPercent}% total over ${tier.termMonths} mo program`
+                      : "—"}
                   </td>
                   <td className="px-4 py-4 font-bold text-teal-700 sm:px-6">
-                    {formatCompareUsd(awsMonthlyYear)} / yr
+                    {formatCompareUsd(awsInvestmentYear)} / yr
                   </td>
                   <td className="px-4 py-4 text-xs text-slate-600 sm:px-6">
-                    Featured promo: 90% in 6 months on $50K+ FD
+                    {report?.aws.fdPromo
+                      ? `FD promo: ${report.aws.fdPromo.returnPercent}% in ${report.aws.fdPromo.termMonths} mo on $${(report.aws.fdPromo.minDeposit / 1000).toFixed(0)}K+`
+                      : "Enroll at /rates for current FD promo"}
                   </td>
                 </tr>
-                {cdRows.map((row) => (
-                  <tr key={row.bank.id} className="border-b border-slate-100">
+                {cdStandardRows.map((row) => (
+                  <tr key={`${row.bank.id}-std`} className="border-b border-slate-100">
                     <td className="px-4 py-4 font-medium sm:px-6">{row.bank.name}</td>
-                    <td className="px-4 py-4 text-slate-600 sm:px-6">
-                      {formatComparePercent(row.bank.cd12MonthApy)} APY
-                      {row.bank.bestPromoApy && (
-                        <span className="block text-xs text-slate-400">
-                          Best promo: {formatComparePercent(row.bank.bestPromoApy)} —{" "}
-                          {row.bank.bestPromoNote}
-                        </span>
-                      )}
-                    </td>
+                    <td className="px-4 py-4 text-slate-600 sm:px-6">{row.apyLabel}</td>
                     <td className="px-4 py-4 text-slate-600 sm:px-6">
                       {formatCompareUsd(row.earnings)}
                     </td>
@@ -263,6 +324,48 @@ export function BankComparisonPageContent() {
               </tbody>
             </table>
           </div>
+
+          {cdPromoRows.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold text-slate-900">Promotional CD rates (banks)</h3>
+              <p className="mt-1 text-sm text-slate-600">
+                Short-term promotional CDs — often require new money, relationship tiers, or specific
+                terms. Still compared against AWS Vision program earnings at your tier.
+              </p>
+              <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+                <table className="w-full min-w-[720px] text-sm">
+                  <thead>
+                    <tr className="bg-slate-800 text-white">
+                      <th className="px-4 py-3 text-left sm:px-6">Bank</th>
+                      <th className="px-4 py-3 text-left sm:px-6">Promo rate</th>
+                      <th className="px-4 py-3 text-left sm:px-6">1-Year earnings*</th>
+                      <th className="px-4 py-3 text-left sm:px-6">vs AWS Vision</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cdPromoRows.map((row) => (
+                      <tr key={`${row.bank.id}-promo`} className="border-b border-slate-100">
+                        <td className="px-4 py-4 font-medium sm:px-6">{row.bank.name}</td>
+                        <td className="px-4 py-4 text-slate-600 sm:px-6">{row.apyLabel}</td>
+                        <td className="px-4 py-4 text-slate-600 sm:px-6">
+                          {formatCompareUsd(row.earnings)}
+                        </td>
+                        <td className="px-4 py-4 sm:px-6">
+                          <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-800">
+                            {row.multiplier}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="mt-2 text-xs text-slate-500">
+                *Promo earnings use APY on principal for illustration; actual promo terms may be
+                shorter than 12 months.
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -272,9 +375,13 @@ export function BankComparisonPageContent() {
           <h2 className="text-2xl font-bold">AWS Vision Investment Tiers vs Traditional Banking</h2>
           <p className="mt-2 max-w-2xl text-slate-400">
             At {formatCompareUsd(principal)}, your matched tier is{" "}
-            <strong className="text-teal-300">{investment.tier.name}</strong> — estimated{" "}
-            {formatCompareUsd(investment.awsAnnual)} in monthly profit over 12 months vs.{" "}
-            {formatCompareUsd(chaseCdYear)} from a typical Chase 12-month CD.
+            <strong className="text-teal-300">{tier?.name ?? "—"}</strong> — estimated{" "}
+            {formatCompareUsd(investment?.awsAnnualCompound ?? 0)} in 12-month program profit vs.{" "}
+            {formatCompareUsd(chaseCdYear)} from Chase&apos;s standard 12-month CD (
+            {formatComparePercent(
+              COMPETITOR_BANKS.find((b) => b.id === "chase")?.cd12MonthApy ?? 0
+            )}{" "}
+            APY).
           </p>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {AWS_VISION_COMPARE_TIERS.map((t) => (
@@ -282,12 +389,12 @@ export function BankComparisonPageContent() {
                 key={t.id}
                 className={cn(
                   "rounded-xl border p-5",
-                  principal >= t.min
+                  tier && principal >= t.min
                     ? "border-teal-400 bg-teal-950/50 ring-2 ring-teal-500/30"
                     : "border-white/10 bg-white/5"
                 )}
               >
-                {principal >= t.min && (
+                {tier && principal >= t.min && (
                   <span className="text-[10px] font-bold uppercase tracking-wider text-teal-300">
                     Your tier
                   </span>
@@ -299,8 +406,14 @@ export function BankComparisonPageContent() {
                   Min {formatCompareUsd(t.min)} · {t.totalReturn}% total / {t.termMonths} mo
                 </p>
                 <p className="mt-2 text-sm font-semibold text-emerald-400">
-                  {formatCompareUsd(monthlyProgramEarnings(principal >= t.min ? principal : t.min, t.monthlyRate, 12))}
-                  /yr est.
+                  {formatCompareUsd(
+                    monthlyProgramEarnings(
+                      principal >= t.min ? principal : t.min,
+                      t.monthlyRate,
+                      12
+                    )
+                  )}
+                  /yr est. (simple)
                 </p>
               </div>
             ))}
@@ -311,13 +424,32 @@ export function BankComparisonPageContent() {
       {/* Why different */}
       <section className="py-14 bg-white">
         <div className="page-container">
-          <h2 className="text-2xl font-bold text-slate-900">Why the Output Is So Different</h2>
+          <h2 className="text-2xl font-bold text-slate-900">How We Calculate This Comparison</h2>
+          <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-6 text-sm text-slate-700 space-y-2">
+            <p>
+              <strong>Bank savings & CDs:</strong> Earnings = deposit × (APY ÷ 100). Rates sourced
+              from each bank&apos;s published rate sheets and independent publishers (
+              {COMPARISON_LAST_UPDATED}).
+            </p>
+            <p>
+              <strong>AWS Vision savings:</strong> Same APY formula using your balance-matched tier
+              (Starter 6% at $1K+, Growth 7.5% at $10K+, Elite 9.5% at $100K+).
+            </p>
+            <p>
+              <strong>AWS Vision investment / FD programs:</strong> Monthly profit model — simple:
+              capital × (monthly rate ÷ 100) × 12; compound (when enabled): capital × ((1 + monthly
+              rate ÷ 100)<sup>12</sup> − 1). This is not directly comparable to bank APY but shows
+              program structure side-by-side.
+            </p>
+          </div>
+
+          <h2 className="mt-12 text-2xl font-bold text-slate-900">Why the Output Is So Different</h2>
           <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[
               {
                 icon: Zap,
-                title: "Monthly profit, not 0.01% savings",
-                desc: "Chase, BoA, and Wells Fargo standard savings pay about $1 per year per $10,000. AWS Vision investment programs distribute monthly profit from 2% to 7% on enrolled capital.",
+                title: "Higher yields than branch savings",
+                desc: "Even megabank promotional CDs top out around 4–4.5% APY. AWS Vision investment programs distribute monthly profit from 2% to 7% on enrolled capital — a different product structure with higher modeled returns.",
               },
               {
                 icon: TrendingUp,
@@ -367,7 +499,10 @@ export function BankComparisonPageContent() {
                 </tbody>
               </table>
             </div>
-            <Link href="/nonprofit" className="mt-4 inline-block text-sm font-semibold text-violet-700 hover:underline">
+            <Link
+              href="/nonprofit"
+              className="mt-4 inline-block text-sm font-semibold text-violet-700 hover:underline"
+            >
               Explore non-profit program →
             </Link>
           </div>
@@ -377,23 +512,38 @@ export function BankComparisonPageContent() {
       {/* Rate reference table */}
       <section className="py-14 bg-slate-100">
         <div className="page-container">
-          <h2 className="text-xl font-bold text-slate-900">Published competitor rates ({COMPARISON_LAST_UPDATED})</h2>
+          <h2 className="text-xl font-bold text-slate-900">
+            Published competitor rates ({COMPARISON_LAST_UPDATED})
+          </h2>
           <p className="mt-2 text-sm text-slate-600">
             Reference figures from bank websites and independent rate publishers. Your actual rate may
             vary by location, balance, and relationship requirements.
           </p>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {COMPETITOR_BANKS.filter((b) => !b.isAwsVision).map((bank) => (
+            {COMPETITOR_BANKS.map((bank) => (
               <div key={bank.id} className="rounded-lg border border-slate-200 bg-white p-4 text-sm">
                 <p className="font-bold text-slate-900">{bank.name}</p>
                 <ul className="mt-2 space-y-1 text-slate-600">
-                  <li>Savings: {formatComparePercent(bank.savingsApy)} APY</li>
+                  <li>Best published: {formatComparePercent(bestComparableApy(bank))} APY</li>
+                  <li>Standard savings: {formatComparePercent(bank.savingsApy)} APY</li>
                   <li>12-mo CD: {formatComparePercent(bank.cd12MonthApy)} APY</li>
                   {bank.bestPromoApy && (
-                    <li>Best promo: {formatComparePercent(bank.bestPromoApy)} — {bank.bestPromoNote}</li>
+                    <li>
+                      Best promo: {formatComparePercent(bank.bestPromoApy)} — {bank.bestPromoNote}
+                    </li>
                   )}
                   <li>Min CD: {bank.minCdDeposit}</li>
                 </ul>
+                {bank.sourceUrl && (
+                  <a
+                    href={bank.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-block text-xs text-teal-600 hover:underline"
+                  >
+                    View source →
+                  </a>
+                )}
               </div>
             ))}
           </div>
@@ -435,14 +585,18 @@ export function BankComparisonPageContent() {
             Competitor savings and CD rates shown are illustrative benchmarks from publicly available
             sources as of {COMPARISON_LAST_UPDATED} and may change without notice. Relationship rates,
             promotional CDs, and ZIP-specific pricing may differ. AWS Vision earnings illustrations
-            use program terms at enrollment (monthly profit rate × capital × months) and do not
-            guarantee future performance.
+            use program terms at enrollment and do not guarantee future performance.
           </p>
           <p>
             <strong>Sources reviewed:</strong>{" "}
             {COMPARISON_SOURCES.map((s, i) => (
               <span key={s.url}>
-                <a href={s.url} className="text-teal-600 hover:underline" target="_blank" rel="noopener noreferrer">
+                <a
+                  href={s.url}
+                  className="text-teal-600 hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   {s.label}
                 </a>
                 {i < COMPARISON_SOURCES.length - 1 ? " · " : ""}

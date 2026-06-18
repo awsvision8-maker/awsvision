@@ -71,7 +71,7 @@ export function ConnectWithUsSection() {
           })}
         </div>
 
-        <div className="mt-12 max-w-3xl mx-auto">
+        <div className="mt-12 mx-auto max-w-5xl">
           <p className="mb-4 text-center text-sm font-medium text-slate-600">
             Prefer to reach us directly?
           </p>

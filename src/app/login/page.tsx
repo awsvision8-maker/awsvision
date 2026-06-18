@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/ui/logo";
+import { DeveloperCredit } from "@/components/marketing/developer-credit";
 import { WealthPromoBanner } from "@/components/marketing/wealth-promo-banner";
 import { useAuth } from "@/lib/auth-context";
 import { getActiveFdPromo } from "@/lib/promotions";
@@ -27,6 +28,14 @@ export default function LoginPage() {
     }
   }, [user, router]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (new URLSearchParams(window.location.search).get("timeout") === "1") {
+      setError("Signed out after 1 minute of inactivity. Please sign in again.");
+      window.history.replaceState({}, "", "/login");
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -34,7 +43,7 @@ export default function LoginPage() {
     try {
       const ok = await login(email, password);
       if (ok) {
-        router.push("/portal/dashboard");
+        router.push("/kyc");
       } else {
         setError("Invalid credentials. Please try again.");
       }
@@ -64,6 +73,7 @@ export default function LoginPage() {
           </p>
         </div>
         <p className="text-sm text-slate-500">© awsvision.com</p>
+        <DeveloperCredit className="mt-2 text-slate-600" />
       </div>
 
       <div className="flex w-full flex-col justify-center px-6 py-12 lg:w-1/2 lg:px-16">

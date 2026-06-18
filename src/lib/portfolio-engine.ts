@@ -88,31 +88,62 @@ const HOLDING_TEMPLATES: Omit<InvestmentHolding, "value" | "monthlyReturn" | "yt
   },
 ];
 
+export const PROFIT_HOLD_DAYS = 30;
+
+function addDays(date: Date, days: number) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+export function profitEligibleFromApproval(approvedAt = new Date()) {
+  return addDays(approvedAt, PROFIT_HOLD_DAYS);
+}
+
+export function isProfitAccrualActive(
+  account: Pick<PortfolioAccount, "profitEligibleAt">,
+  asOf = new Date()
+) {
+  if (!account.profitEligibleAt) return false;
+  return asOf >= new Date(account.profitEligibleAt);
+}
+
 function generateAccountNumber() {
   return `AV${Math.floor(1000000000 + Math.random() * 9000000000)}`;
 }
 
-function incomeToOpeningDeposit(annualIncome: string): number {
-  const map: Record<string, number> = {
-    under_25k: 1_000,
-    "25k_50k": 5_000,
-    "50k_100k": 10_000,
-    "100k_250k": 25_000,
-    "250k_plus": 50_000,
-  };
-  return map[annualIncome] ?? 1_000;
+export function resolvePlanTierFromPrincipal(
+  account: Pick<PortfolioAccount, "type" | "investmentPlanId">,
+  principal: number
+) {
+  if (account.type !== "investment" && account.type !== "fixed_deposit") return null;
+  const sorted = [...INVESTMENT_PLANS].sort((a, b) => b.minInvestment - a.minInvestment);
+  return sorted.find((p) => principal >= p.minInvestment) ?? INVESTMENT_PLANS[0];
 }
 
 export function resolveMonthlyRate(
-  account: Pick<PortfolioAccount, "type" | "monthlyRatePercent" | "investmentPlanId" | "principal">
+  account: Pick<PortfolioAccount, "type" | "monthlyRatePercent" | "investmentPlanId">,
+  balanceForTier: number
 ): number {
   if (account.type === "nonprofit_fund") return account.monthlyRatePercent;
   if (account.type === "investment" || account.type === "fixed_deposit") {
-    const plan = getInvestmentPlan(account.investmentPlanId);
+    const plan = resolvePlanTierFromPrincipal(account, balanceForTier);
     if (plan) return plan.monthlyRate;
     return account.monthlyRatePercent;
   }
-  return getAnnualizedReturn(account.principal) / 12;
+  return getAnnualizedReturn(balanceForTier) / 12;
+}
+
+/** Approved capital only — pending deposits never count toward balance or tier */
+export function getApprovedPrincipal(
+  account: PortfolioAccount,
+  transactions: Transaction[],
+  asOf = new Date()
+): number {
+  const fromLedger = getAccountNetPrincipal(account.id, transactions, asOf);
+  if (fromLedger > 0) return fromLedger;
+  if (account.principal > 0) return account.principal;
+  return 0;
 }
 
 function addMonths(date: Date, months: number) {
@@ -125,10 +156,271 @@ function monthKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
+function startOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+export function startOfNextMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 1);
+}
+
+/**
+ * Calendar month when the displayed profit estimate will be delivered to the account.
+ * Profits credit on the first day of the month following each accrual period.
+ */
+export function resolveProfitDeliveryMonth(
+  asOf: Date,
+  options: {
+    approvedDepositTotal: number;
+    profitEligibleAt: string | null;
+    profitAccrualActive: boolean;
+    tierChangesNextMonth: boolean;
+  }
+): Date | null {
+  if (options.approvedDepositTotal <= 0) return null;
+
+  const nextCalendarMonth = startOfNextMonth(asOf);
+
+  if (!options.profitAccrualActive && options.profitEligibleAt) {
+    const eligible = new Date(options.profitEligibleAt);
+    const firstDeliveryMonth = startOfMonth(addMonths(eligible, 1));
+    if (asOf < eligible) return firstDeliveryMonth;
+  }
+
+  if (options.profitAccrualActive || options.tierChangesNextMonth) {
+    return nextCalendarMonth;
+  }
+
+  if (options.profitEligibleAt) {
+    return startOfMonth(addMonths(new Date(options.profitEligibleAt), 1));
+  }
+
+  return nextCalendarMonth;
+}
+
+function endOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
+}
+
+function shortMonthLabel(date: Date) {
+  const year = String(date.getFullYear()).slice(-2);
+  return `${MONTH_LABELS[date.getMonth()]} '${year}`;
+}
+
+export interface PortfolioGrowthChartPoint {
+  key: string;
+  label: string;
+  value: number;
+  deposited: number;
+  profitGain: number;
+  monthProfit: number;
+  projected?: boolean;
+}
+
+export interface MonthlyProfitChartPoint {
+  key: string;
+  label: string;
+  profit: number;
+  balance: number;
+  projected?: boolean;
+}
+
+/** Monthly time-series for portfolio charts — deposits, profit accrual, and projections */
+export function buildPortfolioChartSeries(
+  portfolio: UserPortfolio,
+  asOf = new Date(),
+  extras: {
+    approvedDepositTotal: number;
+    totalBalance: number;
+    nextMonthMonthlyProfit: number;
+    profitAccrualActive: boolean;
+    profitEligibleAt: string | null;
+  }
+): { growth: PortfolioGrowthChartPoint[]; monthlyProfit: MonthlyProfitChartPoint[] } {
+  const empty = {
+    growth: [] as PortfolioGrowthChartPoint[],
+    monthlyProfit: [] as MonthlyProfitChartPoint[],
+  };
+  if (extras.approvedDepositTotal <= 0) return empty;
+
+  const completedDeposits = portfolio.transactions.filter(
+    (t) => t.type === "deposit" && t.status === "completed"
+  );
+
+  const earliestMs = completedDeposits.length
+    ? Math.min(...completedDeposits.map((t) => new Date(t.date).getTime()))
+    : portfolio.accounts.length
+      ? new Date(portfolio.accounts[0].createdAt).getTime()
+      : asOf.getTime();
+
+  let cursor = startOfMonth(new Date(earliestMs));
+  const endMonth = startOfMonth(asOf);
+  const growth: PortfolioGrowthChartPoint[] = [];
+  const monthlyProfit: MonthlyProfitChartPoint[] = [];
+
+  while (cursor.getTime() <= endMonth.getTime()) {
+    const snapshotAt =
+      endOfMonth(cursor).getTime() > asOf.getTime() ? asOf : endOfMonth(cursor);
+    const key = monthKey(cursor);
+
+    let totalValue = 0;
+    let totalDeposited = 0;
+    let monthProfitSum = 0;
+
+    for (const acc of portfolio.accounts) {
+      const principal = getApprovedPrincipal(acc, portfolio.transactions, snapshotAt);
+      const growthResult = computeAccountGrowth(acc, portfolio.transactions, snapshotAt);
+      totalValue += growthResult.balance;
+      totalDeposited += principal;
+      monthProfitSum += growthResult.profitHistory
+        .filter((h) => monthKey(h.date) === key)
+        .reduce((s, h) => s + h.profit, 0);
+    }
+
+    const roundedValue = Math.round(totalValue * 100) / 100;
+    const roundedDeposited = Math.round(totalDeposited * 100) / 100;
+
+    growth.push({
+      key,
+      label: shortMonthLabel(cursor),
+      value: roundedValue,
+      deposited: roundedDeposited,
+      profitGain: Math.round((roundedValue - roundedDeposited) * 100) / 100,
+      monthProfit: Math.round(monthProfitSum * 100) / 100,
+    });
+
+    monthlyProfit.push({
+      key,
+      label: shortMonthLabel(cursor),
+      profit: Math.round(monthProfitSum * 100) / 100,
+      balance: roundedValue,
+    });
+
+    cursor = startOfNextMonth(cursor);
+  }
+
+  if (growth.length === 1) {
+    const [y, m] = growth[0].key.split("-").map(Number);
+    const prev = new Date(y, m - 2, 1);
+    const pad = {
+      key: monthKey(prev),
+      label: shortMonthLabel(prev),
+      value: 0,
+      deposited: 0,
+      profitGain: 0,
+      monthProfit: 0,
+    };
+    growth.unshift(pad);
+    monthlyProfit.unshift({
+      key: pad.key,
+      label: pad.label,
+      profit: 0,
+      balance: 0,
+    });
+  }
+
+  const nextMonth = startOfNextMonth(asOf);
+  const nextMonthEnd = endOfMonth(nextMonth);
+  const profitActiveNextMonth = portfolio.accounts.some((a) =>
+    isProfitAccrualActive(a, nextMonthEnd)
+  );
+  const projectedMonthProfit = profitActiveNextMonth
+    ? Math.round(extras.nextMonthMonthlyProfit * 100) / 100
+    : extras.profitEligibleAt &&
+        !extras.profitAccrualActive &&
+        nextMonthEnd >= new Date(extras.profitEligibleAt)
+      ? Math.round(extras.nextMonthMonthlyProfit * 100) / 100
+      : 0;
+
+  let projectedBalance = extras.totalBalance;
+  if (projectedMonthProfit > 0) {
+    projectedBalance = Math.round((extras.totalBalance + projectedMonthProfit) * 100) / 100;
+  }
+
+  const projLabel = `${shortMonthLabel(nextMonth)} (est.)`;
+  const projKey = monthKey(nextMonth);
+
+  growth.push({
+    key: projKey,
+    label: projLabel,
+    value: projectedBalance,
+    deposited: extras.approvedDepositTotal,
+    profitGain: Math.round((projectedBalance - extras.approvedDepositTotal) * 100) / 100,
+    monthProfit: projectedMonthProfit,
+    projected: true,
+  });
+  monthlyProfit.push({
+    key: projKey,
+    label: projLabel,
+    profit: projectedMonthProfit,
+    balance: projectedBalance,
+    projected: true,
+  });
+
+  const maxPoints = 13;
+  return {
+    growth: growth.slice(-maxPoints),
+    monthlyProfit: monthlyProfit.slice(-maxPoints),
+  };
+}
+
 function monthsElapsed(from: Date, to: Date) {
   return (
     (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth())
   );
+}
+
+/** Net approved capital from ledger (deposits minus withdrawals) */
+export function getAccountNetPrincipal(
+  accountId: string,
+  transactions: Transaction[],
+  asOf = new Date()
+): number {
+  const asOfMs = asOf.getTime();
+  return transactions
+    .filter(
+      (t) =>
+        t.accountId === accountId &&
+        t.status === "completed" &&
+        (t.type === "deposit" || t.type === "withdrawal") &&
+        new Date(t.date).getTime() <= asOfMs
+    )
+    .reduce((sum, t) => sum + (t.type === "deposit" ? t.amount : -t.amount), 0);
+}
+
+/**
+ * Deposit principal that determines program tier for profit in a calendar month.
+ * New deposits count toward tier from the first day of the next calendar month.
+ * Withdrawals reduce tier immediately when approved.
+ */
+export function principalForTierAtMonth(
+  accountId: string,
+  transactions: Transaction[],
+  monthStart: Date
+): number {
+  const monthStartMs = monthStart.getTime();
+  let tierPrincipal = 0;
+
+  const events = transactions
+    .filter(
+      (t) =>
+        t.accountId === accountId &&
+        t.status === "completed" &&
+        (t.type === "deposit" || t.type === "withdrawal")
+    )
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  for (const tx of events) {
+    const txDate = new Date(tx.date);
+    if (tx.type === "withdrawal" && txDate.getTime() < monthStartMs) {
+      tierPrincipal -= tx.amount;
+    }
+    if (tx.type === "deposit" && startOfNextMonth(txDate).getTime() <= monthStartMs) {
+      tierPrincipal += tx.amount;
+    }
+  }
+
+  return Math.max(0, tierPrincipal);
 }
 
 export interface AccountGrowthResult {
@@ -138,55 +430,73 @@ export interface AccountGrowthResult {
   profitHistory: { month: string; profit: number; balance: number; date: Date }[];
 }
 
-/** Apply monthly program rate + deposits chronologically */
+/** Balance = admin-approved deposits (+ profit after 30-day hold). Tier rate changes apply next calendar month. */
 export function computeAccountGrowth(
   account: PortfolioAccount,
   transactions: Transaction[],
   asOf = new Date()
 ): AccountGrowthResult {
-  const rate = resolveMonthlyRate(account);
-  const accountTx = transactions
-    .filter((t) => t.accountId === account.id && t.status === "completed")
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const principal = getApprovedPrincipal(account, transactions, asOf);
+  const profitEligibleAt = account.profitEligibleAt ? new Date(account.profitEligibleAt) : null;
+  const profitActive = isProfitAccrualActive(account, asOf);
 
-  const start = new Date(account.createdAt);
-  const totalMonths = Math.max(0, monthsElapsed(start, asOf));
-
-  let balance = 0;
+  let balance = principal;
   const profitHistory: AccountGrowthResult["profitHistory"] = [];
 
-  for (let m = 0; m <= totalMonths; m++) {
-    const periodStart = addMonths(start, m);
-    const periodEnd = addMonths(start, m + 1);
+  if (principal > 0 && profitEligibleAt && profitActive) {
+    const accrualMonths = Math.max(0, monthsElapsed(profitEligibleAt, asOf));
+    const plan = resolvePlanTierFromPrincipal(account, principal);
+    const compound = plan?.compoundInterest ?? account.type !== "savings";
 
-    for (const tx of accountTx) {
-      const txDate = new Date(tx.date);
-      if (txDate >= periodStart && txDate < periodEnd && tx.type === "deposit") {
-        balance += tx.amount;
+    let running = getAccountNetPrincipal(account.id, transactions, profitEligibleAt);
+
+    for (let m = 0; m < accrualMonths; m++) {
+      const periodStart = addMonths(profitEligibleAt, m);
+      const tierMonth = startOfMonth(periodStart);
+      const tierPrincipal = principalForTierAtMonth(account.id, transactions, tierMonth);
+      const rate = resolveMonthlyRate(account, tierPrincipal);
+      const profit = (running * rate) / 100;
+
+      if (compound) {
+        running += profit;
+      } else {
+        const cashBase = getAccountNetPrincipal(account.id, transactions, periodStart);
+        running =
+          cashBase + profitHistory.reduce((s, h) => s + h.profit, 0) + profit;
       }
-    }
 
-    if (balance > 0) {
-      const profit = (balance * rate) / 100;
-      balance += profit;
       profitHistory.push({
         month: MONTH_LABELS[periodStart.getMonth()],
         profit: Math.round(profit * 100) / 100,
-        balance: Math.round(balance * 100) / 100,
+        balance: Math.round(running * 100) / 100,
         date: new Date(periodStart),
       });
     }
+
+    balance = compound
+      ? running
+      : principal + profitHistory.reduce((s, h) => s + h.profit, 0);
   }
 
-  const monthlyProfit = balance > 0 ? (balance * rate) / 100 : 0;
+  const nextMonthTierPrincipal = principalForTierAtMonth(
+    account.id,
+    transactions,
+    startOfNextMonth(asOf)
+  );
+  const nextMonthRate = resolveMonthlyRate(account, nextMonthTierPrincipal);
+  const monthlyProfit =
+    principal > 0
+      ? Math.round(((balance * nextMonthRate) / 100) * 100) / 100
+      : 0;
+
   const annualReturnPercent =
     account.type === "savings"
-      ? getAnnualizedReturn(balance)
-      : Math.round(rate * 12 * 100) / 100;
+      ? getAnnualizedReturn(principal)
+      : Math.round(nextMonthRate * 12 * 100) / 100;
 
   return {
     balance: Math.round(balance * 100) / 100,
-    monthlyProfit: Math.round(monthlyProfit * 100) / 100,
+    monthlyProfit: profitActive ? monthlyProfit : 0,
     annualReturnPercent,
     profitHistory,
   };
@@ -194,7 +504,6 @@ export function computeAccountGrowth(
 
 export function createAccountFromSignup(data: SignupApplication, createdAt = new Date()): {
   account: PortfolioAccount;
-  openingTransaction: Transaction;
 } {
   const plan = getInvestmentPlan(data.investmentPlanId);
   const planId =
@@ -206,27 +515,22 @@ export function createAccountFromSignup(data: SignupApplication, createdAt = new
 
   const selectedPlan = plan ?? getInvestmentPlan(planId);
 
-  let principal: number;
   let monthlyRatePercent: number;
   let maturityDate: string | undefined;
 
   if (data.accountType === "investment" && selectedPlan) {
-    principal = selectedPlan.minInvestment;
     monthlyRatePercent = selectedPlan.monthlyRate;
     maturityDate = addMonths(createdAt, selectedPlan.termMonths).toISOString();
   } else if (data.accountType === "fixed_deposit") {
     if (selectedPlan) {
-      principal = Math.max(selectedPlan.minInvestment, FD_PROMO_TERMS.minDeposit);
       monthlyRatePercent = selectedPlan.monthlyRate;
       maturityDate = addMonths(createdAt, selectedPlan.termMonths).toISOString();
     } else {
-      principal = FD_PROMO_TERMS.minDeposit;
       monthlyRatePercent = FD_PROMO_TERMS.returnPercent / FD_PROMO_TERMS.termMonths;
       maturityDate = addMonths(createdAt, FD_PROMO_TERMS.termMonths).toISOString();
     }
   } else {
-    principal = incomeToOpeningDeposit(data.annualIncome);
-    monthlyRatePercent = getAnnualizedReturn(principal) / 12;
+    monthlyRatePercent = getAnnualizedReturn(0) / 12;
   }
 
   const accountId = `acc_${Date.now()}`;
@@ -234,7 +538,7 @@ export function createAccountFromSignup(data: SignupApplication, createdAt = new
     id: accountId,
     accountNumber: generateAccountNumber(),
     type: data.accountType,
-    principal,
+    principal: 0,
     monthlyRatePercent,
     investmentPlanId: planId,
     createdAt: createdAt.toISOString(),
@@ -242,22 +546,7 @@ export function createAccountFromSignup(data: SignupApplication, createdAt = new
     status: "active",
   };
 
-  const openingTransaction: Transaction = {
-    id: `tx_${Date.now()}`,
-    accountId,
-    type: "deposit",
-    amount: principal,
-    description:
-      data.accountType === "investment"
-        ? `Initial ${selectedPlan?.name ?? "Investment"} plan enrollment`
-        : data.accountType === "fixed_deposit"
-          ? "Fixed Deposit account opening"
-          : "Savings account opening deposit",
-    status: "completed",
-    date: createdAt.toISOString(),
-  };
-
-  return { account, openingTransaction };
+  return { account };
 }
 
 export function createNonprofitPortfolio(
@@ -269,7 +558,7 @@ export function createNonprofitPortfolio(
     id: accountId,
     accountNumber: generateAccountNumber(),
     type: "nonprofit_fund",
-    principal: profile.fundCapital,
+    principal: 0,
     monthlyRatePercent: profile.monthlyRate,
     createdAt: createdAt.toISOString(),
     status: "active",
@@ -277,17 +566,7 @@ export function createNonprofitPortfolio(
 
   return {
     accounts: [account],
-    transactions: [
-      {
-        id: `tx_${Date.now()}`,
-        accountId,
-        type: "deposit",
-        amount: profile.fundCapital,
-        description: `Non-profit fund enrollment — ${profile.organizationLegalName}`,
-        status: "completed",
-        date: createdAt.toISOString(),
-      },
-    ],
+    transactions: [],
   };
 }
 
@@ -383,12 +662,13 @@ export function createDemoPortfolio(): UserPortfolio {
 
 export function portfolioAccountToDisplay(
   account: PortfolioAccount,
-  growth: AccountGrowthResult
+  growth: AccountGrowthResult,
+  principal: number
 ): Account {
+  const plan = resolvePlanTierFromPrincipal(account, principal);
+  const monthlyRate = resolveMonthlyRate(account, principal);
   const annualRate =
-    account.type === "savings"
-      ? growth.annualReturnPercent
-      : resolveMonthlyRate(account) * 12;
+    account.type === "savings" ? growth.annualReturnPercent : monthlyRate * 12;
 
   return {
     id: account.id,
@@ -396,7 +676,7 @@ export function portfolioAccountToDisplay(
     type: account.type,
     balance: growth.balance,
     interestRate: Math.round(annualRate * 100) / 100,
-    investmentPlanId: account.investmentPlanId,
+    investmentPlanId: plan?.id ?? account.investmentPlanId,
     maturityDate: account.maturityDate,
     status: account.status,
     createdAt: account.createdAt,
@@ -411,19 +691,29 @@ export interface PortfolioSnapshot {
   monthlyProfit: number;
   annualReturn: number;
   ytdGrowthPercent: number;
-  monthlyProfitChart: { month: string; profit: number; balance: number }[];
-  portfolioGrowthChart: { date: string; value: number }[];
+  monthlyProfitChart: MonthlyProfitChartPoint[];
+  portfolioGrowthChart: PortfolioGrowthChartPoint[];
   sectorAllocation: typeof SECTOR_ALLOCATION;
   holdings: InvestmentHolding[];
   statements: MonthlyStatement[];
   primaryPlanId?: string;
+  currentPlanId?: string;
+  nextMonthPlanId?: string;
+  nextMonthMonthlyProfit: number;
+  nextMonthRatePercent: number;
+  profitDeliveryMonth: string | null;
+  pendingDepositTotal: number;
+  approvedDepositTotal: number;
+  profitEligibleAt: string | null;
+  profitAccrualActive: boolean;
 }
 
 export function buildPortfolioSnapshot(
   user: User | null,
   asOf = new Date()
 ): PortfolioSnapshot {
-  const portfolio = user?.portfolio ?? createDemoPortfolio();
+  const emptyPortfolio: UserPortfolio = { accounts: [], transactions: [] };
+  const portfolio = user?.portfolio ?? (user ? emptyPortfolio : createDemoPortfolio());
   const isNonprofit = user?.profileType === "nonprofit";
 
   if (isNonprofit && user?.nonprofitProfile && portfolio.accounts.length === 0) {
@@ -432,17 +722,42 @@ export function buildPortfolioSnapshot(
     portfolio.transactions = np.transactions;
   }
 
-  const accountResults = portfolio.accounts.map((acc) => ({
-    account: acc,
-    growth: computeAccountGrowth(acc, portfolio.transactions, asOf),
-  }));
+  const accountResults = portfolio.accounts.map((acc) => {
+    const principal = getApprovedPrincipal(acc, portfolio.transactions, asOf);
+    return {
+      account: acc,
+      principal,
+      growth: computeAccountGrowth(acc, portfolio.transactions, asOf),
+    };
+  });
 
-  const accounts = accountResults.map(({ account, growth }) =>
-    portfolioAccountToDisplay(account, growth)
-  );
+  const approvedDepositTotal = accountResults.reduce((sum, r) => sum + r.principal, 0);
 
-  const totalBalance = accounts.reduce((s, a) => s + a.balance, 0);
-  const monthlyProfit = accountResults.reduce((s, r) => s + r.growth.monthlyProfit, 0);
+  const accounts =
+    approvedDepositTotal > 0
+      ? accountResults.map(({ account, growth, principal }) =>
+          portfolioAccountToDisplay(account, growth, principal)
+        )
+      : accountResults.map(({ account }) => ({
+          id: account.id,
+          accountNumber: account.accountNumber,
+          type: account.type,
+          balance: 0,
+          interestRate: 0,
+          investmentPlanId: account.investmentPlanId,
+          maturityDate: account.maturityDate,
+          status: account.status,
+          createdAt: account.createdAt,
+        }));
+
+  const totalBalance =
+    approvedDepositTotal > 0
+      ? accounts.reduce((s, a) => s + a.balance, 0)
+      : 0;
+  const monthlyProfit =
+    approvedDepositTotal > 0
+      ? accountResults.reduce((s, r) => s + r.growth.monthlyProfit, 0)
+      : 0;
 
   const weightedAnnual =
     totalBalance > 0
@@ -451,48 +766,6 @@ export function buildPortfolioSnapshot(
           0
         ) / totalBalance
       : 0;
-
-  const allHistory = accountResults.flatMap((r) =>
-    r.growth.profitHistory.map((h) => ({ ...h, accountId: r.account.id }))
-  );
-
-  const byMonth = new Map<string, { profit: number; balance: number }>();
-  for (const entry of allHistory) {
-    const key = monthKey(entry.date);
-    const existing = byMonth.get(key) ?? { profit: 0, balance: 0 };
-    existing.profit += entry.profit;
-    existing.balance += entry.balance;
-    byMonth.set(key, existing);
-  }
-
-  const sortedMonths = [...byMonth.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-  const last12 = sortedMonths.slice(-12);
-
-  const monthlyProfitChart = last12.map(([key, val]) => {
-    const monthIdx = parseInt(key.split("-")[1], 10) - 1;
-    return {
-      month: MONTH_LABELS[monthIdx] ?? key,
-      profit: Math.round(val.profit),
-      balance: Math.round(val.balance),
-    };
-  });
-
-  const portfolioGrowthChart = last12.map(([key, val]) => ({
-    date: key,
-    value: Math.round(val.balance),
-  }));
-
-  if (monthlyProfitChart.length === 0 && totalBalance > 0) {
-    monthlyProfitChart.push({
-      month: MONTH_LABELS[asOf.getMonth()],
-      profit: Math.round(monthlyProfit),
-      balance: Math.round(totalBalance),
-    });
-    portfolioGrowthChart.push({
-      date: monthKey(asOf),
-      value: Math.round(totalBalance),
-    });
-  }
 
   const yearStart = new Date(asOf.getFullYear(), 0, 1);
   const balanceAtYearStart = portfolio.accounts.reduce((sum, acc) => {
@@ -504,45 +777,130 @@ export function buildPortfolioSnapshot(
       ? Math.round(((totalBalance - balanceAtYearStart) / balanceAtYearStart) * 1000) / 10
       : 0;
 
-  const investmentAccount = accounts.find(
-    (a) => a.type === "investment" || a.type === "fixed_deposit"
+  const investmentAccount = accountResults.find(
+    (r) => r.account.type === "investment" || r.account.type === "fixed_deposit"
   );
-  const investmentBalance = investmentAccount?.balance ?? totalBalance;
-  const planRate =
-    investmentAccount?.investmentPlanId
-      ? getInvestmentPlan(investmentAccount.investmentPlanId)?.monthlyRate ?? 4
-      : 4;
+  const investmentBalance =
+    approvedDepositTotal > 0
+      ? investmentAccount?.growth.balance ?? totalBalance
+      : 0;
 
-  const holdings: InvestmentHolding[] = HOLDING_TEMPLATES.map((h) => ({
-    ...h,
-    value: Math.round((investmentBalance * h.allocation) / 100),
-    monthlyReturn: planRate * (h.allocation / 100) * 0.15,
-    ytdReturn: ytdGrowthPercent * (h.allocation / 100),
-  }));
+  const currentMonthStart = startOfMonth(asOf);
+  const nextMonthStart = startOfNextMonth(asOf);
 
-  const statements: MonthlyStatement[] = last12
+  const primaryLedgerAccount =
+    investmentAccount?.account ?? accountResults[0]?.account;
+
+  const currentTierPrincipal = primaryLedgerAccount
+    ? principalForTierAtMonth(
+        primaryLedgerAccount.id,
+        portfolio.transactions,
+        currentMonthStart
+      )
+    : 0;
+  const nextMonthTierPrincipal = primaryLedgerAccount
+    ? principalForTierAtMonth(
+        primaryLedgerAccount.id,
+        portfolio.transactions,
+        nextMonthStart
+      )
+    : 0;
+
+  const currentPlan = primaryLedgerAccount
+    ? resolvePlanTierFromPrincipal(primaryLedgerAccount, currentTierPrincipal)
+    : null;
+  const nextMonthPlan = primaryLedgerAccount
+    ? resolvePlanTierFromPrincipal(primaryLedgerAccount, nextMonthTierPrincipal)
+    : null;
+
+  const nextMonthRatePercent = primaryLedgerAccount
+    ? resolveMonthlyRate(primaryLedgerAccount, nextMonthTierPrincipal)
+    : 0;
+  const nextMonthMonthlyProfit =
+    approvedDepositTotal > 0 && totalBalance > 0
+      ? Math.round(((totalBalance * nextMonthRatePercent) / 100) * 100) / 100
+      : 0;
+
+  const profitEligibleDates = portfolio.accounts
+    .map((a) => a.profitEligibleAt)
+    .filter((d): d is string => Boolean(d))
+    .sort();
+
+  const profitEligibleAt = profitEligibleDates[0] ?? null;
+  const profitAccrualActive = portfolio.accounts.some((a) => isProfitAccrualActive(a, asOf));
+
+  const chartSeries = buildPortfolioChartSeries(portfolio, asOf, {
+    approvedDepositTotal,
+    totalBalance,
+    nextMonthMonthlyProfit,
+    profitAccrualActive,
+    profitEligibleAt,
+  });
+  const portfolioGrowthChart = chartSeries.growth;
+  const monthlyProfitChart = chartSeries.monthlyProfit;
+
+  const planRate = investmentAccount
+    ? resolveMonthlyRate(investmentAccount.account, nextMonthTierPrincipal)
+    : 4;
+
+  const holdings: InvestmentHolding[] =
+    approvedDepositTotal > 0
+      ? HOLDING_TEMPLATES.map((h) => ({
+          ...h,
+          value: Math.round((investmentBalance * h.allocation) / 100),
+          monthlyReturn: planRate * (h.allocation / 100) * 0.15,
+          ytdReturn: ytdGrowthPercent * (h.allocation / 100),
+        }))
+      : HOLDING_TEMPLATES.map((h) => ({
+          ...h,
+          value: 0,
+          monthlyReturn: 0,
+          ytdReturn: 0,
+        }));
+
+  const statementMonths = monthlyProfitChart.filter((p) => !p.projected);
+  const statements: MonthlyStatement[] = statementMonths
     .slice()
     .reverse()
-    .map(([key, val], i, arr) => {
-      const [year, month] = key.split("-").map(Number);
-      const prev = arr[i + 1]?.[1];
-      const opening = prev ? prev.balance - prev.profit : val.balance - val.profit;
+    .map((point, i, arr) => {
+      const [year, month] = point.key.split("-").map(Number);
+      const prev = arr[i + 1];
+      const opening = prev ? prev.balance - prev.profit : point.balance - point.profit;
       return {
-        id: `stmt_${key}`,
+        id: `stmt_${point.key}`,
         month: MONTH_LABELS[month - 1],
         year,
         openingBalance: Math.round(opening),
-        closingBalance: Math.round(val.balance),
+        closingBalance: Math.round(point.balance),
         totalDeposits: 0,
         totalWithdrawals: 0,
-        profitEarned: Math.round(val.profit),
+        profitEarned: Math.round(point.profit),
         annualizedReturn: Math.round(weightedAnnual * 10) / 10,
       };
     });
 
   const primaryPlanId =
+    nextMonthPlan?.id ??
+    currentPlan?.id ??
     portfolio.accounts.find((a) => a.investmentPlanId)?.investmentPlanId ??
     INVESTMENT_PLANS[0].id;
+
+  const pendingDepositTotal = portfolio.transactions
+    .filter((t) => t.type === "deposit" && t.status === "pending")
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const tierChangesNextMonth = Boolean(
+    currentPlan && nextMonthPlan && currentPlan.id !== nextMonthPlan.id
+  );
+  const profitDeliveryDate = resolveProfitDeliveryMonth(asOf, {
+    approvedDepositTotal,
+    profitEligibleAt,
+    profitAccrualActive,
+    tierChangesNextMonth,
+  });
+  const profitDeliveryMonth = profitDeliveryDate
+    ? profitDeliveryDate.toISOString()
+    : null;
 
   return {
     accounts,
@@ -560,7 +918,30 @@ export function buildPortfolioSnapshot(
     holdings,
     statements,
     primaryPlanId,
+    currentPlanId: currentPlan?.id,
+    nextMonthPlanId: nextMonthPlan?.id,
+    nextMonthMonthlyProfit,
+    nextMonthRatePercent,
+    profitDeliveryMonth,
+    pendingDepositTotal,
+    approvedDepositTotal,
+    profitEligibleAt,
+    profitAccrualActive,
   };
+}
+
+export function accountRatesForPrincipal(
+  account: Pick<PortfolioAccount, "type" | "monthlyRatePercent" | "investmentPlanId">,
+  principal: number
+): { investmentPlanId?: string; monthlyRatePercent: number } {
+  if (account.type === "investment" || account.type === "fixed_deposit") {
+    const plan = resolvePlanTierFromPrincipal(account, principal)!;
+    return { investmentPlanId: plan.id, monthlyRatePercent: plan.monthlyRate };
+  }
+  if (account.type === "savings") {
+    return { monthlyRatePercent: getAnnualizedReturn(principal) / 12 };
+  }
+  return { monthlyRatePercent: account.monthlyRatePercent };
 }
 
 export function recordDepositOnPortfolio(
@@ -573,9 +954,7 @@ export function recordDepositOnPortfolio(
   if (!account) return portfolio;
 
   return {
-    accounts: portfolio.accounts.map((a) =>
-      a.id === accountId ? { ...a, principal: a.principal + amount } : a
-    ),
+    accounts: portfolio.accounts,
     transactions: [
       {
         id: `tx_${Date.now()}`,
@@ -583,7 +962,7 @@ export function recordDepositOnPortfolio(
         type: "deposit",
         amount,
         description,
-        status: "completed",
+        status: "pending",
         date: new Date().toISOString(),
       },
       ...portfolio.transactions,

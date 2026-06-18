@@ -7,6 +7,10 @@ interface LoanProductVisualProps {
   className?: string;
   comingSoon?: boolean;
   compact?: boolean;
+  /** Uniform thumbnail for the product grid */
+  glance?: boolean;
+  /** Sized for side-by-side use inside product cards */
+  embedded?: boolean;
 }
 
 export function LoanProductVisual({
@@ -14,14 +18,22 @@ export function LoanProductVisual({
   className,
   comingSoon = true,
   compact = false,
+  glance = false,
+  embedded = false,
 }: LoanProductVisualProps) {
   const Icon = product.icon;
 
   return (
     <div
       className={cn(
-        "relative w-full overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/10",
-        compact ? "max-w-[300px] aspect-[1.586/1]" : "max-w-[380px] aspect-[1.586/1]",
+        "relative shrink-0 overflow-hidden rounded-2xl ring-1 ring-white/10",
+        glance
+          ? "h-[126px] w-[200px] shadow-lg"
+          : embedded
+            ? "aspect-[1.586/1] w-full shadow-md"
+            : compact
+              ? "h-[126px] w-[200px] shadow-lg"
+              : "aspect-[1.586/1] w-[320px] max-w-full shadow-xl",
         className
       )}
       style={{ background: product.gradient }}
@@ -29,37 +41,67 @@ export function LoanProductVisual({
       <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10" />
       <div className="pointer-events-none absolute -bottom-12 -left-8 h-36 w-36 rounded-full bg-white/5" />
 
-      <div className="relative flex h-full flex-col justify-between p-5 sm:p-6">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm">
-            <Icon className="h-5 w-5 text-white" strokeWidth={2} />
+      <div
+        className={cn(
+          "relative flex h-full min-h-0 flex-col justify-between",
+          glance ? "p-3" : embedded ? "p-4" : compact ? "p-3" : "p-5 sm:p-6"
+        )}
+      >
+        <div className="flex items-start justify-between gap-1.5">
+          <div
+            className={cn(
+              "flex shrink-0 items-center justify-center rounded-lg bg-white/15 backdrop-blur-sm",
+              glance || embedded || compact ? "h-7 w-7" : "h-10 w-10"
+            )}
+          >
+            <Icon
+              className={cn("text-white", glance || embedded || compact ? "h-3.5 w-3.5" : "h-5 w-5")}
+              strokeWidth={2}
+            />
           </div>
-          <div className="rounded-lg bg-white/95 px-2 py-1 shadow-md">
+          <div className="shrink-0 rounded-md bg-white/95 px-1 py-0.5 shadow-sm">
             <Image
               src="/logo.png"
               alt="AWS Vision"
               width={100}
               height={40}
-              className={cn("w-auto object-contain", compact ? "h-6" : "h-8")}
+              className={cn(
+                "w-auto object-contain",
+                glance ? "h-4" : embedded ? "h-5" : compact ? "h-5" : "h-8"
+              )}
             />
           </div>
         </div>
 
-        <div>
-          <p className={cn("font-bold text-white leading-tight", compact ? "text-sm" : "text-base")}>
+        <div className="min-h-0">
+          <p
+            className={cn(
+              "truncate font-bold text-white leading-tight",
+              glance ? "text-[11px]" : embedded ? "text-xs" : compact ? "text-xs" : "text-base"
+            )}
+          >
             {product.shortName}
           </p>
-          <p className={cn("mt-1 text-white/70", compact ? "text-[10px]" : "text-xs")}>
-            {product.tagline}
-          </p>
-          <div className="mt-3 flex items-end justify-between gap-2">
-            <p
-              className={cn("font-semibold", compact ? "text-[10px]" : "text-xs")}
-              style={{ color: product.accent }}
-            >
-              {product.rateLabel}
+          {!embedded && !glance && (
+            <p className={cn("mt-0.5 line-clamp-1 text-white/70", compact ? "text-[9px]" : "text-xs")}>
+              {product.tagline}
             </p>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-white/50">
+          )}
+          <div className={cn("flex items-end justify-between gap-1", glance ? "mt-1" : embedded ? "mt-2" : "mt-2")}>
+            {!embedded && !glance && (
+              <p
+                className={cn("line-clamp-1 font-semibold", compact ? "text-[9px]" : "text-xs")}
+                style={{ color: product.accent }}
+              >
+                {product.rateLabel}
+              </p>
+            )}
+            <p
+              className={cn(
+                "shrink-0 font-bold uppercase tracking-widest text-white/50",
+                glance ? "ml-auto text-[7px]" : embedded ? "ml-auto text-[8px]" : "text-[8px]"
+              )}
+            >
               AWS Vision Lending
             </p>
           </div>
@@ -68,7 +110,16 @@ export function LoanProductVisual({
 
       {comingSoon && (
         <div className="absolute inset-0 flex items-center justify-center bg-slate-950/35 backdrop-blur-[1px]">
-          <span className="rounded-full bg-teal-600 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-lg ring-2 ring-white/20 sm:text-xs">
+          <span
+            className={cn(
+              "rounded-full bg-teal-600 font-bold uppercase tracking-wide text-white shadow-lg ring-2 ring-white/20",
+              glance
+                ? "px-2 py-0.5 text-[8px]"
+                : embedded
+                  ? "px-2 py-1 text-[9px]"
+                  : "px-3 py-1.5 text-[10px] sm:text-xs"
+            )}
+          >
             Launching Soon
           </span>
         </div>

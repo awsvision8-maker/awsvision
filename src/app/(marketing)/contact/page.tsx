@@ -7,7 +7,7 @@ import {
   ProductsWaitlistSection,
   WaitlistForm,
 } from "@/components/marketing/contact-forms";
-import { OFFICES, SITE } from "@/lib/site-data";
+import { OFFICES, SITE, MARYLAND_HEADQUARTERS, formatSitePhones, formatSitePhonesMultiline } from "@/lib/site-data";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata("/contact");
@@ -31,7 +31,7 @@ export default function ContactPage() {
             <ContactCard
               icon={Phone}
               title="Phone"
-              desc={`${SITE.phone}\n${SITE.supportHours}`}
+              desc={`${formatSitePhonesMultiline()}\n${SITE.supportHours}`}
               href={`tel:${SITE.phoneDisplay}`}
             />
             <ContactCard
@@ -42,8 +42,8 @@ export default function ContactPage() {
             />
             <ContactCard
               icon={MapPin}
-              title="Registered Office"
-              desc={`${SITE.address.full}\nUnited States`}
+              title="U.S. Headquarters"
+              desc={`Registered Office\n${SITE.address.full}, United States\n\nHeadquarters\n${MARYLAND_HEADQUARTERS.full}, United States`}
             />
             <ContactCard
               icon={Clock}
@@ -67,7 +67,7 @@ export default function ContactPage() {
         <section id="branches" className="mt-16">
           <h2 className="text-2xl font-bold text-slate-900">Our Offices</h2>
           <p className="mt-2 text-slate-600">
-            Headquartered in Delaware, USA with licensed operations in the UAE
+            U.S. headquarters in Delaware and Maryland
           </p>
           <div className="mt-8 grid gap-6 sm:grid-cols-2">
             {OFFICES.map((office) => (
@@ -78,7 +78,7 @@ export default function ContactPage() {
                     <h3 className="font-semibold text-slate-900">{office.name}</h3>
                     <p className="mt-1 text-sm text-slate-600">{office.address}</p>
                     <a
-                      href={`tel:${SITE.phoneDisplay}`}
+                      href={`tel:${office.phoneDisplay}`}
                       className="mt-2 block text-sm text-teal-600 hover:underline"
                     >
                       {office.phone}
@@ -142,14 +142,14 @@ export default function ContactPage() {
         <section id="appointment" className="mt-16 rounded-xl bg-teal-700 p-5 sm:p-8 text-white">
           <h2 className="text-2xl font-bold">Schedule an Appointment</h2>
           <p className="mt-2 text-teal-100 max-w-xl">
-            Meet with an AWS Vision specialist at your convenience — in person at our Delaware
-            office, by phone, or video call.
+            Meet with an AWS Vision specialist at your convenience — in person at our Delaware or
+            Maryland office, by phone, or video call.
           </p>
           <AppointmentForm />        </section>
 
         <section id="help" className="mt-16 rounded-xl bg-slate-50 p-8">
           <h2 className="text-xl font-bold">Help Center</h2>
-          <p className="mt-2 text-slate-600">Common questions — or call {SITE.phone}</p>
+          <p className="mt-2 text-slate-600">Common questions — or call {formatSitePhones(" / ")}</p>
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             {[
               { q: "How do I open an investment account?", a: `Click Get Started or email ${SITE.email}. Complete signup, KYC verification, and fund your account online.` },

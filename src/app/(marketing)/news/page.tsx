@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { NEWS_ARTICLES } from "@/lib/boa-content";
 import { Button } from "@/components/ui/button";
+import { NewsJsonLd } from "@/components/seo/news-json-ld";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata("/news");
@@ -9,6 +10,7 @@ export const metadata = pageMetadata("/news");
 export default function NewsPage() {
   return (
     <div>
+      <NewsJsonLd />
       <section className="bg-gradient-to-br from-slate-950 to-teal-950 py-16 text-white">
         <div className="mx-auto max-w-7xl px-6">
           <h1 className="text-4xl font-bold">News & Updates</h1>

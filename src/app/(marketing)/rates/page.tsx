@@ -5,6 +5,7 @@ import { RATES_DATA } from "@/lib/site-data";
 import { getFdRates } from "@/lib/fd-rates";
 import { getActiveFdPromo } from "@/lib/promotions";
 import { OPEN_NOW_MESSAGE, COMING_SOON_MESSAGE } from "@/lib/product-availability";
+import { RatesJsonLd } from "@/components/seo/rates-json-ld";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata("/rates");
@@ -15,6 +16,7 @@ export default function RatesPage() {
 
   return (
     <div className="overflow-x-hidden">
+      <RatesJsonLd />
       <section className="bg-gradient-to-br from-slate-950 to-teal-950 py-12 text-white sm:py-16">
         <div className="page-container">
           <h1 className="text-3xl font-bold sm:text-4xl">Today&apos;s Rates</h1>

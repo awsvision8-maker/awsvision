@@ -6,11 +6,49 @@ const prisma = new PrismaClient();
 
 const DEMO_EMAIL = "client@awsvision.com";
 const DEMO_PASSWORD = "demo1234";
+const ADMIN_EMAIL = process.env.ADMIN_PORTAL_EMAIL || process.env.ADMIN_EMAIL || "admin@awsvision.com";
+const ADMIN_PASSWORD = process.env.ADMIN_PORTAL_PASSWORD || "admin1234";
 
-async function main() {
-  const existing = await prisma.user.findUnique({ where: { email: DEMO_EMAIL } });
+async function seedAdmin() {
+  const existing = await prisma.admin.findUnique({ where: { email: ADMIN_EMAIL } });
   if (existing) {
-    console.log("Demo user already exists — skipping seed");
+    console.log("Admin user already exists — skipping admin seed");
+    return;
+  }
+  await prisma.admin.create({
+    data: {
+      email: ADMIN_EMAIL,
+      passwordHash: await bcrypt.hash(ADMIN_PASSWORD, 12),
+      name: "AWS Vision Admin",
+      role: "admin",
+    },
+  });
+  console.log(`Seeded admin: ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);
+}
+
+async function seedDemoUser() {
+  const existing = await prisma.user.findUnique({
+    where: { email: DEMO_EMAIL },
+    include: { accounts: true },
+  });
+
+  if (existing) {
+    await prisma.portfolioAccount.updateMany({
+      where: { userId: existing.id },
+      data: { principal: 0, profitEligibleAt: null },
+    });
+    await prisma.transaction.updateMany({
+      where: {
+        userId: existing.id,
+        type: "deposit",
+        status: { in: ["completed", "pending"] },
+      },
+      data: {
+        status: "failed",
+        description: "Legacy demo deposit [legacy reset — new deposit required]",
+      },
+    });
+    console.log("Demo user exists — portfolio reset to $0 (deposit required)");
     return;
   }
 
@@ -56,6 +94,11 @@ async function main() {
   });
 
   console.log(`Seeded demo user: ${DEMO_EMAIL} / ${DEMO_PASSWORD}`);
+}
+
+async function main() {
+  await seedAdmin();
+  await seedDemoUser();
 }
 
 main()

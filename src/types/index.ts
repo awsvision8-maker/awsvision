@@ -46,6 +46,8 @@ export interface PortfolioAccount {
   createdAt: string;
   maturityDate?: string;
   status: "active" | "matured" | "closed";
+  /** Profit accrual starts on or after this date (30 days after first approved deposit) */
+  profitEligibleAt?: string;
 }
 
 export interface UserPortfolio {
@@ -143,6 +145,7 @@ export interface SignupApplication {
   termsAccepted: boolean;
   eSignConsent: boolean;
   patriotActConsent: boolean;
+  referralCode?: string;
 }
 
 export interface KYCData {

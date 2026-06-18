@@ -12,7 +12,10 @@ import {
 } from "lucide-react";
 import { getFdPromoSummary } from "@/lib/promotions";
 
-export { SITE, OFFICES, BRANCHES } from "./site-config";
+export { SITE, OFFICES, BRANCHES, US_HEADQUARTERS, MARYLAND_HEADQUARTERS, REGISTERED_OFFICE, SITE_PHONES, formatUsHeadquarters, formatSitePhones, formatSitePhonesMultiline } from "./site-config";
+
+/** TEAMBASED Tax Services — legal & financial advisory partner */
+export const TEAMBASED_TAX_URL = "https://tbtaxservice.com/";
 
 export const MAIN_NAV = [
   {
@@ -136,6 +139,13 @@ export const MAIN_NAV = [
           { label: "Identity Monitoring", href: "/security#identity", desc: "24/7 identity theft protection" },
         ],
       },
+      {
+        title: "Advisory & Legal",
+        links: [
+          { label: "Legal Services", href: TEAMBASED_TAX_URL, desc: "Tax and legal counsel via TEAMBASED Tax Services" },
+          { label: "Financial Advisory", href: TEAMBASED_TAX_URL, desc: "Professional financial planning and advisory" },
+        ],
+      },
     ],
   },
 ];
@@ -178,6 +188,9 @@ export const FOOTER_LINKS = {
     { label: "Schedule Appointment", href: "/contact#appointment" },
     { label: "Security", href: "/security" },
     { label: "Financial Education", href: "/financial-education" },
+    { label: "Referral Program", href: "/referral-program" },
+    { label: "Legal Services", href: TEAMBASED_TAX_URL },
+    { label: "Financial Advisory", href: TEAMBASED_TAX_URL },
   ],
   company: [
     { label: "About AWS Vision", href: "/about" },

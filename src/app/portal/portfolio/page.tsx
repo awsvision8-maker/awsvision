@@ -6,6 +6,8 @@ import {
   getAccountInvestmentPlan,
 } from "@/components/portal/investment-plan-summary";
 import {
+  BalanceTrendChart,
+  MonthlyProfitChart,
   PortfolioGrowthChart,
   RegionAllocationChart,
   SectorAllocationChart,
@@ -13,19 +15,33 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { REGION_ALLOCATION } from "@/lib/mock-data";
+import { getInvestmentPlan } from "@/lib/investment-plans";
 import { usePortfolio } from "@/lib/use-portfolio";
 import { MobileDataCard } from "@/components/ui/mobile-data-card";
-import { formatCurrency, formatPercent } from "@/lib/utils";
+import { formatCurrency, formatPercent, formatMonthYear } from "@/lib/utils";
 
 export default function PortfolioPage() {
   const portfolio = usePortfolio();
   const investmentAccount = portfolio.accounts.find(
     (a) => a.type === "investment" || a.type === "fixed_deposit" || a.type === "nonprofit_fund"
   );
-  const enrolledPlan = investmentAccount
-    ? getAccountInvestmentPlan(investmentAccount)
-    : undefined;
-  const totalValue = portfolio.holdings.reduce((s, h) => s + h.value, 0);
+  const enrolledPlan = portfolio.nextMonthPlanId
+    ? getInvestmentPlan(portfolio.nextMonthPlanId)
+    : investmentAccount
+      ? getAccountInvestmentPlan(investmentAccount)
+      : undefined;
+  const totalValue =
+    portfolio.approvedDepositTotal > 0
+      ? portfolio.holdings.reduce((s, h) => s + h.value, 0)
+      : 0;
+  const profitEstimate = portfolio.profitAccrualActive
+    ? portfolio.monthlyProfit
+    : portfolio.approvedDepositTotal > 0
+      ? portfolio.nextMonthMonthlyProfit
+      : 0;
+  const profitDeliveryLabel = portfolio.profitDeliveryMonth
+    ? formatMonthYear(portfolio.profitDeliveryMonth)
+    : null;
 
   return (
     <>
@@ -34,10 +50,12 @@ export default function PortfolioPage() {
         subtitle="Values update monthly per your enrolled plan rate and deposit history"
       />
       <div className="space-y-6 p-4 sm:p-6 lg:p-8">
-        {enrolledPlan && investmentAccount && (
+        {enrolledPlan && investmentAccount && portfolio.approvedDepositTotal > 0 && (
           <InvestmentPlanSummary
             plan={enrolledPlan}
             capitalBalance={investmentAccount.balance}
+            profitDeliveryMonth={profitDeliveryLabel ?? undefined}
+            monthlyProfitEstimate={profitEstimate}
           />
         )}
 
@@ -47,17 +65,37 @@ export default function PortfolioPage() {
             {formatCurrency(totalValue || portfolio.totalBalance)}
           </p>
           <p className="mt-2 text-sm text-teal-300">
-            Monthly profit est. {formatCurrency(portfolio.monthlyProfit)} · YTD growth{" "}
-            {formatPercent(portfolio.ytdGrowthPercent)}
+            {portfolio.approvedDepositTotal === 0
+              ? "Portfolio value appears after admin approves your deposit"
+              : profitDeliveryLabel
+                ? `Monthly profit est. ${formatCurrency(profitEstimate)} · Delivered in ${profitDeliveryLabel} · YTD growth ${formatPercent(portfolio.ytdGrowthPercent)}`
+                : `Monthly profit est. ${formatCurrency(profitEstimate)} · YTD growth ${formatPercent(portfolio.ytdGrowthPercent)}`}
           </p>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <SectorAllocationChart data={portfolio.sectorAllocation} />
-          <RegionAllocationChart data={REGION_ALLOCATION} />
-        </div>
+        {portfolio.approvedDepositTotal > 0 && (
+          <>
+            <div className="grid gap-6 lg:grid-cols-2">
+              <PortfolioGrowthChart data={portfolio.portfolioGrowthChart} />
+              <MonthlyProfitChart data={portfolio.monthlyProfitChart} />
+            </div>
 
-        <PortfolioGrowthChart data={portfolio.portfolioGrowthChart} />
+            <div className="grid gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                <BalanceTrendChart data={portfolio.monthlyProfitChart} />
+              </div>
+              <SectorAllocationChart
+                data={portfolio.sectorAllocation}
+                invested={portfolio.approvedDepositTotal > 0}
+              />
+            </div>
+
+            <RegionAllocationChart
+              data={REGION_ALLOCATION}
+              invested={portfolio.approvedDepositTotal > 0}
+            />
+          </>
+        )}
 
         <Card>
           <CardHeader>

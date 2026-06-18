@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Phone, MapPin, Globe, Mail } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
-import { FOOTER_LINKS, SITE } from "@/lib/site-data";
+import { DeveloperCredit } from "@/components/marketing/developer-credit";
+import { FOOTER_LINKS, MARYLAND_HEADQUARTERS, SITE } from "@/lib/site-data";
 
 export function SiteFooter() {
   const columns = [
@@ -41,18 +42,26 @@ export function SiteFooter() {
 
       <div className="border-b border-slate-800">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
-          <div className="flex flex-col items-center justify-center gap-4 text-center text-sm sm:flex-row sm:flex-wrap sm:gap-8">
-            <a href={`tel:${SITE.phoneDisplay}`} className="flex items-center gap-2 hover:text-teal-400 transition-colors">
-              <Phone className="h-4 w-4" />
-              {SITE.phone}
-            </a>
+          <div className="flex flex-col items-center justify-center gap-2 text-center text-sm sm:flex-row sm:flex-wrap sm:gap-8">
+            <div className="flex flex-col items-center gap-1 sm:items-start">
+              {SITE.phones.map((p) => (
+                <a
+                  key={p.tel}
+                  href={`tel:${p.tel}`}
+                  className="flex items-center gap-2 hover:text-teal-400 transition-colors"
+                >
+                  <Phone className="h-4 w-4" />
+                  {p.display}
+                </a>
+              ))}
+            </div>
             <a href={`mailto:${SITE.email}`} className="flex items-center gap-2 hover:text-teal-400 transition-colors">
               <Mail className="h-4 w-4" />
               {SITE.email}
             </a>
             <Link href="/contact#branches" className="flex items-center gap-2 hover:text-teal-400 transition-colors">
               <MapPin className="h-4 w-4" />
-              {SITE.address.city}, {SITE.address.state}
+              {SITE.address.city}, {SITE.address.state} & {MARYLAND_HEADQUARTERS.city}, {MARYLAND_HEADQUARTERS.state}
             </Link>
             <span className="flex items-center gap-2">
               <Globe className="h-4 w-4" />
@@ -78,6 +87,7 @@ export function SiteFooter() {
           <Link href="/about#accessibility" className="hover:text-teal-400">Accessibility</Link>
           <Link href="/about#disclosures" className="hover:text-teal-400">Disclosures</Link>
         </div>
+        <DeveloperCredit className="mt-6 text-center sm:text-left" />
       </div>
     </footer>
   );

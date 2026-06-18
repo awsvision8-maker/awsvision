@@ -64,6 +64,7 @@ export const INITIAL_SIGNUP_FORM: SignupApplication = {
   termsAccepted: false,
   eSignConsent: false,
   patriotActConsent: false,
+  referralCode: "",
 };
 
 export function formatSSN(value: string): string {

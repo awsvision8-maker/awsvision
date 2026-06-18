@@ -4,6 +4,8 @@ import { getInvestmentPlan, formatUsd, type InvestmentPlan } from "@/lib/investm
 interface InvestmentPlanSummaryProps {
   plan: InvestmentPlan;
   capitalBalance?: number;
+  monthlyProfitEstimate?: number;
+  profitDeliveryMonth?: string;
   className?: string;
 }
 
@@ -11,10 +13,13 @@ interface InvestmentPlanSummaryProps {
 export function InvestmentPlanSummary({
   plan,
   capitalBalance,
+  monthlyProfitEstimate,
+  profitDeliveryMonth,
   className,
 }: InvestmentPlanSummaryProps) {
   const monthlyProfit =
-    capitalBalance != null ? (capitalBalance * plan.monthlyRate) / 100 : null;
+    monthlyProfitEstimate ??
+    (capitalBalance != null ? (capitalBalance * plan.monthlyRate) / 100 : null);
 
   return (
     <div
@@ -73,6 +78,12 @@ export function InvestmentPlanSummary({
             <span className="font-bold text-emerald-700 tabular-nums">
               {formatUsd(monthlyProfit)}
             </span>
+            {profitDeliveryMonth && (
+              <span className="text-slate-600">
+                {" "}
+                · delivered in <strong className="text-slate-800">{profitDeliveryMonth}</strong>
+              </span>
+            )}
             <span className="text-slate-500"> · based on {formatUsd(capitalBalance)} deployed</span>
           </div>
         )}

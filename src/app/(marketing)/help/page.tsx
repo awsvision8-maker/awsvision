@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { HelpCircle, Phone, Mail, MessageCircle, FileText, Shield, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { HelpSearchSection } from "@/components/marketing/help-search";
 import { SITE } from "@/lib/site-config";
 import { pageMetadata } from "@/lib/seo";
 
@@ -21,9 +23,12 @@ export default function HelpPage() {
           <HelpCircle className="h-12 w-12 text-teal-400" />
           <h1 className="mt-4 text-4xl font-bold">Help Center</h1>
           <p className="mt-4 max-w-2xl text-slate-300">
-            How can we help you? Browse topics below or contact our team directly.
+            How can we help you? Search below or browse topics.
           </p>
         </div>
+        <Suspense fallback={null}>
+          <HelpSearchSection />
+        </Suspense>
       </section>
       <div className="mx-auto max-w-7xl px-6 py-16">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -48,7 +53,7 @@ export default function HelpPage() {
                 "How do I report fraud on my account?",
               ].map((q) => (
                 <li key={q}>
-                  <Link href="/faq" className="text-sm text-teal-700 hover:underline">{q}</Link>
+                  <Link href={`/help?q=${encodeURIComponent(q.replace("?", ""))}`} className="text-sm text-teal-700 hover:underline">{q}</Link>
                 </li>
               ))}
             </ul>
@@ -59,10 +64,12 @@ export default function HelpPage() {
           <div className="rounded-xl border border-slate-200 p-8">
             <h2 className="text-xl font-bold">Contact Support</h2>
             <div className="mt-6 space-y-4">
-              <a href={`tel:${SITE.phoneDisplay}`} className="flex items-center gap-3 text-slate-700 hover:text-teal-700">
-                <Phone className="h-5 w-5 text-teal-600" />
-                {SITE.phone}
-              </a>
+              {SITE.phones.map((p) => (
+                <a key={p.tel} href={`tel:${p.tel}`} className="flex items-center gap-3 text-slate-700 hover:text-teal-700">
+                  <Phone className="h-5 w-5 text-teal-600" />
+                  {p.display}
+                </a>
+              ))}
               <a href={`mailto:${SITE.email}`} className="flex items-center gap-3 text-slate-700 hover:text-teal-700">
                 <Mail className="h-5 w-5 text-teal-600" />
                 {SITE.email}

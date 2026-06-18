@@ -25,6 +25,7 @@ export function mapPortfolioAccount(row: DbAccount): PortfolioAccount {
     createdAt: row.createdAt.toISOString(),
     maturityDate: row.maturityDate?.toISOString(),
     status: row.status as PortfolioAccount["status"],
+    profitEligibleAt: row.profitEligibleAt?.toISOString(),
   };
 }
 

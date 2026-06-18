@@ -6,15 +6,19 @@ import {
   ChevronDown,
   Menu,
   Phone,
-  Search,
   X,
   MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PromoTopBar } from "@/components/marketing/promo-top-bar";
+import { SiteSearchButton } from "@/components/marketing/site-search";
 import { Logo } from "@/components/ui/logo";
-import { MAIN_NAV, SITE } from "@/lib/site-data";
+import { MAIN_NAV, SITE, formatSitePhones } from "@/lib/site-data";
 import { cn } from "@/lib/utils";
+
+function isExternalHref(href: string) {
+  return href.startsWith("http://") || href.startsWith("https://");
+}
 
 export function SiteHeader() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -44,7 +48,7 @@ export function SiteHeader() {
           <div className="flex items-center gap-4">
             <a href={`tel:${SITE.phoneDisplay}`} className="flex items-center gap-1 hover:text-teal-700">
               <Phone className="h-3 w-3" />
-              {SITE.phone}
+              {formatSitePhones(" · ")}
             </a>
             <span className="text-slate-300">|</span>
             <Link href="/rates" className="hover:text-teal-700">Rates</Link>
@@ -90,15 +94,29 @@ export function SiteHeader() {
                           <ul className="space-y-2">
                             {section.links.map((link) => (
                               <li key={link.href + link.label}>
-                                <Link
-                                  href={link.href}
-                                  className="group block rounded-lg p-2 hover:bg-slate-50 transition-colors"
-                                >
-                                  <p className="text-sm font-medium text-slate-900 group-hover:text-teal-700">
-                                    {link.label}
-                                  </p>
-                                  <p className="text-xs text-slate-500">{link.desc}</p>
-                                </Link>
+                                {isExternalHref(link.href) ? (
+                                  <a
+                                    href={link.href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="group block rounded-lg p-2 hover:bg-slate-50 transition-colors"
+                                  >
+                                    <p className="text-sm font-medium text-slate-900 group-hover:text-teal-700">
+                                      {link.label}
+                                    </p>
+                                    <p className="text-xs text-slate-500">{link.desc}</p>
+                                  </a>
+                                ) : (
+                                  <Link
+                                    href={link.href}
+                                    className="group block rounded-lg p-2 hover:bg-slate-50 transition-colors"
+                                  >
+                                    <p className="text-sm font-medium text-slate-900 group-hover:text-teal-700">
+                                      {link.label}
+                                    </p>
+                                    <p className="text-xs text-slate-500">{link.desc}</p>
+                                  </Link>
+                                )}
                               </li>
                             ))}
                           </ul>
@@ -118,12 +136,7 @@ export function SiteHeader() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <button
-              className="hidden rounded-lg p-2 text-slate-500 hover:bg-slate-100 md:flex cursor-pointer"
-              aria-label="Search"
-            >
-              <Search className="h-5 w-5" />
-            </button>
+            <SiteSearchButton className="hidden md:flex" />
             <Link href="/login" className="shrink-0">
               <Button variant="outline" size="sm" className="border-teal-700 px-2.5 text-xs text-teal-700 hover:bg-teal-50 sm:px-3 sm:text-sm">
                 Sign In
@@ -156,28 +169,47 @@ export function SiteHeader() {
                 >
                   {item.label}
                 </Link>
-                {item.sections.flatMap((s) => s.links).map((link) => (
-                  <Link
-                    key={link.href + link.label}
-                    href={link.href}
-                    onClick={() => setMobileOpen(false)}
-                    className="block rounded-lg px-6 py-2 text-sm text-slate-600 hover:bg-slate-50"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
+                {item.sections.flatMap((s) => s.links).map((link) =>
+                  isExternalHref(link.href) ? (
+                    <a
+                      key={link.href + link.label}
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => setMobileOpen(false)}
+                      className="block rounded-lg px-6 py-2 text-sm text-slate-600 hover:bg-slate-50"
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link
+                      key={link.href + link.label}
+                      href={link.href}
+                      onClick={() => setMobileOpen(false)}
+                      className="block rounded-lg px-6 py-2 text-sm text-slate-600 hover:bg-slate-50"
+                    >
+                      {link.label}
+                    </Link>
+                  )
+                )}
               </div>
             ))}
             <Link href="/rates" onClick={() => setMobileOpen(false)} className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-900 hover:bg-slate-50">
               Rates
             </Link>
-            <a
-              href={`tel:${SITE.phoneDisplay}`}
-              className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50"
-            >
-              <Phone className="h-4 w-4 text-teal-600" />
-              {SITE.phone}
-            </a>
+            <Link href="/help" onClick={() => setMobileOpen(false)} className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-900 hover:bg-slate-50">
+              Search & Help
+            </Link>
+            {SITE.phones.map((p) => (
+              <a
+                key={p.tel}
+                href={`tel:${p.tel}`}
+                className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50"
+              >
+                <Phone className="h-4 w-4 text-teal-600" />
+                {p.display}
+              </a>
+            ))}
             <div className="flex gap-2 pt-4 border-t border-slate-100">
               <Link href="/login" className="flex-1" onClick={() => setMobileOpen(false)}>
                 <Button variant="outline" className="w-full" size="sm">Sign In</Button>

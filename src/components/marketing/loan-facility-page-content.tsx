@@ -64,14 +64,14 @@ export function LoanFacilityPageContent({ pageKey }: LoanFacilityPageContentProp
             Preview our upcoming {LOAN_CATEGORY_META[category].label.toLowerCase()} lineup. All products
             below will be available at launch — loan applications are not yet open.
           </p>
-          <div className="mt-12 grid gap-10 lg:grid-cols-2">
+          <div className="mt-12 grid gap-8 xl:grid-cols-2">
             {categoryLoans.map((product) => (
               <div
                 key={product.id}
-                className="flex flex-col gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:flex-row sm:items-start lg:p-8"
+                className="grid items-start gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:grid-cols-[minmax(0,220px)_1fr] sm:gap-8 lg:p-8"
               >
-                <LoanProductVisual product={product} className="mx-auto shrink-0 sm:mx-0" />
-                <div className="flex-1 min-w-0">
+                <LoanProductVisual product={product} embedded className="mx-auto w-full max-w-[280px] sm:mx-0 sm:max-w-none" />
+                <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="rounded-full bg-teal-100 px-2.5 py-0.5 text-xs font-semibold text-teal-800">
                       {product.rateLabel}
@@ -103,11 +103,13 @@ export function LoanFacilityPageContent({ pageKey }: LoanFacilityPageContentProp
           <p className="mt-2 text-center text-sm text-slate-500">
             AWS Vision logo · Home, auto, personal & business lending · Launching soon
           </p>
-          <div className="mt-10 flex flex-wrap justify-center gap-6">
+          <div className="mt-10 grid grid-cols-2 justify-items-center gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4">
             {LOAN_PRODUCTS.map((product) => (
-              <div key={product.id} className="text-center">
-                <LoanProductVisual product={product} compact comingSoon />
-                <p className="mt-3 text-xs font-medium text-slate-700 max-w-[300px]">{product.shortName}</p>
+              <div key={product.id} className="flex w-[200px] flex-col items-center">
+                <LoanProductVisual product={product} glance comingSoon />
+                <p className="mt-3 flex h-8 w-full items-center justify-center text-center text-xs font-medium leading-tight text-slate-700">
+                  {product.shortName}
+                </p>
               </div>
             ))}
           </div>

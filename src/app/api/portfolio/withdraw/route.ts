@@ -1,4 +1,4 @@
-import { fetchUserById } from "@/lib/server/auth-service";
+import { requireVerifiedKyc } from "@/lib/server/kyc-guard";
 import { saveWithdrawal } from "@/lib/server/form-service";
 import { jsonError, jsonOk } from "@/lib/server/api";
 import { notifyWithdrawal } from "@/lib/server/notifications";
@@ -10,6 +10,14 @@ export async function POST(request: Request) {
     return jsonError("Not authenticated", 401);
   }
 
+  const user = await requireVerifiedKyc(userId);
+  if (!user) {
+    return jsonError(
+      "Your identity must be verified by an administrator before requesting a withdrawal",
+      403
+    );
+  }
+
   try {
     const { accountId, amount, method } = (await request.json()) as {
       accountId?: string;
@@ -19,11 +27,6 @@ export async function POST(request: Request) {
 
     if (!accountId || !amount || amount < 50 || !method) {
       return jsonError("Invalid withdrawal request", 400);
-    }
-
-    const user = await fetchUserById(userId);
-    if (!user) {
-      return jsonError("User not found", 404);
     }
 
     const account = user.portfolio?.accounts.find((a) => a.id === accountId);
