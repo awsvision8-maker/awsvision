@@ -26,6 +26,8 @@ export function mapPortfolioAccount(row: DbAccount): PortfolioAccount {
     maturityDate: row.maturityDate?.toISOString(),
     status: row.status as PortfolioAccount["status"],
     profitEligibleAt: row.profitEligibleAt?.toISOString(),
+    profitRateAmended: row.profitRateAmended,
+    amendmentNote: row.amendmentNote ?? undefined,
   };
 }
 

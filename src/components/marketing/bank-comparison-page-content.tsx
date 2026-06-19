@@ -19,10 +19,12 @@ import {
   COMPARISON_SCENARIOS,
   COMPARISON_SOURCES,
   COMPETITOR_BANKS,
+  apyOneYearEarnings,
   bestComparableApy,
   type ComparisonReport,
   formatComparePercent,
   formatCompareUsd,
+  formatInvestmentPlanRateLabel,
   monthlyProgramEarnings,
   multiplierLabel,
 } from "@/lib/bank-comparison";
@@ -55,7 +57,6 @@ export function BankComparisonPageContent() {
   }, [principal, loadReport]);
 
   const tier = report?.aws.investmentTier;
-  const savingsTier = report?.aws.savingsTier;
   const savingsRows = report?.savings.filter((r) => !r.isAws) ?? [];
   const cdStandardRows = report?.cds.filter((r) => !r.isPromo) ?? [];
   const cdPromoRows = report?.cds.filter((r) => r.isPromo) ?? [];
@@ -63,7 +64,7 @@ export function BankComparisonPageContent() {
   const hero = report?.hero;
 
   const awsSavingsYear = report?.aws.savingsYearEarnings ?? 0;
-  const awsInvestmentYear = report?.aws.investmentYearCompound ?? 0;
+  const awsInvestmentYear = report?.aws.investmentYearSimple ?? 0;
   const chaseCdYear = hero?.chaseCdYear ?? 0;
 
   return (
@@ -80,9 +81,9 @@ export function BankComparisonPageContent() {
               See How AWS Vision Stacks Up Against the Big Banks
             </h1>
             <p className="mt-5 text-lg text-slate-300 leading-relaxed">
-              We compared savings and CD APY from Bank of America, Chase, Wells Fargo, Capital One,
-              and Citibank against AWS Vision&apos;s tier-matched savings APY and investment program
-              returns — calculated from published bank rates and our official program terms.
+              We compared bank annual APY (savings & CDs) against AWS Vision&apos;s monthly savings
+              gratuity and investment program returns — calculated from published bank rates and our
+              official program terms.
             </p>
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
               {loading ? (
@@ -107,9 +108,9 @@ export function BankComparisonPageContent() {
                   {
                     stat: formatCompareUsd(awsInvestmentYear),
                     label: "Est. 12-mo program profit",
-                    sub: tier?.compoundInterest
-                      ? "Compound monthly model"
-                      : "Simple monthly model",
+                    sub: tier
+                      ? `${tier.monthlyRate}% monthly × 12 months (simple)`
+                      : "Select deposit size below",
                   },
                 ].map((item) => (
                   <div
@@ -171,12 +172,11 @@ export function BankComparisonPageContent() {
           </div>
           <p className="mt-3 text-xs text-slate-500">
             Showing projections for <strong>{formatCompareUsd(principal)}</strong>
-            {tier && savingsTier && (
+            {tier && (
               <>
                 {" "}
-                — AWS Vision <strong>{tier.name}</strong> investment tier ({tier.monthlyRate}%
-                monthly) · <strong>{savingsTier.label}</strong> at{" "}
-                {formatComparePercent(savingsTier.apy)} APY
+                — AWS Vision <strong>{tier.name}</strong> plan at {tier.monthlyRate}% monthly (
+                {formatCompareUsd(awsSavingsYear)} est. over 12 months)
               </>
             )}
           </p>
@@ -186,13 +186,13 @@ export function BankComparisonPageContent() {
       {/* Savings comparison */}
       <section className="py-14 bg-slate-50">
         <div className="page-container">
-          <h2 className="text-2xl font-bold text-slate-900">Best Published Deposit APY</h2>
+          <h2 className="text-2xl font-bold text-slate-900">Deposit Yields vs AWS Vision Programs</h2>
           <p className="mt-2 max-w-2xl text-slate-600">
-            Each bank&apos;s highest advertised savings or promotional CD APY (June 2026 rate sheets &
-            roundups). Standard branch savings at Chase, BoA, and Wells Fargo remain near 0.01% — these
-            figures reflect the best published deposit products. AWS Vision savings APY is tier-matched to
-            your balance — from {formatComparePercent(0.01)} Advantage through{" "}
-            {formatComparePercent(9.5)} Elite at $100K+.
+            Banks show best published annual APY (savings or promotional CD). AWS Vision investment
+            plans pay <strong>monthly profit on capital</strong> by tier — Silver 2%/mo from $5K,
+            Gold 3%/mo from $10K, Diamond 4%/mo from $30K, Platinum 5%/mo from $50K, Premium Diamond
+            6%/mo from $70K, Executive 7%/mo from $100K. Earnings below use your matched plan rate ×
+            12 months (simple annual).
           </p>
 
           <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -200,7 +200,7 @@ export function BankComparisonPageContent() {
               <thead>
                 <tr className="bg-slate-950 text-white">
                   <th className="px-4 py-3 text-left font-medium sm:px-6">Institution</th>
-                  <th className="px-4 py-3 text-left font-medium sm:px-6">Best Deposit APY</th>
+                  <th className="px-4 py-3 text-left font-medium sm:px-6">Rate</th>
                   <th className="px-4 py-3 text-left font-medium sm:px-6">
                     Est. 1-Year Earnings on {formatCompareUsd(principal)}
                   </th>
@@ -216,9 +216,7 @@ export function BankComparisonPageContent() {
                     </span>
                   </td>
                   <td className="px-4 py-4 font-bold text-teal-700 sm:px-6">
-                    {savingsTier
-                      ? `${formatComparePercent(savingsTier.apy)} (${savingsTier.label})`
-                      : "—"}
+                    {tier ? formatInvestmentPlanRateLabel(tier) : "—"}
                   </td>
                   <td className="px-4 py-4 font-bold text-teal-700 sm:px-6">
                     {formatCompareUsd(awsSavingsYear)}
@@ -238,7 +236,7 @@ export function BankComparisonPageContent() {
                         {row.bank.name}
                       </td>
                       <td className="px-4 py-4 text-slate-600 sm:px-6">
-                        {formatComparePercent(row.apy)}
+                        {row.rateLabel ?? `${formatComparePercent(row.apy)} APY`}
                       </td>
                       <td className="px-4 py-4 text-slate-600 sm:px-6">
                         {formatCompareUsd(row.earnings)}
@@ -255,13 +253,16 @@ export function BankComparisonPageContent() {
             </table>
           </div>
           <p className="mt-3 text-xs text-slate-500">
-            Formula: 1-year earnings = principal × (APY ÷ 100). Competitor APY is each institution&apos;s
-            best published savings or promotional CD rate. On {formatCompareUsd(principal)}, Bank of
-            America&apos;s top advertised tier earns about{" "}
-            {formatCompareUsd(
-              savingsRows.find((r) => r.bank.id === "bofa")?.earnings ?? 0
-            )}
-            /yr vs AWS Vision {formatCompareUsd(awsSavingsYear)}/yr at your matched savings tier.
+            Bank earnings: principal × (annual APY ÷ 100). AWS Vision: monthly plan rate × 12 months
+            on principal. At {formatCompareUsd(principal)}
+            {tier ? (
+              <>
+                , <strong>{tier.name}</strong> at {tier.monthlyRate}%/mo earns{" "}
+                {formatCompareUsd(awsSavingsYear)}/yr
+              </>
+            ) : null}{" "}
+            vs a 4.5% bank APY earning about{" "}
+            {formatCompareUsd(apyOneYearEarnings(principal, 4.5))}/yr.
           </p>
         </div>
       </section>
@@ -389,12 +390,12 @@ export function BankComparisonPageContent() {
                 key={t.id}
                 className={cn(
                   "rounded-xl border p-5",
-                  tier && principal >= t.min
+                  tier?.id === t.id
                     ? "border-teal-400 bg-teal-950/50 ring-2 ring-teal-500/30"
                     : "border-white/10 bg-white/5"
                 )}
               >
-                {tier && principal >= t.min && (
+                {tier?.id === t.id && (
                   <span className="text-[10px] font-bold uppercase tracking-wider text-teal-300">
                     Your tier
                   </span>
@@ -432,14 +433,15 @@ export function BankComparisonPageContent() {
               {COMPARISON_LAST_UPDATED}).
             </p>
             <p>
-              <strong>AWS Vision savings:</strong> Same APY formula using your balance-matched tier
-              (Starter 6% at $1K+, Growth 7.5% at $10K+, Elite 9.5% at $100K+).
+              <strong>AWS Vision investment plans:</strong> Earnings = capital × (monthly rate ÷ 100)
+              × 12 months (simple annual). Your matched tier is chosen by minimum capital — e.g.
+              $10,000 → Gold at 3%/mo = $3,600 over 12 months; $50,000 → Platinum at 5%/mo = $30,000;
+              $100,000 → Executive at 7%/mo = $84,000.
             </p>
             <p>
-              <strong>AWS Vision investment / FD programs:</strong> Monthly profit model — simple:
-              capital × (monthly rate ÷ 100) × 12; compound (when enabled): capital × ((1 + monthly
-              rate ÷ 100)<sup>12</sup> − 1). This is not directly comparable to bank APY but shows
-              program structure side-by-side.
+              <strong>AWS Vision investment / FD programs (compound):</strong> When compound interest
+              is enabled on your plan, 12-month profit uses capital × ((1 + monthly rate ÷ 100)
+              <sup>12</sup> − 1). Shown in the CD comparison section where applicable.
             </p>
           </div>
 

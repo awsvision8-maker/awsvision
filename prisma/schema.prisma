@@ -27,6 +27,8 @@ model User {
   transactions        Transaction[]
   sessions            Session[]
   withdrawalRequests  WithdrawalRequest[]
+  investmentAgreements InvestmentAgreement[]
+  notifications         UserNotification[]
   ambassador          BrandAmbassador? @relation(fields: [ambassadorId], references: [id], onDelete: SetNull)
 
   @@index([ambassadorId])
@@ -61,6 +63,8 @@ model PortfolioAccount {
   maturityDate       DateTime?
   status             String    @default("active")
   profitEligibleAt   DateTime?
+  profitRateAmended  Boolean   @default(false)
+  amendmentNote      String?
   createdAt          DateTime  @default(now())
 
   transactions Transaction[]
@@ -139,6 +143,70 @@ model WithdrawalRequest {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+model InvestmentAgreement {
+  id                 String   @id @default(cuid())
+  agreementNumber    String   @unique
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId          String
+  transactionId      String   @unique
+  planId             String
+  planName           String
+  monthlyRatePercent Float
+  termMonths         Int
+  totalRoiPercent    Float
+  depositAmount      Float
+  totalPrincipal     Float
+  accountNumber      String
+  accountType        String
+  issuedAt           DateTime @default(now())
+  maturityDate       DateTime
+  clientFirstName    String
+  clientLastName     String
+  clientEmail        String
+  amendedAt          DateTime?
+  amendmentNote      String?
+
+  @@index([userId])
+  @@index([accountId])
+}
+
+model NotificationBroadcast {
+  id               String             @id @default(cuid())
+  title            String
+  message          String
+  type             String             @default("info")
+  scope            String
+  recipientCount   Int
+  durationDays     Int                @default(0)
+  durationHours    Int                @default(0)
+  expiresAt        DateTime
+  adminId          String?
+  createdAt        DateTime           @default(now())
+  notifications    UserNotification[]
+
+  @@index([createdAt])
+  @@index([expiresAt])
+}
+
+model UserNotification {
+  id          String                 @id @default(cuid())
+  userId      String
+  user        User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  broadcastId String?
+  broadcast   NotificationBroadcast? @relation(fields: [broadcastId], references: [id], onDelete: SetNull)
+  title       String
+  message     String
+  type        String                 @default("info")
+  readAt      DateTime?
+  expiresAt   DateTime
+  createdAt   DateTime               @default(now())
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
+  @@index([userId, expiresAt])
 }
 
 model Admin {

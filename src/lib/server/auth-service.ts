@@ -8,6 +8,8 @@ import {
   profitEligibleFromApproval,
   recordDepositOnPortfolio,
 } from "@/lib/portfolio-engine";
+import { createAgreementOnDepositApproval } from "@/lib/server/agreement-service";
+import { getInvestmentPlan } from "@/lib/investment-plans";
 import { mapUser, userInclude } from "@/lib/server/user-mapper";
 import type {
   NonprofitSignupApplication,
@@ -148,6 +150,8 @@ export async function submitDepositRequest(
       maturityDate: a.maturityDate?.toISOString(),
       status: a.status as PortfolioAccount["status"],
       profitEligibleAt: a.profitEligibleAt?.toISOString(),
+      profitRateAmended: a.profitRateAmended,
+      amendmentNote: a.amendmentNote ?? undefined,
     })),
     transactions: user.transactions.map((t) => ({
       id: t.id,
@@ -184,7 +188,10 @@ export const recordDeposit = submitDepositRequest;
 export async function approveDeposit(transactionId: string) {
   const tx = await prisma.transaction.findUnique({
     where: { id: transactionId },
-    include: { account: true },
+    include: {
+      account: true,
+      user: { select: { id: true, kycStatus: true, firstName: true, lastName: true, email: true } },
+    },
   });
 
   if (!tx || tx.type !== "deposit") throw new Error("Deposit not found");
@@ -198,9 +205,21 @@ export async function approveDeposit(transactionId: string) {
       type: tx.account.type as PortfolioAccount["type"],
       monthlyRatePercent: tx.account.monthlyRatePercent,
       investmentPlanId: tx.account.investmentPlanId ?? undefined,
+      profitRateAmended: tx.account.profitRateAmended,
     },
     newPrincipal
   );
+
+  const plan = rates.investmentPlanId ? getInvestmentPlan(rates.investmentPlanId) : null;
+  const maturityDate =
+    tx.account.maturityDate ??
+    (plan && (tx.account.type === "investment" || tx.account.type === "fixed_deposit")
+      ? (() => {
+          const d = new Date(approvedAt);
+          d.setMonth(d.getMonth() + plan.termMonths);
+          return d;
+        })()
+      : null);
 
   await prisma.$transaction([
     prisma.transaction.update({
@@ -213,10 +232,34 @@ export async function approveDeposit(transactionId: string) {
         principal: newPrincipal,
         monthlyRatePercent: rates.monthlyRatePercent,
         ...(rates.investmentPlanId ? { investmentPlanId: rates.investmentPlanId } : {}),
+        ...(maturityDate && !tx.account.maturityDate ? { maturityDate } : {}),
         ...(!tx.account.profitEligibleAt ? { profitEligibleAt } : {}),
       },
     }),
   ]);
+
+  if (rates.investmentPlanId) {
+    await createAgreementOnDepositApproval({
+      userId: tx.userId,
+      userKycStatus: tx.user.kycStatus,
+      clientFirstName: tx.user.firstName,
+      clientLastName: tx.user.lastName,
+      clientEmail: tx.user.email,
+      transactionId: tx.id,
+      depositAmount: tx.amount,
+      account: {
+        id: tx.account.id,
+        accountNumber: tx.account.accountNumber,
+        type: tx.account.type,
+        investmentPlanId: rates.investmentPlanId,
+        maturityDate: maturityDate ?? tx.account.maturityDate,
+      },
+      newPrincipal,
+      investmentPlanId: rates.investmentPlanId,
+      monthlyRatePercent: rates.monthlyRatePercent,
+      approvedAt,
+    });
+  }
 
   return fetchUserById(tx.userId);
 }

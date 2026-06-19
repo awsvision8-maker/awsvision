@@ -39,6 +39,8 @@ export default function AccountsPage() {
             const plan = acc.investmentPlanId
               ? getInvestmentPlan(acc.investmentPlanId)
               : undefined;
+            const monthlyRatePercent =
+              acc.type === "savings" ? acc.interestRate / 12 : acc.interestRate / 12;
 
             return (
               <Card key={acc.id} className="overflow-hidden">
@@ -72,7 +74,7 @@ export default function AccountsPage() {
                         {formatCurrency(acc.balance)}
                       </p>
                       <p className="mt-1 text-xs text-emerald-600">
-                        +{formatCurrency((acc.balance * (plan?.monthlyRate ?? acc.interestRate / 12)) / 100)}{" "}
+                        +{formatCurrency((acc.balance * monthlyRatePercent) / 100)}{" "}
                         est. next monthly profit
                       </p>
                     </div>
@@ -80,11 +82,9 @@ export default function AccountsPage() {
                       <div>
                         <p className="text-xs text-slate-400">Program Rate</p>
                         <p className="text-lg font-semibold text-teal-600">
-                          {plan
-                            ? `${plan.monthlyRate}%/mo`
-                            : acc.type === "savings"
-                              ? `${acc.interestRate}% p.a.`
-                              : `${acc.interestRate}% p.a.`}
+                          {acc.type === "savings"
+                            ? `${acc.interestRate}% p.a.`
+                            : `${monthlyRatePercent.toFixed(2)}%/mo`}
                         </p>
                       </div>
                       <div>

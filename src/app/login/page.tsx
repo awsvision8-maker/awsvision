@@ -117,9 +117,6 @@ export default function LoginPage() {
               Open an account
             </Link>
           </p>
-          <p className="mt-2 text-center text-xs text-slate-400">
-            Demo: client@awsvision.com / demo1234
-          </p>
         </div>
       </div>
       </div>

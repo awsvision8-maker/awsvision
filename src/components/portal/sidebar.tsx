@@ -5,8 +5,10 @@ import { usePathname } from "next/navigation";
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
+  Bell,
   CreditCard,
   FileText,
+  FileCheck,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -17,7 +19,7 @@ import {
   Home,
   Landmark,
 } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/logo";
 import { DeveloperCredit } from "@/components/marketing/developer-credit";
@@ -25,11 +27,13 @@ import { useAuth } from "@/lib/auth-context";
 
 const navItems = [
   { href: "/portal/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/portal/notifications", label: "Notifications", icon: Bell },
   { href: "/portal/accounts", label: "Accounts", icon: Wallet },
   { href: "/portal/deposit", label: "Deposit", icon: ArrowDownToLine },
   { href: "/portal/withdraw", label: "Withdraw", icon: ArrowUpFromLine },
   { href: "/portal/portfolio", label: "Portfolio", icon: PieChart },
   { href: "/portal/statements", label: "Statements", icon: FileText },
+  { href: "/portal/agreements", label: "Agreements", icon: FileCheck },
   { href: "/portal/cards", label: "Cards", icon: CreditCard, soon: true },
   { href: "/portal/loans", label: "Loans", icon: Landmark, soon: true },
   { href: "/portal/insurance", label: "Insurance", icon: Shield, soon: true },
@@ -40,6 +44,20 @@ export function PortalSidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const loadUnread = useCallback(() => {
+    fetch("/api/notifications")
+      .then((r) => r.json())
+      .then((d) => {
+        if (typeof d.unreadCount === "number") setUnreadCount(d.unreadCount);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    loadUnread();
+  }, [loadUnread, pathname]);
 
   const sidebar = (
     <aside className="flex h-full w-64 flex-col border-r border-slate-200 bg-slate-950 text-white">
@@ -64,6 +82,11 @@ export function PortalSidebar() {
             >
               <item.icon className="h-4 w-4 shrink-0" />
               <span className="flex-1">{item.label}</span>
+              {item.href === "/portal/notifications" && unreadCount > 0 && (
+                <span className="rounded-full bg-teal-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
               {"soon" in item && item.soon && (
                 <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-amber-300">
                   Soon

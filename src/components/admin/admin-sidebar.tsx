@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
+  Bell,
   Calendar,
   ClipboardList,
   LayoutDashboard,
@@ -38,7 +39,10 @@ const NAV_SECTIONS = [
   },
   {
     label: "Clients",
-    items: [{ href: "/admin/users", label: "Users", icon: Users }],
+    items: [
+      { href: "/admin/users", label: "Users", icon: Users },
+      { href: "/admin/notifications", label: "Notifications", icon: Bell },
+    ],
   },
   {
     label: "Inbox",

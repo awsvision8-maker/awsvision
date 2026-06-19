@@ -62,14 +62,14 @@ export default function RatesPage() {
 
         <RateSection
           title="Savings — Monthly & Yearly Gratuity (Available Now)"
-          headers={["Product", "Minimum", "Maximum", "Rate", "APY"]}
+          headers={["Product", "Minimum", "Maximum", "Monthly Rate", "Annual (Simple)"]}
           mobileCards={RATES_DATA.savings.map((r) => ({
             title: r.product,
             fields: [
               { label: "Minimum", value: r.min },
               { label: "Maximum", value: r.max },
-              { label: "Rate", value: r.rate, highlight: true },
-              { label: "APY", value: r.apy, highlight: true },
+              { label: "Monthly Rate", value: r.rate, highlight: true },
+              { label: "Annual (Simple)", value: r.apy, highlight: true },
             ],
           }))}
         >

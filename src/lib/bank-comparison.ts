@@ -40,13 +40,38 @@ export function bestComparableApy(bank: CompetitorBank) {
   return Math.max(bank.savingsApy, bank.cd12MonthApy, bank.bestPromoApy ?? 0);
 }
 
-/** AWS Vision savings APY tiers (from /rates page) */
+/** AWS Vision investment savings — monthly gratuity tiers (not bank APY). Advantage tier is true APY. */
 export const AWS_SAVINGS_TIERS = [
-  { min: 100_000, apy: 9.5, label: "Investment Savings — Elite" },
-  { min: 10_000, apy: 7.5, label: "Investment Savings — Growth" },
-  { min: 1_000, apy: 6.0, label: "Investment Savings — Starter" },
-  { min: 0, apy: 0.01, label: "Advantage Savings" },
+  { min: 100_000, monthlyRate: 9.5, label: "Investment Savings — Elite", isBankApy: false },
+  { min: 10_000, monthlyRate: 7.5, label: "Investment Savings — Growth", isBankApy: false },
+  { min: 1_000, monthlyRate: 6.0, label: "Investment Savings — Starter", isBankApy: false },
+  { min: 0, monthlyRate: 0.01, label: "Advantage Savings", isBankApy: true },
 ] as const;
+
+export function awsSavingsAnnualSimplePercent(tier: (typeof AWS_SAVINGS_TIERS)[number]) {
+  return tier.isBankApy ? tier.monthlyRate : tier.monthlyRate * 12;
+}
+
+export function awsSavingsYearEarnings(principal: number, tier: (typeof AWS_SAVINGS_TIERS)[number]) {
+  if (tier.isBankApy) {
+    return apyOneYearEarnings(principal, tier.monthlyRate);
+  }
+  return monthlyProgramSimple(principal, tier.monthlyRate, 12);
+}
+
+export function formatAwsSavingsRateLabel(tier: (typeof AWS_SAVINGS_TIERS)[number]) {
+  if (tier.isBankApy) {
+    return `${formatComparePercent(tier.monthlyRate)} APY`;
+  }
+  const annual = awsSavingsAnnualSimplePercent(tier);
+  return `${formatComparePercent(tier.monthlyRate)}/mo (${formatComparePercent(annual, annual % 1 === 0 ? 0 : 1)} annual simple)`;
+}
+
+/** Investment plan rate label for compare page (monthly × 12 simple annual). */
+export function formatInvestmentPlanRateLabel(plan: { monthlyRate: number; name: string }) {
+  const annual = plan.monthlyRate * 12;
+  return `${formatComparePercent(plan.monthlyRate)}/mo (${formatComparePercent(annual, annual % 1 === 0 ? 0 : 1)} annual simple) · ${plan.name}`;
+}
 
 export const COMPETITOR_BANKS: CompetitorBank[] = [
   {
@@ -193,6 +218,7 @@ export function multiplierLabel(awsAmount: number, competitorAmount: number) {
 export interface SavingsCompareRow {
   bank: CompetitorBank | { id: string; name: string; savingsApy: number };
   apy: number;
+  rateLabel: string;
   earnings: number;
   vsAws: number;
   multiplier: string;
@@ -213,10 +239,14 @@ export interface ComparisonReport {
   principal: number;
   lastUpdated: string;
   aws: {
-    savingsTier: (typeof AWS_SAVINGS_TIERS)[number];
-    savingsApy: number;
-    savingsYearEarnings: number;
     investmentTier: (typeof INVESTMENT_PLANS)[number];
+    /** Matched plan monthly rate (%) — e.g. Gold @ $10K = 3% */
+    savingsMonthlyRate: number;
+    savingsAnnualSimplePercent: number;
+    /** @deprecated use savingsAnnualSimplePercent — kept for API compat */
+    savingsApy: number;
+    /** monthly rate × 12 months on principal (simple) */
+    savingsYearEarnings: number;
     investmentYearSimple: number;
     investmentYearCompound: number;
     fdPromo: ReturnType<typeof getActiveFdPromo> | null;
@@ -245,15 +275,15 @@ export interface ComparisonReport {
 }
 
 export function buildComparisonReport(principal: number): ComparisonReport {
-  const savingsTier = awsSavingsTierForPrincipal(principal);
   const investmentTier = awsInvestmentTierForPrincipal(principal);
   const promo = getActiveFdPromo();
 
-  const awsSavingsYear = apyOneYearEarnings(principal, savingsTier.apy);
-  const awsInvestmentSimple = monthlyProgramSimple(principal, investmentTier.monthlyRate, 12);
+  const awsMonthlyRate = investmentTier.monthlyRate;
+  const awsAnnualSimple = awsMonthlyRate * 12;
+  const awsInvestmentSimple = monthlyProgramSimple(principal, awsMonthlyRate, 12);
   const awsInvestmentCompound = awsProgramEarnings(
     principal,
-    investmentTier.monthlyRate,
+    awsMonthlyRate,
     12,
     investmentTier.compoundInterest
   );
@@ -265,9 +295,10 @@ export function buildComparisonReport(principal: number): ComparisonReport {
       : null;
 
   const awsSavingsRow: SavingsCompareRow = {
-    bank: { id: "awsvision", name: "AWS Vision", savingsApy: savingsTier.apy },
-    apy: savingsTier.apy,
-    earnings: awsSavingsYear,
+    bank: { id: "awsvision", name: "AWS Vision", savingsApy: awsAnnualSimple },
+    apy: awsAnnualSimple,
+    rateLabel: formatInvestmentPlanRateLabel(investmentTier),
+    earnings: awsInvestmentSimple,
     vsAws: 0,
     multiplier: "—",
     isAws: true,
@@ -281,9 +312,10 @@ export function buildComparisonReport(principal: number): ComparisonReport {
       return {
         bank,
         apy,
+        rateLabel: `${formatComparePercent(apy)} APY`,
         earnings,
-        vsAws: awsSavingsYear - earnings,
-        multiplier: multiplierLabel(awsSavingsYear, earnings),
+        vsAws: awsInvestmentSimple - earnings,
+        multiplier: multiplierLabel(awsInvestmentSimple, earnings),
       };
     }),
   ];
@@ -335,10 +367,11 @@ export function buildComparisonReport(principal: number): ComparisonReport {
     principal,
     lastUpdated: COMPARISON_LAST_UPDATED,
     aws: {
-      savingsTier,
-      savingsApy: savingsTier.apy,
-      savingsYearEarnings: awsSavingsYear,
       investmentTier,
+      savingsMonthlyRate: awsMonthlyRate,
+      savingsAnnualSimplePercent: awsAnnualSimple,
+      savingsApy: awsAnnualSimple,
+      savingsYearEarnings: awsInvestmentSimple,
       investmentYearSimple: awsInvestmentSimple,
       investmentYearCompound: awsInvestmentCompound,
       fdPromo: principal >= promo.minDeposit ? promo : null,
@@ -352,9 +385,9 @@ export function buildComparisonReport(principal: number): ComparisonReport {
       competitors: investmentCompetitors,
     },
     hero: {
-      awsInvestmentYear: awsInvestmentCompound,
+      awsInvestmentYear: awsInvestmentSimple,
       chaseCdYear,
-      multiplierVsChaseCd: multiplierLabel(awsInvestmentCompound, chaseCdYear),
+      multiplierVsChaseCd: multiplierLabel(awsInvestmentSimple, chaseCdYear),
       tierName: investmentTier.name,
       monthlyRate: investmentTier.monthlyRate,
     },

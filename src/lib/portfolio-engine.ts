@@ -122,11 +122,15 @@ export function resolvePlanTierFromPrincipal(
 }
 
 export function resolveMonthlyRate(
-  account: Pick<PortfolioAccount, "type" | "monthlyRatePercent" | "investmentPlanId">,
+  account: Pick<
+    PortfolioAccount,
+    "type" | "monthlyRatePercent" | "investmentPlanId" | "profitRateAmended"
+  >,
   balanceForTier: number
 ): number {
   if (account.type === "nonprofit_fund") return account.monthlyRatePercent;
   if (account.type === "investment" || account.type === "fixed_deposit") {
+    if (account.profitRateAmended) return account.monthlyRatePercent;
     const plan = resolvePlanTierFromPrincipal(account, balanceForTier);
     if (plan) return plan.monthlyRate;
     return account.monthlyRatePercent;
@@ -931,11 +935,20 @@ export function buildPortfolioSnapshot(
 }
 
 export function accountRatesForPrincipal(
-  account: Pick<PortfolioAccount, "type" | "monthlyRatePercent" | "investmentPlanId">,
+  account: Pick<
+    PortfolioAccount,
+    "type" | "monthlyRatePercent" | "investmentPlanId" | "profitRateAmended"
+  >,
   principal: number
 ): { investmentPlanId?: string; monthlyRatePercent: number } {
   if (account.type === "investment" || account.type === "fixed_deposit") {
     const plan = resolvePlanTierFromPrincipal(account, principal)!;
+    if (account.profitRateAmended) {
+      return {
+        investmentPlanId: plan.id,
+        monthlyRatePercent: account.monthlyRatePercent,
+      };
+    }
     return { investmentPlanId: plan.id, monthlyRatePercent: plan.monthlyRate };
   }
   if (account.type === "savings") {

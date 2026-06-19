@@ -157,6 +157,11 @@ export async function getUserDetail(userId: string) {
   });
 }
 
+export async function adminDeleteUser(userId: string) {
+  const { deleteUserAccount } = await import("@/lib/server/notification-service");
+  return deleteUserAccount(userId);
+}
+
 export async function setUserKycStatus(userId: string, status: "verified" | "rejected") {
   return prisma.user.update({
     where: { id: userId },
@@ -309,6 +314,8 @@ export interface AdminAccountUpdate {
   maturityDate?: string | null;
   autoMatchPlan?: boolean;
   recordAdjustment?: boolean;
+  profitRateAmended?: boolean;
+  amendmentNote?: string | null;
 }
 
 export async function adminUpdateUserProfile(userId: string, data: AdminUserProfileUpdate) {
@@ -385,6 +392,8 @@ export async function adminUpdatePortfolioAccount(
     profitEligibleAt?: Date | null;
     status?: string;
     maturityDate?: Date | null;
+    profitRateAmended?: boolean;
+    amendmentNote?: string | null;
   } = {};
 
   if (data.principal !== undefined) {
@@ -401,10 +410,13 @@ export async function adminUpdatePortfolioAccount(
         type: account.type as "savings" | "fixed_deposit" | "investment" | "nonprofit_fund",
         monthlyRatePercent: account.monthlyRatePercent,
         investmentPlanId: account.investmentPlanId ?? undefined,
+        profitRateAmended: false,
       },
       nextPrincipal
     );
     updates.monthlyRatePercent = rates.monthlyRatePercent;
+    updates.profitRateAmended = false;
+    updates.amendmentNote = null;
     if (rates.investmentPlanId) {
       updates.investmentPlanId = rates.investmentPlanId;
     }
@@ -414,10 +426,20 @@ export async function adminUpdatePortfolioAccount(
     }
     if (data.monthlyRatePercent !== undefined) {
       updates.monthlyRatePercent = data.monthlyRatePercent;
+      updates.profitRateAmended = data.profitRateAmended ?? true;
     } else if (data.investmentPlanId) {
       const { getInvestmentPlan } = await import("@/lib/investment-plans");
       const plan = getInvestmentPlan(data.investmentPlanId);
-      if (plan) updates.monthlyRatePercent = plan.monthlyRate;
+      if (plan) {
+        updates.monthlyRatePercent = plan.monthlyRate;
+        updates.profitRateAmended = data.profitRateAmended ?? true;
+      }
+    }
+    if (data.profitRateAmended !== undefined) {
+      updates.profitRateAmended = data.profitRateAmended;
+    }
+    if (data.amendmentNote !== undefined) {
+      updates.amendmentNote = data.amendmentNote;
     }
   }
 
@@ -488,6 +510,7 @@ export async function adminAdjustAccountBalance(
       type: account.type as "savings" | "fixed_deposit" | "investment" | "nonprofit_fund",
       monthlyRatePercent: account.monthlyRatePercent,
       investmentPlanId: account.investmentPlanId ?? undefined,
+      profitRateAmended: account.profitRateAmended,
     },
     newPrincipal
   );

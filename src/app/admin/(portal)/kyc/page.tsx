@@ -10,6 +10,7 @@ import {
   AdminPageHeader,
   AdminStatusBadge,
 } from "@/components/admin/admin-ui";
+import { KycDocumentViewer } from "@/components/admin/kyc-document-viewer";
 import { formatDate } from "@/lib/utils";
 
 interface KycUser {
@@ -101,21 +102,9 @@ export default function AdminKycPage() {
                     {expanded === u.id ? "Hide" : "View"} KYC documents
                   </button>
                   {expanded === u.id && (
-                    <dl className="mt-3 grid gap-2 rounded-lg bg-slate-50 p-4 text-sm sm:grid-cols-2">
-                      {Object.entries(u.kycData).map(([key, val]) => (
-                        <div key={key}>
-                          <dt className="text-xs uppercase text-slate-500">{key.replace(/([A-Z])/g, " $1")}</dt>
-                          <dd className="font-medium text-slate-800 break-all">
-                            {typeof val === "string" && val.startsWith("data:image") ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img src={val} alt={key} className="mt-1 max-h-32 rounded border" />
-                            ) : (
-                              String(val)
-                            )}
-                          </dd>
-                        </div>
-                      ))}
-                    </dl>
+                    <div className="mt-3 rounded-lg border border-slate-200 bg-white p-4">
+                      <KycDocumentViewer kycData={u.kycData} />
+                    </div>
                   )}
                 </div>
               )}

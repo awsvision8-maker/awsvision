@@ -6,11 +6,16 @@ import { useCallback, useEffect, useState } from "react";
 import { ArrowLeft, CheckCircle2, Pencil, XCircle } from "lucide-react";
 import { AdminAccountEditor } from "@/components/admin/admin-account-editor";
 import { AdminUserProfileEditor } from "@/components/admin/admin-user-profile-editor";
+import { KycDocumentViewer } from "@/components/admin/kyc-document-viewer";
+import { AdminInvestmentAgreementsPanel } from "@/components/admin/admin-investment-agreements-panel";
+import { AdminDeleteUserPanel } from "@/components/admin/admin-delete-user-panel";
+import { AdminProfitAmendmentPanel } from "@/components/admin/admin-profit-amendment-panel";
 import {
   AdminActionButton,
   AdminLoading,
   AdminStatusBadge,
 } from "@/components/admin/admin-ui";
+import type { InvestmentAgreement } from "@/types";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 interface UserDetail {
@@ -48,6 +53,8 @@ interface UserDetail {
     investmentPlanId: string | null;
     profitEligibleAt: string | null;
     maturityDate: string | null;
+    profitRateAmended?: boolean;
+    amendmentNote?: string | null;
   }[];
   pendingDeposits: {
     id: string;
@@ -78,13 +85,19 @@ export default function AdminUserDetailPage() {
   const params = useParams();
   const userId = params.id as string;
   const [user, setUser] = useState<UserDetail | null>(null);
+  const [agreements, setAgreements] = useState<InvestmentAgreement[]>([]);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(false);
 
   const load = useCallback(async () => {
-    const res = await fetch(`/api/admin/users/${userId}`);
-    const data = await res.json();
-    if (res.ok) setUser(data.user);
+    const [userRes, agrRes] = await Promise.all([
+      fetch(`/api/admin/users/${userId}`),
+      fetch(`/api/admin/users/${userId}/agreements`),
+    ]);
+    const userData = await userRes.json();
+    const agrData = await agrRes.json();
+    if (userRes.ok) setUser(userData.user);
+    if (agrRes.ok) setAgreements(agrData.agreements ?? []);
     setLoading(false);
   }, [userId]);
 
@@ -178,6 +191,16 @@ export default function AdminUserDetailPage() {
             : "Not set"}
         · Next month est. {formatCurrency(ps.nextMonthMonthlyProfit)}
       </p>
+
+      <section className="mt-6">
+        <AdminProfitAmendmentPanel
+          userId={userId}
+          accounts={user.accounts}
+          monthlyProfitEstimate={ps.monthlyProfit}
+          nextMonthRatePercent={ps.nextMonthRatePercent}
+          onUpdated={load}
+        />
+      </section>
 
       {user.pendingDeposits.length > 0 && (
         <div className="mt-6 rounded-xl border border-amber-300 bg-amber-50 p-4 sm:p-5">
@@ -362,24 +385,33 @@ export default function AdminUserDetailPage() {
 
       {user.kycData && (
         <section className="mt-8">
-          <h2 className="text-lg font-semibold text-slate-900">KYC data</h2>
-          <dl className="mt-3 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 text-sm sm:grid-cols-2">
-            {Object.entries(user.kycData).map(([key, val]) => (
-              <div key={key}>
-                <dt className="text-xs uppercase text-slate-500">{key}</dt>
-                <dd className="mt-0.5 break-all text-slate-800">
-                  {typeof val === "string" && val.startsWith("data:image") ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={val} alt={key} className="mt-1 max-h-40 rounded border" />
-                  ) : (
-                    String(val)
-                  )}
-                </dd>
-              </div>
-            ))}
-          </dl>
+          <h2 className="text-lg font-semibold text-slate-900">KYC documents</h2>
+          <div className="mt-3 rounded-xl border border-slate-200 bg-white p-4">
+            <KycDocumentViewer kycData={user.kycData} />
+          </div>
         </section>
       )}
+
+      <section className="mt-8">
+        <h2 className="text-lg font-semibold text-slate-900">Investment agreements</h2>
+        <p className="mt-1 text-sm text-slate-500">
+          Issued when a verified client&apos;s deposit is approved. Use <strong>Edit terms</strong>{" "}
+          to apply special offers — updates sync to the client account and downloadable PDF.
+        </p>
+        <div className="mt-3">
+          <AdminInvestmentAgreementsPanel
+            userId={userId}
+            agreements={agreements}
+            onUpdated={load}
+          />
+        </div>
+      </section>
+
+      <AdminDeleteUserPanel
+        userId={userId}
+        email={user.email}
+        name={`${user.firstName} ${user.lastName}`}
+      />
     </div>
   );
 }

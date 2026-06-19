@@ -48,6 +48,9 @@ export interface PortfolioAccount {
   status: "active" | "matured" | "closed";
   /** Profit accrual starts on or after this date (30 days after first approved deposit) */
   profitEligibleAt?: string;
+  /** When true, monthlyRatePercent is admin-amended and overrides auto tier matching */
+  profitRateAmended?: boolean;
+  amendmentNote?: string;
 }
 
 export interface UserPortfolio {
@@ -166,8 +169,11 @@ export interface KYCData {
   employer?: string;
   annualIncome?: string;
   idFrontName?: string;
+  idFrontPreview?: string;
   idBackName?: string;
+  idBackPreview?: string;
   selfieName?: string;
+  selfiePreview?: string;
 }
 
 export interface Account {
@@ -224,4 +230,29 @@ export interface ProductApplication {
   amount?: number;
   status: ApplicationStatus;
   submittedAt: string;
+}
+
+/** Issued when a verified client's deposit is approved on an investment / FD account */
+export interface InvestmentAgreement {
+  id: string;
+  agreementNumber: string;
+  userId: string;
+  accountId: string;
+  transactionId: string;
+  planId: string;
+  planName: string;
+  monthlyRatePercent: number;
+  termMonths: number;
+  totalRoiPercent: number;
+  depositAmount: number;
+  totalPrincipal: number;
+  accountNumber: string;
+  accountType: string;
+  issuedAt: string;
+  maturityDate: string;
+  clientFirstName: string;
+  clientLastName: string;
+  clientEmail: string;
+  amendedAt?: string;
+  amendmentNote?: string;
 }

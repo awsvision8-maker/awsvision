@@ -20,7 +20,10 @@ export function applicationToKYC(data: SignupApplication): KYCData {
     employer: data.employer,
     annualIncome: data.annualIncome,
     idFrontName: data.idFrontName,
+    idFrontPreview: data.idFrontPreview,
     idBackName: data.idBackName,
+    idBackPreview: data.idBackPreview,
     selfieName: data.selfieName,
+    selfiePreview: data.selfiePreview,
   };
 }

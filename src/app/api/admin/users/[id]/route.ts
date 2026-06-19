@@ -1,4 +1,9 @@
-import { getUserDetail, adminUpdateUserProfile, adminUpdateNonprofitProfile } from "@/lib/server/admin-service";
+import {
+  getUserDetail,
+  adminUpdateUserProfile,
+  adminUpdateNonprofitProfile,
+  adminDeleteUser,
+} from "@/lib/server/admin-service";
 import { getAdminId } from "@/lib/server/admin-session";
 import { jsonError, jsonOk } from "@/lib/server/api";
 import { buildPortfolioSnapshot } from "@/lib/portfolio-engine";
@@ -40,6 +45,8 @@ function serializeUserDetail(user: NonNullable<Awaited<ReturnType<typeof getUser
       createdAt: a.createdAt.toISOString(),
       maturityDate: a.maturityDate?.toISOString() ?? null,
       profitEligibleAt: a.profitEligibleAt?.toISOString() ?? null,
+      profitRateAmended: a.profitRateAmended,
+      amendmentNote: a.amendmentNote,
     })),
     transactions: user.transactions.map((t) => ({
       ...t,
@@ -126,5 +133,24 @@ export async function PATCH(
   } catch (err) {
     console.error("Admin user update error:", err);
     return jsonError(err instanceof Error ? err.message : "Failed to update user", 400);
+  }
+}
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const adminId = await getAdminId();
+  if (!adminId) return jsonError("Unauthorized", 401);
+
+  try {
+    const { id } = await params;
+    const deleted = await adminDeleteUser(id);
+    return jsonOk({ success: true, deleted });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Delete failed";
+    if (message.includes("not found")) return jsonError(message, 404);
+    console.error("Admin delete user error:", err);
+    return jsonError("Failed to delete user", 500);
   }
 }
