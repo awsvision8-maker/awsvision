@@ -15,7 +15,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { login, user } = useAuth();
   const promo = getActiveFdPromo();
-  const [email, setEmail] = useState("");
+  const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -41,14 +41,14 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const ok = await login(email, password);
+      const ok = await login(loginId, password);
       if (ok) {
         router.push("/kyc");
       } else {
-        setError("Invalid credentials. Please try again.");
+        setError("Invalid email, Online ID, or password.");
       }
     } catch {
-      setError("Invalid credentials. Please try again.");
+      setError("Invalid email, Online ID, or password.");
     } finally {
       setLoading(false);
     }
@@ -83,16 +83,17 @@ export default function LoginPage() {
           </div>
           <h1 className="text-2xl font-bold text-slate-900">Sign in</h1>
           <p className="mt-2 text-sm text-slate-500">
-            Enter your credentials to access the client portal
+            Sign in with your email address or Online ID
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">
             <Input
-              label="Email Address"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              label="Email or Online ID"
+              type="text"
+              placeholder="you@example.com or your Online ID"
+              value={loginId}
+              onChange={(e) => setLoginId(e.target.value.replace(/\s/g, ""))}
+              autoComplete="username"
               required
             />
             <Input

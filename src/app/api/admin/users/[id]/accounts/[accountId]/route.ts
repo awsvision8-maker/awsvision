@@ -36,9 +36,13 @@ export async function PATCH(
   try {
     const { id: userId, accountId } = await params;
     const body = (await request.json()) as AdminAccountUpdate;
-    const user = await adminUpdatePortfolioAccount(userId, accountId, body);
-    const account = user?.accounts.find((a) => a.id === accountId);
-    return jsonOk({ success: true, matchedPlan: matchedPlanPayload(account) });
+    const result = await adminUpdatePortfolioAccount(userId, accountId, body);
+    const account = result.user?.accounts.find((a) => a.id === accountId);
+    return jsonOk({
+      success: true,
+      matchedPlan: matchedPlanPayload(account),
+      agreementSync: result.agreementSync,
+    });
   } catch (err) {
     console.error("Admin account update error:", err);
     return jsonError(err instanceof Error ? err.message : "Failed to update account", 400);
@@ -67,15 +71,19 @@ export async function POST(
       return jsonError("Direction must be credit or debit", 400);
     }
 
-    const user = await adminAdjustAccountBalance(
+    const result = await adminAdjustAccountBalance(
       userId,
       accountId,
       body.amount,
       body.direction,
       body.description ?? ""
     );
-    const account = user?.accounts.find((a) => a.id === accountId);
-    return jsonOk({ success: true, matchedPlan: matchedPlanPayload(account) });
+    const account = result.user?.accounts.find((a) => a.id === accountId);
+    return jsonOk({
+      success: true,
+      matchedPlan: matchedPlanPayload(account),
+      agreementSync: result.agreementSync,
+    });
   } catch (err) {
     console.error("Admin balance adjust error:", err);
     return jsonError(err instanceof Error ? err.message : "Failed to adjust balance", 400);

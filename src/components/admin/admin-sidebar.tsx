@@ -12,6 +12,7 @@ import {
   LogOut,
   Mail,
   MessageSquare,
+  ScrollText,
   Shield,
   ShieldCheck,
   TrendingUp,
@@ -41,6 +42,7 @@ const NAV_SECTIONS = [
     label: "Clients",
     items: [
       { href: "/admin/users", label: "Users", icon: Users },
+      { href: "/admin/signup-logs", label: "Signup Logs", icon: ScrollText },
       { href: "/admin/notifications", label: "Notifications", icon: Bell },
     ],
   },

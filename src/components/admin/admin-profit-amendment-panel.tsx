@@ -88,8 +88,16 @@ export function AdminProfitAmendmentPanel({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Save failed");
+      const agreementNote =
+        data.agreementSync?.action === "created"
+          ? ` Investment agreement ${data.agreementSync.agreementNumber} generated.`
+          : data.agreementSync?.action === "amended"
+            ? ` Agreement ${data.agreementSync.agreementNumber} updated.`
+            : data.agreementSync?.action === "skipped"
+              ? ` Note: ${data.agreementSync.reason}`
+              : "";
       setMessage(
-        `Profit rate updated to ${data.account?.monthlyRatePercent}%/mo — portal, charts, and agreements now use this rate.`
+        `Profit rate updated to ${data.account?.monthlyRatePercent}%/mo — portal, charts, and agreements now use this rate.${agreementNote}`
       );
       onUpdated();
     } catch (e) {

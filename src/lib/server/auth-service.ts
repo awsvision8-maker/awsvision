@@ -11,6 +11,11 @@ import {
 import { createAgreementOnDepositApproval } from "@/lib/server/agreement-service";
 import { getInvestmentPlan } from "@/lib/investment-plans";
 import { mapUser, userInclude } from "@/lib/server/user-mapper";
+import {
+  checkOnlineIdAvailability,
+  normalizeOnlineId,
+} from "@/lib/server/online-id-service";
+import { parseDateOfBirthForStorage } from "@/lib/birthday";
 import type {
   NonprofitSignupApplication,
   PortfolioAccount,
@@ -24,6 +29,25 @@ export async function hashPassword(password: string) {
 
 export async function verifyPassword(password: string, hash: string) {
   return bcrypt.compare(password, hash);
+}
+
+export async function findUserByLoginIdentifier(identifier: string) {
+  const value = identifier.trim().replace(/\s/g, "");
+  if (!value) return null;
+
+  if (value.includes("@")) {
+    return prisma.user.findUnique({
+      where: { email: value.toLowerCase() },
+      include: userInclude,
+    });
+  }
+
+  return prisma.user.findFirst({
+    where: {
+      onlineId: { equals: value, mode: "insensitive" },
+    },
+    include: userInclude,
+  });
 }
 
 export async function fetchUserById(userId: string) {
@@ -41,6 +65,15 @@ export async function createIndividualUser(
 ) {
   const createdAt = new Date();
   const { account } = createAccountFromSignup(data, createdAt);
+  const onlineId = normalizeOnlineId(data.onlineId);
+
+  const idCheck = await checkOnlineIdAvailability(onlineId, {
+    firstName: data.firstName,
+    lastName: data.lastName,
+  });
+  if (!idCheck.available) {
+    throw new Error(idCheck.message ?? "This Online ID is already taken");
+  }
 
   const user = await prisma.user.create({
     data: {
@@ -49,7 +82,8 @@ export async function createIndividualUser(
       firstName: data.firstName,
       lastName: data.lastName,
       phone: data.phone,
-      onlineId: data.onlineId,
+      onlineId,
+      dateOfBirth: parseDateOfBirthForStorage(data.dateOfBirth) ?? undefined,
       ambassadorId: ambassadorId ?? undefined,
       kycStatus: "submitted",
       profileType: "individual",
@@ -79,6 +113,14 @@ export async function createNonprofitUser(data: NonprofitSignupApplication) {
   const nonprofitProfile = nonprofitApplicationToProfile(data);
   const portfolio = createNonprofitPortfolio(nonprofitProfile, createdAt);
   const account = portfolio.accounts[0];
+  const onlineId = normalizeOnlineId(data.onlineId);
+
+  const idCheck = await checkOnlineIdAvailability(onlineId, {
+    orgName: data.organizationLegalName,
+  });
+  if (!idCheck.available) {
+    throw new Error(idCheck.message ?? "This Online ID is already taken");
+  }
 
   const user = await prisma.user.create({
     data: {
@@ -87,9 +129,15 @@ export async function createNonprofitUser(data: NonprofitSignupApplication) {
       firstName: data.repFirstName,
       lastName: data.repLastName,
       phone: data.repPhone,
-      onlineId: data.onlineId,
+      onlineId,
       kycStatus: "submitted",
       profileType: "nonprofit",
+      kycData: JSON.stringify({
+        taxExemptDocName: data.taxExemptDocName,
+        taxExemptDocPreview: data.taxExemptDocPreview,
+        organizationLegalName: data.organizationLegalName,
+        ein: data.ein,
+      }),
       nonprofitProfile: {
         create: {
           organizationLegalName: nonprofitProfile.organizationLegalName,

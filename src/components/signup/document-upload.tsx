@@ -1,10 +1,11 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Upload, X, FileImage } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { compressImageFile, MAX_SOURCE_FILE_BYTES } from "@/lib/compress-image";
+import { MAX_IMAGE_FILE_MB } from "@/lib/signup-form";
 
-const MAX_SIZE_MB = 5;
 const ACCEPT = "image/jpeg,image/png,image/webp,image/heic";
 
 interface DocumentUploadProps {
@@ -14,29 +15,51 @@ interface DocumentUploadProps {
   preview?: string;
   onChange: (file: File, preview: string) => void;
   onClear: () => void;
+  onError?: (message: string) => void;
+  onBusyChange?: (busy: boolean) => void;
   required?: boolean;
 }
 
 export function DocumentUpload({
   label,
-  hint = "PNG, JPG, or WEBP up to 5MB",
+  hint = `PNG, JPG, or WEBP up to ${MAX_IMAGE_FILE_MB}MB`,
   fileName,
   preview,
   onChange,
   onClear,
+  onError,
+  onBusyChange,
   required,
 }: DocumentUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [processing, setProcessing] = useState(false);
 
-  const handleFile = (file: File | undefined) => {
+  const setBusy = (busy: boolean) => {
+    setProcessing(busy);
+    onBusyChange?.(busy);
+  };
+
+  const handleFile = async (file: File | undefined) => {
     if (!file) return;
-    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-      alert(`File must be under ${MAX_SIZE_MB}MB`);
+    if (file.size > MAX_SOURCE_FILE_BYTES) {
+      onError?.(`File must be under ${MAX_IMAGE_FILE_MB}MB. Choose a smaller photo.`);
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => onChange(file, reader.result as string);
-    reader.readAsDataURL(file);
+    if (!file.type.startsWith("image/")) {
+      onError?.("Only image files are allowed (JPG, PNG, or WEBP).");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { file: compressed, preview: compressedPreview } = await compressImageFile(file);
+      onChange(compressed, compressedPreview);
+    } catch (err) {
+      onError?.(
+        err instanceof Error ? err.message : "Could not process this image. Try another photo."
+      );
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -63,7 +86,7 @@ export function DocumentUpload({
         accept={ACCEPT}
         capture={undefined}
         className="hidden"
-        onChange={(e) => handleFile(e.target.files?.[0])}
+        onChange={(e) => void handleFile(e.target.files?.[0])}
       />
 
       {preview ? (
@@ -79,13 +102,16 @@ export function DocumentUpload({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
+          disabled={processing}
           className={cn(
             "flex w-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-200 p-8 text-center",
-            "hover:border-teal-400 hover:bg-teal-50/50 transition-colors cursor-pointer"
+            "hover:border-teal-400 hover:bg-teal-50/50 transition-colors cursor-pointer disabled:opacity-60"
           )}
         >
           <Upload className="h-8 w-8 text-slate-400" />
-          <p className="mt-2 text-sm font-medium text-slate-600">Click to upload</p>
+          <p className="mt-2 text-sm font-medium text-slate-600">
+            {processing ? "Processing photo…" : "Click to upload"}
+          </p>
           <p className="text-xs text-slate-400 mt-1">{hint}</p>
         </button>
       )}

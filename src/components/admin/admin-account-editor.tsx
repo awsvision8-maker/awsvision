@@ -35,6 +35,19 @@ function toDateInputValue(iso: string | null) {
   return iso.slice(0, 10);
 }
 
+function agreementSyncMessage(
+  sync?: { action: string; agreementNumber?: string; reason?: string }
+) {
+  if (!sync || sync.action === "skipped") return "";
+  if (sync.action === "created") {
+    return ` Investment agreement ${sync.agreementNumber} generated.`;
+  }
+  if (sync.action === "amended") {
+    return ` Agreement ${sync.agreementNumber} amended with new balance and plan rate.`;
+  }
+  return "";
+}
+
 export function AdminAccountEditor({ userId, account, onSaved }: AdminAccountEditorProps) {
   const [principal, setPrincipal] = useState(String(account.principal));
   const [monthlyRate, setMonthlyRate] = useState(String(account.monthlyRatePercent));
@@ -107,9 +120,10 @@ export function AdminAccountEditor({ userId, account, onSaved }: AdminAccountEdi
 
       const planName = data.matchedPlan?.name;
       setMessage(
-        planName
+        (planName
           ? `Saved — plan auto-matched to ${planName} (${data.matchedPlan.monthlyRate}%/mo)`
-          : "Account updated — plan matched to balance"
+          : "Account updated — plan matched to balance") +
+          agreementSyncMessage(data.agreementSync)
       );
       onSaved();
     } catch (e) {
@@ -140,7 +154,8 @@ export function AdminAccountEditor({ userId, account, onSaved }: AdminAccountEdi
         ? ` · Plan: ${data.matchedPlan.name} (${data.matchedPlan.monthlyRate}%/mo)`
         : "";
       setMessage(
-        `${direction === "credit" ? "Credited" : "Debited"} ${formatCurrency(amount)}${planNote}`
+        `${direction === "credit" ? "Credited" : "Debited"} ${formatCurrency(amount)}${planNote}` +
+          agreementSyncMessage(data.agreementSync)
       );
       setAdjustAmount("");
       onSaved();

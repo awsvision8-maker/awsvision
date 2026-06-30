@@ -112,6 +112,7 @@ export function AdminUserProfileEditor({
           >
             <option value="pending">Pending</option>
             <option value="submitted">Submitted</option>
+            <option value="resubmit_required">Resubmit required</option>
             <option value="verified">Verified</option>
             <option value="rejected">Rejected</option>
           </select>

@@ -3,15 +3,26 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Camera, Upload, X, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { compressDataUrl, compressImageFile, MAX_SOURCE_FILE_BYTES } from "@/lib/compress-image";
+import { MAX_IMAGE_FILE_MB } from "@/lib/signup-form";
 
 interface SelfieCaptureProps {
   preview?: string;
   fileName?: string;
   onCapture: (file: File, preview: string) => void;
   onClear: () => void;
+  onError?: (message: string) => void;
+  onBusyChange?: (busy: boolean) => void;
 }
 
-export function SelfieCapture({ preview, fileName, onCapture, onClear }: SelfieCaptureProps) {
+export function SelfieCapture({
+  preview,
+  fileName,
+  onCapture,
+  onClear,
+  onError,
+  onBusyChange,
+}: SelfieCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -20,6 +31,30 @@ export function SelfieCapture({ preview, fileName, onCapture, onClear }: SelfieC
   const [mode, setMode] = useState<"choose" | "camera">("choose");
   const [cameraError, setCameraError] = useState("");
   const [videoReady, setVideoReady] = useState(false);
+  const [processing, setProcessing] = useState(false);
+
+  const setBusy = (busy: boolean) => {
+    setProcessing(busy);
+    onBusyChange?.(busy);
+  };
+
+  const applyCapture = async (file: File, previewData: string) => {
+    setBusy(true);
+    setCameraError("");
+    try {
+      const compressed = previewData.startsWith("data:")
+        ? await compressDataUrl(previewData, file.name)
+        : await compressImageFile(file);
+      onCapture(compressed.file, compressed.preview);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Could not process this photo. Please try again.";
+      setCameraError(message);
+      onError?.(message);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -121,27 +156,33 @@ export function SelfieCapture({ preview, fileName, onCapture, onClear }: SelfieC
           setCameraError("Could not capture photo. Please try again or upload instead.");
           return;
         }
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
         const file = new File([blob], `selfie-${Date.now()}.jpg`, { type: "image/jpeg" });
-        onCapture(file, dataUrl);
+        void applyCapture(file, dataUrl);
         stopCamera();
         setMode("choose");
         setCameraError("");
       },
       "image/jpeg",
-      0.9
+      0.82
     );
   };
 
-  const handleUpload = (file: File | undefined) => {
+  const handleUpload = async (file: File | undefined) => {
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      alert("File must be under 5MB");
+    if (file.size > MAX_SOURCE_FILE_BYTES) {
+      const message = `File must be under ${MAX_IMAGE_FILE_MB}MB. Choose a smaller photo.`;
+      setCameraError(message);
+      onError?.(message);
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => onCapture(file, reader.result as string);
-    reader.readAsDataURL(file);
+    if (!file.type.startsWith("image/")) {
+      const message = "Only image files are allowed (JPG, PNG, or WEBP).";
+      setCameraError(message);
+      onError?.(message);
+      return;
+    }
+    await applyCapture(file, "");
   };
 
   if (preview) {
@@ -237,7 +278,7 @@ export function SelfieCapture({ preview, fileName, onCapture, onClear }: SelfieC
         accept="image/jpeg,image/png,image/webp"
         capture="user"
         className="hidden"
-        onChange={(e) => handleUpload(e.target.files?.[0])}
+        onChange={(e) => void handleUpload(e.target.files?.[0])}
       />
 
       <div className="flex flex-col sm:flex-row justify-center gap-3">

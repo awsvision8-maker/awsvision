@@ -15,6 +15,7 @@ model User {
   lastName     String
   phone        String
   onlineId     String?  @unique
+  dateOfBirth  DateTime?
   kycStatus    String   @default("pending")
   profileType  String   @default("individual")
   kycData      String?
@@ -22,16 +23,19 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  nonprofitProfile    NonprofitProfile?
-  accounts            PortfolioAccount[]
-  transactions        Transaction[]
-  sessions            Session[]
-  withdrawalRequests  WithdrawalRequest[]
-  investmentAgreements InvestmentAgreement[]
-  notifications         UserNotification[]
-  ambassador          BrandAmbassador? @relation(fields: [ambassadorId], references: [id], onDelete: SetNull)
+  nonprofitProfile       NonprofitProfile?
+  accounts               PortfolioAccount[]
+  transactions           Transaction[]
+  sessions               Session[]
+  withdrawalRequests     WithdrawalRequest[]
+  investmentAgreements   InvestmentAgreement[]
+  notifications          UserNotification[]
+  birthdayWishes         BirthdayWish[]
+  kycDocumentRequests    KycDocumentRequest[]
+  ambassador             BrandAmbassador? @relation(fields: [ambassadorId], references: [id], onDelete: SetNull)
 
   @@index([ambassadorId])
+  @@index([dateOfBirth])
 }
 
 model NonprofitProfile {
@@ -207,6 +211,57 @@ model UserNotification {
   @@index([userId, createdAt])
   @@index([userId, readAt])
   @@index([userId, expiresAt])
+}
+
+model BirthdayWish {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  year           Int
+  emailSent      Boolean  @default(false)
+  notificationId String?
+  createdAt      DateTime @default(now())
+
+  @@unique([userId, year])
+  @@index([year])
+}
+
+model KycDocumentRequest {
+  id             String    @id @default(cuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documentKey    String
+  adminNote      String?
+  status         String    @default("pending")
+  adminId        String?
+  notificationId String?
+  requestedAt    DateTime  @default(now())
+  fulfilledAt    DateTime?
+
+  @@index([userId, status])
+  @@index([status, requestedAt])
+}
+
+model SignupAttemptLog {
+  id           String   @id @default(cuid())
+  profileType  String
+  status       String
+  email        String?
+  onlineId     String?
+  firstName    String?
+  lastName     String?
+  orgName      String?
+  errorMessage String?
+  errorCode    String?
+  source       String   @default("server")
+  ipAddress    String?
+  userAgent    String?
+  payloadKb    Int?
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([status])
+  @@index([profileType])
 }
 
 model Admin {

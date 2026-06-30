@@ -17,12 +17,14 @@ import {
   SectorAllocationChart,
 } from "@/components/charts/investment-charts";
 import { NonprofitProfileBanner } from "@/components/portal/nonprofit-profile-banner";
+import { BirthdayBanner } from "@/components/portal/birthday-banner";
 import { PortalHeader } from "@/components/portal/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
 import { getInvestmentPlan } from "@/lib/investment-plans";
+import { isBirthdayToday } from "@/lib/birthday";
 import { getAccountLabel } from "@/lib/portfolio-engine";
 import { usePortfolio } from "@/lib/use-portfolio";
 import { formatCurrency, formatDate, formatMonthYear } from "@/lib/utils";
@@ -104,12 +106,19 @@ export default function DashboardPage() {
     ? `Delivered in ${profitDeliveryLabel}${profitRateSubtitle !== "Deposit required" ? ` · ${profitRateSubtitle}` : ""}`
     : profitRateSubtitle;
 
+  const birthdayDob = user?.kycData?.dateOfBirth ?? null;
+  const showBirthdayBanner = !isNonprofit && birthdayDob && isBirthdayToday(birthdayDob);
+
   return (
     <>
       <PortalHeader title={`Welcome back, ${welcomeName}`} subtitle={subtitle} />
       <div className="space-y-6 p-4 sm:p-6 lg:p-8">
         {isNonprofit && user.nonprofitProfile && (
           <NonprofitProfileBanner profile={user.nonprofitProfile} />
+        )}
+
+        {showBirthdayBanner && user && (
+          <BirthdayBanner firstName={user.firstName} />
         )}
 
         {showFundAccountCta && (

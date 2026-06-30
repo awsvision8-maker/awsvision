@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { CheckCircle2, HeartHandshake, Lock, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,8 @@ import { Logo } from "@/components/ui/logo";
 import { StepProgress } from "@/components/signup/step-progress";
 import { DeveloperCredit } from "@/components/marketing/developer-credit";
 import { DocumentUpload } from "@/components/signup/document-upload";
+import { OnlineIdField, verifyOnlineIdAvailable } from "@/components/signup/online-id-field";
+import { SignupStepErrors } from "@/components/signup/signup-step-errors";
 import { useAuth } from "@/lib/auth-context";
 import {
   INITIAL_NONPROFIT_SIGNUP,
@@ -19,6 +21,7 @@ import {
   validateNonprofitSignupStep,
 } from "@/lib/nonprofit-signup-form";
 import type { NonprofitSignupApplication } from "@/types";
+import { logClientSignupFailure } from "@/lib/signup-client-log";
 import { SITE } from "@/lib/site-config";
 import {
   NONPROFIT_CAPITAL_TIERS,
@@ -45,9 +48,26 @@ export default function NonprofitSignupContent() {
   const { signupNonprofit } = useAuth();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<NonprofitSignupApplication>(INITIAL_NONPROFIT_SIGNUP);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [mediaBusy, setMediaBusy] = useState(false);
+  const [onlineIdAvailable, setOnlineIdAvailable] = useState<boolean | null>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
+  const uploadBusyKeys = useRef(new Set<string>());
+
+  const setUploadBusy = (key: string, busy: boolean) => {
+    if (busy) uploadBusyKeys.current.add(key);
+    else uploadBusyKeys.current.delete(key);
+    setMediaBusy(uploadBusyKeys.current.size > 0);
+  };
+
+  const showErrors = (list: string[]) => {
+    setErrors(list);
+    requestAnimationFrame(() =>
+      errorRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+    );
+  };
 
   const capital = Number(form.expectedFundCapital);
   const monthlyRate = getNonprofitMonthlyRate(capital);
@@ -56,37 +76,91 @@ export default function NonprofitSignupContent() {
   const update = <K extends keyof NonprofitSignupApplication>(
     field: K,
     value: NonprofitSignupApplication[K]
-  ) => setForm((prev) => ({ ...prev, [field]: value }));
+  ) => {
+    setErrors([]);
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
 
-  const goNext = () => {
-    const err = validateNonprofitSignupStep(step, form);
-    if (err) {
-      setError(err);
+  const goNext = async () => {
+    if (mediaBusy) {
+      showErrors(["Please wait — your document is still being processed."]);
       return;
     }
-    setError("");
+    const stepErrors = validateNonprofitSignupStep(step, form);
+    if (stepErrors.length > 0) {
+      showErrors(stepErrors);
+      return;
+    }
+
+    if (step === 3) {
+      const idCheck = await verifyOnlineIdAvailable(form.onlineId, {
+        orgName: form.organizationLegalName,
+      });
+      if (!idCheck.ok) {
+        showErrors([idCheck.message ?? "This Online ID is already taken. Please choose a different one."]);
+        return;
+      }
+    }
+
+    setErrors([]);
     setStep((s) => s + 1);
   };
 
   const goBack = () => {
-    setError("");
+    setErrors([]);
     setStep((s) => s - 1);
   };
 
   const handleSubmit = async () => {
-    const err = validateNonprofitSignupStep(step, form);
-    if (err) {
-      setError(err);
+    if (mediaBusy) {
+      showErrors(["Please wait — your document is still being processed."]);
       return;
     }
+    const stepErrors = validateNonprofitSignupStep(step, form);
+    if (stepErrors.length > 0) {
+      showErrors(stepErrors);
+      void logClientSignupFailure({
+        profileType: "nonprofit",
+        errorMessage: stepErrors.join("; "),
+        errorCode: "client_validation",
+        email: form.repEmail,
+        onlineId: form.onlineId,
+        firstName: form.repFirstName,
+        lastName: form.repLastName,
+        orgName: form.organizationLegalName,
+      });
+      return;
+    }
+
+    const idCheck = await verifyOnlineIdAvailable(form.onlineId, {
+      orgName: form.organizationLegalName,
+    });
+    if (!idCheck.ok) {
+      const msg = idCheck.message ?? "This Online ID is already taken. Please choose a different one.";
+      showErrors([msg]);
+      void logClientSignupFailure({
+        profileType: "nonprofit",
+        errorMessage: msg,
+        errorCode: "duplicate_online_id",
+        email: form.repEmail,
+        onlineId: form.onlineId,
+        firstName: form.repFirstName,
+        lastName: form.repLastName,
+        orgName: form.organizationLegalName,
+      });
+      return;
+    }
+
     setLoading(true);
-    setError("");
+    setErrors([]);
     try {
       await signupNonprofit(form);
       setSubmitted(true);
       setTimeout(() => router.push("/kyc"), 2500);
-    } catch {
-      setError("Application submission failed. Please try again.");
+    } catch (err) {
+      showErrors([
+        err instanceof Error ? err.message : "Application submission failed. Please try again.",
+      ]);
     } finally {
       setLoading(false);
     }
@@ -309,12 +383,13 @@ export default function NonprofitSignupContent() {
 
           {step === 3 && (
             <div className="space-y-4">
-              <Input
+              <OnlineIdField
                 label="Online ID (for portal sign-in) *"
                 value={form.onlineId}
-                onChange={(e) => update("onlineId", e.target.value)}
+                onChange={(v) => update("onlineId", v)}
+                onAvailabilityChange={setOnlineIdAvailable}
+                orgName={form.organizationLegalName}
                 placeholder="org_communityhope"
-                required
               />
               <Input
                 label="Passcode *"
@@ -345,10 +420,11 @@ export default function NonprofitSignupContent() {
             <div className="space-y-6">
               <DocumentUpload
                 label="IRS Tax-Exempt Determination Letter or 501(c) Status Document"
-                hint="PDF or image up to 5MB"
                 fileName={form.taxExemptDocName}
                 preview={form.taxExemptDocPreview}
                 required
+                onError={(msg) => showErrors([msg])}
+                onBusyChange={(busy) => setUploadBusy("taxExempt", busy)}
                 onChange={(file, preview) => {
                   update("taxExemptDocName", file.name);
                   update("taxExemptDocPreview", preview);
@@ -360,9 +436,10 @@ export default function NonprofitSignupContent() {
               />
               <DocumentUpload
                 label="Board Resolution or Authorization Letter (optional)"
-                hint="Document authorizing the representative to open this account"
                 fileName={form.bylawsOrAuthDocName}
                 preview={form.bylawsOrAuthDocPreview}
+                onError={(msg) => showErrors([msg])}
+                onBusyChange={(busy) => setUploadBusy("bylaws", busy)}
                 onChange={(file, preview) => {
                   update("bylawsOrAuthDocName", file.name);
                   update("bylawsOrAuthDocPreview", preview);
@@ -444,9 +521,7 @@ export default function NonprofitSignupContent() {
             </div>
           )}
 
-          {error && (
-            <p className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
-          )}
+          <SignupStepErrors errors={errors} errorRef={errorRef} />
 
           <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
             {step > 0 ? (
@@ -457,14 +532,19 @@ export default function NonprofitSignupContent() {
               <div />
             )}
             {step < NONPROFIT_SIGNUP_STEPS.length - 1 ? (
-              <Button type="button" onClick={goNext} className="bg-violet-600 hover:bg-violet-700">
-                Continue
+              <Button
+                type="button"
+                onClick={() => void goNext()}
+                className="bg-violet-600 hover:bg-violet-700"
+                disabled={mediaBusy || loading || (step === 3 && onlineIdAvailable === false)}
+              >
+                {mediaBusy ? "Processing document…" : "Continue"}
               </Button>
             ) : (
               <Button
                 type="button"
                 onClick={handleSubmit}
-                disabled={loading}
+                disabled={loading || mediaBusy}
                 className="bg-violet-600 hover:bg-violet-700"
               >
                 {loading ? "Submitting…" : "Submit Application"}

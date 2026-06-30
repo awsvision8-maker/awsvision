@@ -19,6 +19,8 @@ import {
   ambassadorApplicationAdminEmail,
   ambassadorApprovedEmail,
   ambassadorRejectedEmail,
+  birthdayWishEmail,
+  kycReuploadRequestEmail,
 } from "@/lib/server/email-templates";
 import { adminEmail, sendMailAsync } from "@/lib/server/mail";
 import { getAccountLabel, PROFIT_HOLD_DAYS } from "@/lib/portfolio-engine";
@@ -163,4 +165,18 @@ export function notifyAmbassadorApproved(data: {
 export function notifyAmbassadorRejected(email: string, firstName: string, note?: string) {
   const msg = ambassadorRejectedEmail(firstName, note);
   sendMailAsync({ to: email, ...msg });
+}
+
+export function notifyBirthday(user: { email: string; firstName: string; lastName: string }) {
+  const msg = birthdayWishEmail(user);
+  sendMailAsync({ to: user.email, ...msg });
+}
+
+export function notifyKycReuploadRequest(
+  user: { email: string; firstName: string; lastName: string },
+  documentLabel: string,
+  adminNote?: string | null
+) {
+  const msg = kycReuploadRequestEmail(user, documentLabel, adminNote);
+  sendMailAsync({ to: user.email, ...msg });
 }

@@ -128,6 +128,168 @@ export async function createAgreementOnDepositApproval(params: {
   return mapInvestmentAgreement(row);
 }
 
+export type AgreementSyncResult =
+  | { action: "created"; agreementId: string; agreementNumber: string }
+  | { action: "amended"; agreementId: string; agreementNumber: string }
+  | { action: "skipped"; reason: string };
+
+/** Create or amend investment agreement when admin credits balance to match plan tier. */
+export async function syncAgreementOnAdminBalanceChange(params: {
+  userId: string;
+  accountId: string;
+  transactionId: string;
+  previousPrincipal: number;
+  newPrincipal: number;
+  monthlyRatePercent: number;
+  investmentPlanId: string | null;
+  description?: string;
+  effectiveAt?: Date;
+}): Promise<AgreementSyncResult> {
+  const effectiveAt = params.effectiveAt ?? new Date();
+  const creditDelta = params.newPrincipal - params.previousPrincipal;
+
+  if (creditDelta === 0) {
+    return { action: "skipped", reason: "No balance change" };
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: params.userId },
+    select: { kycStatus: true, firstName: true, lastName: true, email: true },
+  });
+  if (!user || user.kycStatus !== "verified") {
+    return { action: "skipped", reason: "KYC not verified" };
+  }
+
+  const account = await prisma.portfolioAccount.findFirst({
+    where: { id: params.accountId, userId: params.userId },
+  });
+  if (!account || (account.type !== "investment" && account.type !== "fixed_deposit")) {
+    return { action: "skipped", reason: "Not an investment account" };
+  }
+  if (params.newPrincipal <= 0) {
+    return { action: "skipped", reason: "Zero balance" };
+  }
+
+  const planId = params.investmentPlanId ?? account.investmentPlanId;
+  if (!planId) {
+    return { action: "skipped", reason: "No investment plan assigned" };
+  }
+
+  const plan =
+    getInvestmentPlan(planId) ??
+    resolvePlanTierFromPrincipal(
+      {
+        type: account.type as PortfolioAccount["type"],
+        investmentPlanId: planId,
+      },
+      params.newPrincipal
+    );
+  if (!plan) {
+    return { action: "skipped", reason: "Could not resolve plan tier" };
+  }
+
+  const latest = await prisma.investmentAgreement.findFirst({
+    where: { accountId: params.accountId },
+    orderBy: { issuedAt: "desc" },
+  });
+
+  const maturityDate =
+    account.maturityDate ??
+    latest?.maturityDate ??
+    addMonths(effectiveAt, plan.termMonths);
+
+  const rateLabel = `${params.monthlyRatePercent}%/mo`;
+  const amendmentNote =
+    creditDelta > 0
+      ? [
+          params.description?.trim(),
+          `Admin credit ${creditDelta.toLocaleString("en-US", { style: "currency", currency: "USD" })} — enrolled capital ${params.newPrincipal.toLocaleString("en-US", { style: "currency", currency: "USD" })} at ${rateLabel} (${plan.name}).`,
+        ]
+          .filter(Boolean)
+          .join(" ")
+      : `Admin balance adjustment — enrolled capital updated to ${params.newPrincipal.toLocaleString("en-US", { style: "currency", currency: "USD" })} at ${rateLabel} (${plan.name}).`;
+
+  if (!account.maturityDate) {
+    await prisma.portfolioAccount.update({
+      where: { id: account.id },
+      data: { maturityDate },
+    });
+  }
+
+  if (!latest) {
+    const created = await createAgreementOnDepositApproval({
+      userId: params.userId,
+      userKycStatus: user.kycStatus,
+      clientFirstName: user.firstName,
+      clientLastName: user.lastName,
+      clientEmail: user.email,
+      transactionId: params.transactionId,
+      depositAmount: Math.max(creditDelta, 0),
+      account: {
+        id: account.id,
+        accountNumber: account.accountNumber,
+        type: account.type,
+        investmentPlanId: plan.id,
+        maturityDate,
+      },
+      newPrincipal: params.newPrincipal,
+      investmentPlanId: plan.id,
+      monthlyRatePercent: params.monthlyRatePercent,
+      approvedAt: effectiveAt,
+    });
+
+    if (!created) {
+      return { action: "skipped", reason: "Agreement could not be created" };
+    }
+
+    if (amendmentNote && creditDelta > 0) {
+      await prisma.investmentAgreement.update({
+        where: { id: created.id },
+        data: { amendmentNote, amendedAt: effectiveAt },
+      });
+    }
+
+    return {
+      action: "created",
+      agreementId: created.id,
+      agreementNumber: created.agreementNumber,
+    };
+  }
+
+  const tierChanged = latest.planId !== plan.id;
+  const nextMaturity = tierChanged ? addMonths(effectiveAt, plan.termMonths) : maturityDate;
+
+  const updated = await prisma.investmentAgreement.update({
+    where: { id: latest.id },
+    data: {
+      planId: plan.id,
+      planName: plan.name,
+      monthlyRatePercent: params.monthlyRatePercent,
+      termMonths: plan.termMonths,
+      totalRoiPercent: plan.totalRoiPercent,
+      totalPrincipal: params.newPrincipal,
+      depositAmount:
+        creditDelta > 0 ? latest.depositAmount + creditDelta : latest.depositAmount,
+      maturityDate: nextMaturity,
+      amendmentNote,
+      amendedAt: effectiveAt,
+    },
+  });
+
+  if (tierChanged) {
+    await prisma.portfolioAccount.update({
+      where: { id: account.id },
+      data: { maturityDate: nextMaturity, investmentPlanId: plan.id },
+    });
+  }
+
+  return {
+    action: "amended",
+    agreementId: updated.id,
+    agreementNumber: updated.agreementNumber,
+  };
+}
+
 export interface AdminAgreementUpdateInput {
   planId?: string;
   planName?: string;
@@ -209,9 +371,9 @@ async function syncLatestAgreementRate(
     where: { accountId },
     orderBy: { issuedAt: "desc" },
   });
-  if (!latest) return;
+  if (!latest) return null;
 
-  await prisma.investmentAgreement.update({
+  const updated = await prisma.investmentAgreement.update({
     where: { id: latest.id },
     data: {
       monthlyRatePercent,
@@ -220,6 +382,116 @@ async function syncLatestAgreementRate(
       amendedAt: new Date(),
     },
   });
+  return updated;
+}
+
+/** Amend existing agreement or create one when admin sets a profit rate. */
+export async function syncAgreementOnProfitAmendment(
+  userId: string,
+  accountId: string,
+  monthlyRatePercent: number,
+  amendmentNote: string | null
+): Promise<AgreementSyncResult> {
+  const existing = await syncLatestAgreementRate(accountId, monthlyRatePercent, amendmentNote);
+  if (existing) {
+    return {
+      action: "amended",
+      agreementId: existing.id,
+      agreementNumber: existing.agreementNumber,
+    };
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { kycStatus: true, firstName: true, lastName: true, email: true },
+  });
+  if (!user || user.kycStatus !== "verified") {
+    return { action: "skipped", reason: "KYC not verified — verify client before issuing agreement" };
+  }
+
+  const account = await prisma.portfolioAccount.findFirst({
+    where: { id: accountId, userId },
+  });
+  if (!account) {
+    return { action: "skipped", reason: "Account not found" };
+  }
+  if (account.type !== "investment" && account.type !== "fixed_deposit") {
+    return { action: "skipped", reason: "Not an investment account" };
+  }
+  if (account.principal <= 0) {
+    return {
+      action: "skipped",
+      reason: "No enrolled capital — credit balance before applying profit amendment",
+    };
+  }
+
+  const planId = account.investmentPlanId;
+  const plan =
+    (planId ? getInvestmentPlan(planId) : null) ??
+    resolvePlanTierFromPrincipal(
+      {
+        type: account.type as PortfolioAccount["type"],
+        investmentPlanId: planId ?? undefined,
+      },
+      account.principal
+    );
+  if (!plan) {
+    return { action: "skipped", reason: "Could not resolve investment plan for this balance" };
+  }
+
+  const effectiveAt = new Date();
+  const maturityDate = account.maturityDate ?? addMonths(effectiveAt, plan.termMonths);
+  const note =
+    amendmentNote ??
+    `Profit rate amendment — ${monthlyRatePercent}%/mo enrolled on ${plan.name} tier.`;
+
+  const created = await createAgreementOnDepositApproval({
+    userId,
+    userKycStatus: user.kycStatus,
+    clientFirstName: user.firstName,
+    clientLastName: user.lastName,
+    clientEmail: user.email,
+    transactionId: `tx_amend_${Date.now()}`,
+    depositAmount: account.principal,
+    account: {
+      id: account.id,
+      accountNumber: account.accountNumber,
+      type: account.type,
+      investmentPlanId: plan.id,
+      maturityDate,
+    },
+    newPrincipal: account.principal,
+    investmentPlanId: plan.id,
+    monthlyRatePercent,
+    approvedAt: effectiveAt,
+  });
+
+  if (!created) {
+    return { action: "skipped", reason: "Agreement could not be created" };
+  }
+
+  await prisma.investmentAgreement.update({
+    where: { id: created.id },
+    data: {
+      monthlyRatePercent,
+      totalRoiPercent: monthlyRatePercent * plan.termMonths,
+      amendmentNote: note,
+      amendedAt: effectiveAt,
+    },
+  });
+
+  if (!account.maturityDate) {
+    await prisma.portfolioAccount.update({
+      where: { id: account.id },
+      data: { maturityDate, investmentPlanId: plan.id },
+    });
+  }
+
+  return {
+    action: "created",
+    agreementId: created.id,
+    agreementNumber: created.agreementNumber,
+  };
 }
 
 export async function adminSetProfitAmendment(
@@ -230,7 +502,7 @@ export async function adminSetProfitAmendment(
     amendmentNote?: string;
     clearAmendment?: boolean;
   }
-) {
+): Promise<{ account: Awaited<ReturnType<typeof prisma.portfolioAccount.update>>; agreementSync?: AgreementSyncResult }> {
   const account = await prisma.portfolioAccount.findFirst({
     where: { id: accountId, userId },
   });
@@ -264,7 +536,7 @@ export async function adminSetProfitAmendment(
     });
 
     await syncLatestAgreementRate(accountId, rates.monthlyRatePercent, null);
-    return updated;
+    return { account: updated };
   }
 
   if (data.monthlyRatePercent === undefined || data.monthlyRatePercent <= 0) {
@@ -282,6 +554,12 @@ export async function adminSetProfitAmendment(
     },
   });
 
-  await syncLatestAgreementRate(accountId, data.monthlyRatePercent, note);
-  return updated;
+  const agreementSync = await syncAgreementOnProfitAmendment(
+    userId,
+    accountId,
+    data.monthlyRatePercent,
+    note
+  );
+
+  return { account: updated, agreementSync };
 }

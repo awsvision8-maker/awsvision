@@ -189,6 +189,34 @@ export async function markAllNotificationsRead(userId: string) {
   return countUnreadNotifications(userId);
 }
 
+export async function createUserNotification(params: {
+  userId: string;
+  title: string;
+  message: string;
+  type?: NotificationType;
+  durationDays?: number;
+  durationHours?: number;
+}) {
+  const title = params.title.trim();
+  const message = params.message.trim();
+  if (!title || !message) throw new Error("Title and message are required");
+
+  const durationDays = params.durationDays ?? 1;
+  const durationHours = params.durationHours ?? 0;
+  const expiresAt = computeNotificationExpiresAt(durationDays, durationHours);
+
+  const row = await prisma.userNotification.create({
+    data: {
+      userId: params.userId,
+      title,
+      message,
+      type: params.type ?? "info",
+      expiresAt,
+    },
+  });
+  return mapNotification(row);
+}
+
 export async function deleteUserAccount(userId: string) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) throw new Error("User not found");

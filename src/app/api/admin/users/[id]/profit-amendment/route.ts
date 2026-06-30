@@ -30,7 +30,7 @@ export async function PATCH(
       return jsonError("Monthly rate must be between 0 and 100", 400);
     }
 
-    await adminSetProfitAmendment(userId, body.accountId, body);
+    const { agreementSync } = await adminSetProfitAmendment(userId, body.accountId, body);
 
     const user = await getUserDetail(userId);
     if (!user) return jsonError("User not found", 404);
@@ -60,6 +60,7 @@ export async function PATCH(
         : null,
       standardRatePercent: standardPlan?.monthlyRate ?? null,
       standardPlanName: standardPlan?.name ?? null,
+      agreementSync,
       portfolioSummary: {
         monthlyProfit: snapshot.monthlyProfit,
         nextMonthRatePercent: snapshot.nextMonthRatePercent,

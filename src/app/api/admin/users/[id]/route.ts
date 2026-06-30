@@ -24,6 +24,10 @@ function serializeUserDetail(user: NonNullable<Awaited<ReturnType<typeof getUser
     profileType: user.profileType,
     createdAt: user.createdAt.toISOString(),
     kycData: user.kycData ? JSON.parse(user.kycData) : null,
+    pendingKycRequests: user.kycDocumentRequests?.map((r) => ({
+      documentKey: r.documentKey,
+      adminNote: r.adminNote,
+    })) ?? [],
     nonprofit: user.nonprofitProfile,
     portfolioSummary: {
       totalBalance: snapshot.totalBalance,

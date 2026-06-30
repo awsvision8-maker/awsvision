@@ -364,6 +364,52 @@ export function ambassadorRejectedEmail(firstName: string, note?: string) {
   };
 }
 
+export function birthdayWishEmail(user: { firstName: string; lastName: string }) {
+  const name = user.firstName;
+  const body = [
+    p(`Dear ${name},`),
+    p(
+      `On behalf of everyone at <strong>AWS Vision</strong>, we would like to wish you a very <strong>Happy Birthday</strong>! 🎉`
+    ),
+    p(
+      "Thank you for trusting us with your financial journey. We hope your special day is filled with happiness, good health, and continued success."
+    ),
+    p("We are grateful to have you as part of the AWS Vision community."),
+    btn(`${SITE.url}/portal/dashboard`, "Visit Your Dashboard"),
+    p(`With warm wishes,<br><strong>The AWS Vision Team</strong>`),
+  ].join("");
+  return {
+    subject: `Happy Birthday, ${name}! — AWS Vision`,
+    html: layout("Happy Birthday", body),
+    text: `Happy Birthday, ${name}! Warm wishes from the AWS Vision team.`,
+  };
+}
+
+export function kycReuploadRequestEmail(
+  user: { firstName: string; lastName: string },
+  documentLabel: string,
+  adminNote?: string | null
+) {
+  const name = user.firstName;
+  const body = [
+    p(`Hello ${name},`),
+    p(
+      `Our compliance team has reviewed your identity verification and needs you to <strong>upload a new ${documentLabel}</strong>.`
+    ),
+    adminNote
+      ? p(`<strong>Note from our team:</strong> ${adminNote}`)
+      : p("The document previously submitted could not be accepted. Please provide a clear, valid copy."),
+    p("Sign in to your account and go to the verification page to upload the updated document."),
+    btn(`${SITE.url}/kyc`, "Upload Document"),
+    p(`If you have questions, contact us at ${SITE.email} or ${formatSitePhones(" / ")}.`),
+  ].join("");
+  return {
+    subject: `Action required: Re-upload ${documentLabel} — AWS Vision`,
+    html: layout("KYC Document Re-upload", body),
+    text: `Please re-upload your ${documentLabel}. Sign in at ${SITE.url}/kyc`,
+  };
+}
+
 export const WAITLIST_LABELS: Record<string, string> = {
   newsletter: "Newsletter",
   products: "Products Opening Soon",

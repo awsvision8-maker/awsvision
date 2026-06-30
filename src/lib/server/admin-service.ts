@@ -1,5 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { hashPassword, verifyPassword } from "@/lib/server/auth-service";
+import {
+  syncAgreementOnAdminBalanceChange,
+  type AgreementSyncResult,
+} from "@/lib/server/agreement-service";
 
 export async function authenticateAdmin(email: string, password: string) {
   const admin = await prisma.admin.findUnique({
@@ -53,7 +57,7 @@ export async function getAdminStats() {
     prisma.user.count(),
     prisma.user.count({ where: { createdAt: { gte: startOfDay } } }),
     prisma.user.count({ where: { profileType: "nonprofit" } }),
-    prisma.user.count({ where: { kycStatus: { in: ["pending", "submitted"] } } }),
+    prisma.user.count({ where: { kycStatus: { in: ["pending", "submitted", "resubmit_required"] } } }),
     prisma.transaction.aggregate({
       where: { type: "deposit", status: "completed" },
       _sum: { amount: true },
@@ -153,6 +157,10 @@ export async function getUserDetail(userId: string) {
       accounts: true,
       transactions: { orderBy: { date: "desc" } },
       withdrawalRequests: { orderBy: { createdAt: "desc" }, take: 20 },
+      kycDocumentRequests: {
+        where: { status: "pending" },
+        orderBy: { requestedAt: "desc" },
+      },
     },
   });
 }
@@ -171,7 +179,7 @@ export async function setUserKycStatus(userId: string, status: "verified" | "rej
 
 export async function listKycQueue() {
   return prisma.user.findMany({
-    where: { kycStatus: { in: ["pending", "submitted"] } },
+    where: { kycStatus: { in: ["pending", "submitted", "resubmit_required"] } },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
@@ -183,6 +191,18 @@ export async function listKycQueue() {
       profileType: true,
       kycData: true,
       createdAt: true,
+      kycDocumentRequests: {
+        where: { status: "pending" },
+        orderBy: { requestedAt: "desc" },
+        select: {
+          id: true,
+          documentKey: true,
+          adminNote: true,
+          status: true,
+          requestedAt: true,
+          fulfilledAt: true,
+        },
+      },
     },
   });
 }
@@ -455,6 +475,9 @@ export async function adminUpdatePortfolioAccount(
     throw new Error("No account fields to update");
   }
 
+  const adjustmentTxId = `tx_adj_${Date.now()}`;
+  const previousPrincipal = account.principal;
+
   const adjustmentTx =
     data.principal !== undefined &&
     data.principal !== account.principal &&
@@ -463,7 +486,7 @@ export async function adminUpdatePortfolioAccount(
           const diff = data.principal! - account.principal;
           return prisma.transaction.create({
             data: {
-              id: `tx_adj_${Date.now()}`,
+              id: adjustmentTxId,
               userId,
               accountId,
               type: diff > 0 ? "deposit" : "withdrawal",
@@ -483,7 +506,25 @@ export async function adminUpdatePortfolioAccount(
     }),
     ...(adjustmentTx ? [adjustmentTx] : []),
   ]);
-  return getUserDetail(userId);
+
+  let agreementSync: AgreementSyncResult | undefined;
+  if (nextPrincipal !== previousPrincipal) {
+    agreementSync = await syncAgreementOnAdminBalanceChange({
+      userId,
+      accountId,
+      transactionId: adjustmentTx ? adjustmentTxId : `tx_agr_${Date.now()}`,
+      previousPrincipal,
+      newPrincipal: nextPrincipal,
+      monthlyRatePercent: updates.monthlyRatePercent ?? account.monthlyRatePercent,
+      investmentPlanId:
+        updates.investmentPlanId !== undefined
+          ? updates.investmentPlanId
+          : account.investmentPlanId,
+      description: `Admin balance set to ${nextPrincipal.toFixed(2)}`,
+    });
+  }
+
+  return { user: await getUserDetail(userId), agreementSync };
 }
 
 export async function adminAdjustAccountBalance(
@@ -515,6 +556,9 @@ export async function adminAdjustAccountBalance(
     newPrincipal
   );
 
+  const txId = `tx_adj_${Date.now()}`;
+  const previousPrincipal = account.principal;
+
   await prisma.$transaction([
     prisma.portfolioAccount.update({
       where: { id: accountId },
@@ -526,7 +570,7 @@ export async function adminAdjustAccountBalance(
     }),
     prisma.transaction.create({
       data: {
-        id: `tx_adj_${Date.now()}`,
+        id: txId,
         userId,
         accountId,
         type: direction === "credit" ? "deposit" : "withdrawal",
@@ -538,5 +582,16 @@ export async function adminAdjustAccountBalance(
     }),
   ]);
 
-  return getUserDetail(userId);
+  const agreementSync = await syncAgreementOnAdminBalanceChange({
+    userId,
+    accountId,
+    transactionId: txId,
+    previousPrincipal,
+    newPrincipal,
+    monthlyRatePercent: rates.monthlyRatePercent,
+    investmentPlanId: rates.investmentPlanId ?? null,
+    description: description.trim() || `Admin ${direction}`,
+  });
+
+  return { user: await getUserDetail(userId), agreementSync };
 }

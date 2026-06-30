@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, Lock, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,8 @@ import { StepProgress } from "@/components/signup/step-progress";
 import { DeveloperCredit } from "@/components/marketing/developer-credit";
 import { DocumentUpload } from "@/components/signup/document-upload";
 import { SelfieCapture } from "@/components/signup/selfie-capture";
+import { OnlineIdField, verifyOnlineIdAvailable } from "@/components/signup/online-id-field";
+import { SignupStepErrors } from "@/components/signup/signup-step-errors";
 import { InvestmentPlanPicker } from "@/components/signup/investment-plan-picker";
 import { WealthPromoBanner } from "@/components/marketing/wealth-promo-banner";
 import { useAuth } from "@/lib/auth-context";
@@ -23,6 +25,7 @@ import {
   validateSignupStep,
 } from "@/lib/signup-form";
 import type { SignupApplication } from "@/types";
+import { logClientSignupFailure } from "@/lib/signup-client-log";
 import { SITE } from "@/lib/site-config";
 import { OPEN_ACCOUNT_TYPES, OPEN_NOW_MESSAGE } from "@/lib/product-availability";
 import { getInvestmentPlan, formatUsd } from "@/lib/investment-plans";
@@ -40,9 +43,26 @@ export default function SignupPageContent() {
   const { signup } = useAuth();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<SignupApplication>(INITIAL_SIGNUP_FORM);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [mediaBusy, setMediaBusy] = useState(false);
+  const [onlineIdAvailable, setOnlineIdAvailable] = useState<boolean | null>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
+  const uploadBusyKeys = useRef(new Set<string>());
+
+  const setUploadBusy = (key: string, busy: boolean) => {
+    if (busy) uploadBusyKeys.current.add(key);
+    else uploadBusyKeys.current.delete(key);
+    setMediaBusy(uploadBusyKeys.current.size > 0);
+  };
+
+  const showErrors = (list: string[]) => {
+    setErrors(list);
+    requestAnimationFrame(() =>
+      errorRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+    );
+  };
 
   useEffect(() => {
     const account = searchParams.get("account");
@@ -68,38 +88,92 @@ export default function SignupPageContent() {
 
   const selectedPlan = getInvestmentPlan(form.investmentPlanId);
 
-  const update = <K extends keyof SignupApplication>(field: K, value: SignupApplication[K]) =>
+  const update = <K extends keyof SignupApplication>(field: K, value: SignupApplication[K]) => {
+    setErrors([]);
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
 
-  const goNext = () => {
-    const err = validateSignupStep(step, form);
-    if (err) {
-      setError(err);
+  const goNext = async () => {
+    if (mediaBusy) {
+      showErrors(["Please wait — your photo is still being processed."]);
       return;
     }
-    setError("");
+    const stepErrors = validateSignupStep(step, form);
+    if (stepErrors.length > 0) {
+      showErrors(stepErrors);
+      return;
+    }
+
+    if (step === 3) {
+      const idCheck = await verifyOnlineIdAvailable(form.onlineId, {
+        firstName: form.firstName,
+        lastName: form.lastName,
+      });
+      if (!idCheck.ok) {
+        const msgs = [idCheck.message ?? "This Online ID is already taken. Please choose a different one."];
+        showErrors(msgs);
+        return;
+      }
+    }
+
+    setErrors([]);
     setStep((s) => s + 1);
   };
 
   const goBack = () => {
-    setError("");
+    setErrors([]);
     setStep((s) => s - 1);
   };
 
   const handleSubmit = async () => {
-    const err = validateSignupStep(step, form);
-    if (err) {
-      setError(err);
+    if (mediaBusy) {
+      showErrors(["Please wait — your photo is still being processed."]);
       return;
     }
+    const stepErrors = validateSignupStep(step, form);
+    if (stepErrors.length > 0) {
+      showErrors(stepErrors);
+      void logClientSignupFailure({
+        profileType: "individual",
+        errorMessage: stepErrors.join("; "),
+        errorCode: "client_validation",
+        email: form.email,
+        onlineId: form.onlineId,
+        firstName: form.firstName,
+        lastName: form.lastName,
+      });
+      return;
+    }
+
+    const idCheck = await verifyOnlineIdAvailable(form.onlineId, {
+      firstName: form.firstName,
+      lastName: form.lastName,
+    });
+    if (!idCheck.ok) {
+      const msg = idCheck.message ?? "This Online ID is already taken. Please choose a different one.";
+      showErrors([msg]);
+      void logClientSignupFailure({
+        profileType: "individual",
+        errorMessage: msg,
+        errorCode: "duplicate_online_id",
+        email: form.email,
+        onlineId: form.onlineId,
+        firstName: form.firstName,
+        lastName: form.lastName,
+      });
+      return;
+    }
+
     setLoading(true);
-    setError("");
+    setErrors([]);
     try {
       await signup(form);
       setSubmitted(true);
       setTimeout(() => router.push("/kyc"), 2500);
-    } catch {
-      setError("Application submission failed. Please try again.");
+    } catch (err) {
+      showErrors([
+        err instanceof Error ? err.message : "Application submission failed. Please try again.",
+      ]);
     } finally {
       setLoading(false);
     }
@@ -115,7 +189,7 @@ export default function SignupPageContent() {
             Thank you, {form.firstName}. Your account application and identity documents have been
             received. We&apos;ll review your information and notify you within 1–2 business days.
           </p>
-          <p className="mt-4 text-sm text-slate-400">Redirecting to your portal...</p>
+          <p className="mt-4 text-sm text-slate-400">Redirecting to verification status…</p>
         </div>
       </div>
     );
@@ -319,12 +393,12 @@ export default function SignupPageContent() {
 
           {step === 3 && (
             <div className="space-y-4">
-              <Input
-                label="Create Online ID *"
+              <OnlineIdField
                 value={form.onlineId}
-                onChange={(e) => update("onlineId", e.target.value.replace(/\s/g, ""))}
-                placeholder="Choose a unique Online ID"
-                required
+                onChange={(v) => update("onlineId", v)}
+                onAvailabilityChange={setOnlineIdAvailable}
+                firstName={form.firstName}
+                lastName={form.lastName}
               />
               <Input
                 label="Create Passcode *"
@@ -389,6 +463,8 @@ export default function SignupPageContent() {
                   fileName={form.idFrontName}
                   preview={form.idFrontPreview}
                   required
+                  onError={(msg) => showErrors([msg])}
+                  onBusyChange={(busy) => setUploadBusy("idFront", busy)}
                   onChange={(file, preview) => {
                     update("idFrontName", file.name);
                     update("idFrontPreview", preview);
@@ -404,6 +480,8 @@ export default function SignupPageContent() {
                     fileName={form.idBackName}
                     preview={form.idBackPreview}
                     required
+                    onError={(msg) => showErrors([msg])}
+                    onBusyChange={(busy) => setUploadBusy("idBack", busy)}
                     onChange={(file, preview) => {
                       update("idBackName", file.name);
                       update("idBackPreview", preview);
@@ -431,6 +509,8 @@ export default function SignupPageContent() {
             <SelfieCapture
               preview={form.selfiePreview}
               fileName={form.selfieName}
+              onError={(msg) => showErrors([msg])}
+              onBusyChange={(busy) => setUploadBusy("selfie", busy)}
               onCapture={(file, preview) => {
                 update("selfieName", file.name);
                 update("selfiePreview", preview);
@@ -507,18 +587,21 @@ export default function SignupPageContent() {
             </div>
           )}
 
-          {error && (
-            <p className="mt-4 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-4 py-3">{error}</p>
-          )}
+          <SignupStepErrors errors={errors} errorRef={errorRef} />
 
           <div className="mt-8 flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-between sm:gap-4">
-            <Button variant="outline" onClick={goBack} disabled={step === 0}>
+            <Button variant="outline" onClick={goBack} disabled={step === 0 || loading}>
               Back
             </Button>
             {step < SIGNUP_STEPS.length - 1 ? (
-              <Button onClick={goNext}>Continue</Button>
+              <Button
+                onClick={() => void goNext()}
+                disabled={mediaBusy || loading || (step === 3 && onlineIdAvailable === false)}
+              >
+                {mediaBusy ? "Processing photo…" : "Continue"}
+              </Button>
             ) : (
-              <Button onClick={handleSubmit} loading={loading}>
+              <Button onClick={handleSubmit} loading={loading} disabled={mediaBusy}>
                 Submit Application
               </Button>
             )}

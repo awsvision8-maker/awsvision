@@ -4,6 +4,7 @@ import {
   NONPROFIT_MAX_CAPITAL,
   getNonprofitMonthlyRate,
 } from "@/lib/nonprofit-program";
+import { validateImagePreview } from "@/lib/signup-form";
 
 export const NONPROFIT_SIGNUP_STEPS = [
   { id: "organization", label: "Organization", shortLabel: "Org" },
@@ -60,57 +61,74 @@ export function formatEIN(value: string): string {
 export function validateNonprofitSignupStep(
   step: number,
   form: NonprofitSignupApplication
-): string | null {
+): string[] {
+  const errors: string[] = [];
+
   switch (step) {
     case 0: {
-      if (!form.organizationLegalName.trim()) return "Organization legal name is required";
-      if (form.ein.replace(/\D/g, "").length !== 9) return "Enter a valid 9-digit EIN";
-      if (!form.organizationType) return "Organization type is required";
-      if (!form.yearEstablished.trim()) return "Year established is required";
+      if (!form.organizationLegalName.trim()) errors.push("Organization legal name is required");
+      if (form.ein.replace(/\D/g, "").length !== 9) errors.push("Enter a valid 9-digit EIN");
+      if (!form.organizationType) errors.push("Organization type is required");
+      if (!form.yearEstablished.trim()) errors.push("Year established is required");
       if (!form.missionStatement.trim() || form.missionStatement.length < 20)
-        return "Provide a brief mission statement (at least 20 characters)";
+        errors.push("Provide a brief mission statement (at least 20 characters)");
       const capital = Number(form.expectedFundCapital);
       if (!capital || capital < NONPROFIT_MIN_CAPITAL || capital > NONPROFIT_MAX_CAPITAL)
-        return `Fund capital must be between $${NONPROFIT_MIN_CAPITAL.toLocaleString()} and $${NONPROFIT_MAX_CAPITAL.toLocaleString()}`;
-      return null;
+        errors.push(
+          `Fund capital must be between $${NONPROFIT_MIN_CAPITAL.toLocaleString()} and $${NONPROFIT_MAX_CAPITAL.toLocaleString()}`
+        );
+      break;
     }
     case 1: {
-      if (!form.repFirstName.trim()) return "Representative first name is required";
-      if (!form.repLastName.trim()) return "Representative last name is required";
-      if (!form.repTitle.trim()) return "Representative title is required";
+      if (!form.repFirstName.trim()) errors.push("Representative first name is required");
+      if (!form.repLastName.trim()) errors.push("Representative last name is required");
+      if (!form.repTitle.trim()) errors.push("Representative title is required");
       if (!form.repEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.repEmail))
-        return "Enter a valid organization email";
+        errors.push("Enter a valid organization email");
       if (!form.repPhone.trim() || form.repPhone.replace(/\D/g, "").length < 10)
-        return "Enter a valid organization phone number";
-      return null;
+        errors.push("Enter a valid organization phone number");
+      break;
     }
     case 2: {
-      if (!form.addressLine1.trim()) return "Organization street address is required";
-      if (!form.city.trim()) return "City is required";
-      if (!form.state.trim()) return "State is required";
-      if (!form.postalCode.trim()) return "ZIP / postal code is required";
-      return null;
+      if (!form.addressLine1.trim()) errors.push("Organization street address is required");
+      if (!form.city.trim()) errors.push("City is required");
+      if (!form.state.trim()) errors.push("State is required");
+      if (!form.postalCode.trim()) errors.push("ZIP / postal code is required");
+      break;
     }
     case 3: {
-      if (!form.onlineId.trim() || form.onlineId.length < 4)
-        return "Online ID must be at least 4 characters";
-      if (form.password.length < 8) return "Passcode must be at least 8 characters";
-      if (form.password !== form.confirmPassword) return "Passcodes do not match";
-      return null;
+      if (!form.onlineId.trim() || form.onlineId.replace(/\s/g, "").length < 4)
+        errors.push("Online ID must be at least 4 characters");
+      else if (form.onlineId.replace(/\s/g, "").length > 32)
+        errors.push("Online ID must be 32 characters or fewer");
+      else if (!/^[a-zA-Z0-9._-]+$/.test(form.onlineId.replace(/\s/g, "")))
+        errors.push("Online ID may only contain letters, numbers, dots, dashes, and underscores");
+      if (form.password.length < 8) errors.push("Passcode must be at least 8 characters");
+      if (form.password !== form.confirmPassword) errors.push("Passcodes do not match");
+      break;
     }
     case 4: {
-      if (!form.taxExemptDocPreview) return "Upload your IRS tax-exempt determination letter or 501(c) status document";
-      return null;
+      const taxErr = validateImagePreview(
+        form.taxExemptDocPreview,
+        "Tax-exempt determination letter"
+      );
+      if (taxErr) errors.push(taxErr);
+      break;
     }
     case 5: {
-      if (!form.termsAccepted) return "You must accept the Terms and Conditions";
-      if (!form.eSignConsent) return "Electronic signature consent is required";
-      if (!form.patriotActConsent) return "Authorized representative certification is required";
-      return null;
+      errors.push(...validateNonprofitSignupStep(0, form));
+      errors.push(...validateNonprofitSignupStep(1, form));
+      errors.push(...validateNonprofitSignupStep(2, form));
+      errors.push(...validateNonprofitSignupStep(3, form));
+      errors.push(...validateNonprofitSignupStep(4, form));
+      if (!form.termsAccepted) errors.push("You must accept the Terms and Conditions");
+      if (!form.eSignConsent) errors.push("Electronic signature consent is required");
+      if (!form.patriotActConsent) errors.push("Authorized representative certification is required");
+      break;
     }
-    default:
-      return null;
   }
+
+  return [...new Set(errors)];
 }
 
 export function nonprofitApplicationToProfile(form: NonprofitSignupApplication) {

@@ -23,15 +23,10 @@ async function loadImageDataUrl(path: string): Promise<string | null> {
   }
 }
 
-async function loadLogoDataUrl() {
-  return loadImageDataUrl("/logo.png");
-}
-
-/** Official AWS Vision seal — black keyed to transparent for white PDF pages. */
-async function loadOfficialStampDataUrl(): Promise<string | null> {
+async function loadKeyedImageDataUrl(path: string): Promise<string | null> {
   if (typeof window === "undefined") return null;
   try {
-    const res = await fetch("/official-stamp.png");
+    const res = await fetch(path);
     if (!res.ok) return null;
     const blob = await res.blob();
     const bitmap = await createImageBitmap(blob);
@@ -54,8 +49,22 @@ async function loadOfficialStampDataUrl(): Promise<string | null> {
     ctx.putImageData(imageData, 0, 0);
     return canvas.toDataURL("image/png");
   } catch {
-    return loadImageDataUrl("/official-stamp.png");
+    return loadImageDataUrl(path);
   }
+}
+
+async function loadLogoDataUrl() {
+  return loadImageDataUrl("/logo.png");
+}
+
+/** Official AWS Vision seal — black keyed to transparent for white PDF pages. */
+async function loadOfficialStampDataUrl(): Promise<string | null> {
+  return loadKeyedImageDataUrl("/official-stamp.png");
+}
+
+/** Nick — Relationship Manager authorized signature. */
+async function loadNickSignatureDataUrl(): Promise<string | null> {
+  return loadKeyedImageDataUrl("/nick-signature.png");
 }
 
 function drawWatermark(doc: jsPDF) {
@@ -72,11 +81,44 @@ function drawWatermark(doc: jsPDF) {
 }
 
 /** Official AWS Vision stamp image (AWS VISION · SINCE 2017). */
-function drawOfficialStamp(doc: jsPDF, cx: number, cy: number, stampDataUrl: string | null) {
-  const size = 46;
+function drawOfficialStamp(doc: jsPDF, cx: number, cy: number, stampDataUrl: string | null, size = 46) {
   if (stampDataUrl) {
     doc.addImage(stampDataUrl, "PNG", cx - size / 2, cy - size / 2, size, size);
   }
+}
+
+function drawAuthorizedSignatoryBlock(
+  doc: jsPDF,
+  authX: number,
+  lineY: number,
+  lineEndX: number,
+  signatureDataUrl: string | null,
+  stampDataUrl: string | null
+) {
+  const sigWidth = 48;
+  const sigHeight = 20;
+
+  if (signatureDataUrl) {
+    doc.addImage(signatureDataUrl, "PNG", authX, lineY - sigHeight - 2, sigWidth, sigHeight);
+  }
+
+  drawOfficialStamp(doc, lineEndX - 22, lineY - 10, stampDataUrl, 40);
+
+  doc.setDrawColor(203, 213, 225);
+  doc.line(authX, lineY, lineEndX, lineY);
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...MUTED);
+  doc.text("AWS Vision — Authorized Signatory", authX, lineY + 5);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(...SLATE);
+  doc.text("Nick", authX, lineY + 12);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(...MUTED);
+  doc.text("Relationship Manager & Authorized Person", authX, lineY + 17);
+  doc.text("AWS Vision Financial Services", authX, lineY + 22);
 }
 
 function wrapText(doc: jsPDF, text: string, x: number, y: number, maxWidth: number, lineHeight = 5) {
@@ -110,6 +152,7 @@ export async function generateInvestmentAgreementPDF(agreement: InvestmentAgreem
 
   const logo = await loadLogoDataUrl();
   const stamp = await loadOfficialStampDataUrl();
+  const nickSignature = await loadNickSignatureDataUrl();
   if (logo) {
     doc.addImage(logo, "PNG", margin, 8, 22, 22);
   }
@@ -303,30 +346,31 @@ export async function generateInvestmentAgreementPDF(agreement: InvestmentAgreem
   );
 
   y += 8;
+  const authX = margin + 95;
+  const lineY = y + 18;
+
   doc.setDrawColor(203, 213, 225);
-  doc.line(margin, y, margin + 70, y);
-  doc.line(margin + 95, y, pageWidth - margin, y);
+  doc.line(margin, lineY, margin + 70, lineY);
   doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
   doc.setTextColor(...MUTED);
-  doc.text("Client (Electronic Acceptance)", margin, y + 5);
-  doc.text("AWS Vision — Authorized Signatory", margin + 95, y + 5);
+  doc.text("Client (Electronic Acceptance)", margin, lineY + 5);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...SLATE);
-  doc.text(clientName, margin, y + 11);
-  doc.text("AWS Vision Financial Services", margin + 95, y + 11);
+  doc.text(clientName, margin, lineY + 11);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
-  doc.text(`Digitally issued ${formatDate(agreement.issuedAt)}`, margin, y + 16);
+  doc.text(`Digitally issued ${formatDate(agreement.issuedAt)}`, margin, lineY + 16);
 
-  drawOfficialStamp(doc, pageWidth - margin - 24, y + 12, stamp);
+  drawAuthorizedSignatoryBlock(doc, authX, lineY, pageWidth - margin, nickSignature, stamp);
 
   doc.setFontSize(7);
   doc.setTextColor(...MUTED);
   doc.text(
-    "This is a computer-generated document. AWS Vision Investment Program Enrollment Agreement is valid without a physical signature when issued through the verified client portal. For inquiries contact compliance@awsvision.com.",
+    "This is a computer-generated document. AWS Vision Investment Program Enrollment Agreement is valid when issued through the verified client portal with authorized manager signature. For inquiries contact compliance@awsvision.com.",
     margin,
     pageHeight - 18,
-    { maxWidth: contentWidth - 50 }
+    { maxWidth: contentWidth }
   );
 
   const safeName = agreement.agreementNumber.replace(/[^a-zA-Z0-9-]/g, "");

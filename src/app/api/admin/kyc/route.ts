@@ -10,9 +10,19 @@ export async function GET() {
     const users = await listKycQueue();
     return jsonOk({
       users: users.map((u) => ({
-        ...u,
+        id: u.id,
+        email: u.email,
+        firstName: u.firstName,
+        lastName: u.lastName,
+        phone: u.phone,
+        kycStatus: u.kycStatus,
+        profileType: u.profileType,
         createdAt: u.createdAt.toISOString(),
         kycData: u.kycData ? JSON.parse(u.kycData) : null,
+        pendingRequests: u.kycDocumentRequests.map((r) => ({
+          documentKey: r.documentKey,
+          adminNote: r.adminNote,
+        })),
       })),
     });
   } catch (err) {

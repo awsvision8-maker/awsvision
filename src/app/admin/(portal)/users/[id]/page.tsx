@@ -29,6 +29,7 @@ interface UserDetail {
   profileType: string;
   createdAt: string;
   kycData: Record<string, string> | null;
+  pendingKycRequests: { documentKey: string; adminNote?: string | null }[];
   nonprofit: {
     fundCapital: number;
     monthlyRate: number;
@@ -383,11 +384,17 @@ export default function AdminUserDetailPage() {
         </div>
       </section>
 
-      {user.kycData && (
+      {(user.kycData || user.kycStatus !== "verified") && (
         <section className="mt-8">
           <h2 className="text-lg font-semibold text-slate-900">KYC documents</h2>
           <div className="mt-3 rounded-xl border border-slate-200 bg-white p-4">
-            <KycDocumentViewer kycData={user.kycData} />
+            <KycDocumentViewer
+              kycData={user.kycData ?? {}}
+              userId={userId}
+              profileType={user.profileType}
+              pendingRequests={user.pendingKycRequests}
+              onReuploadRequested={load}
+            />
           </div>
         </section>
       )}

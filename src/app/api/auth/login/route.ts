@@ -1,7 +1,6 @@
-import { prisma } from "@/lib/prisma";
-import { verifyPassword } from "@/lib/server/auth-service";
+import { findUserByLoginIdentifier, verifyPassword } from "@/lib/server/auth-service";
 import { jsonError, jsonOk } from "@/lib/server/api";
-import { mapUser, userInclude } from "@/lib/server/user-mapper";
+import { mapUser } from "@/lib/server/user-mapper";
 import { notifyLogin } from "@/lib/server/notifications";
 import {
   createSession,
@@ -10,22 +9,23 @@ import {
 
 export async function POST(request: Request) {
   try {
-    const { email, password } = (await request.json()) as {
+    const body = (await request.json()) as {
       email?: string;
+      identifier?: string;
       password?: string;
     };
 
-    if (!email || !password) {
-      return jsonError("Email and password are required", 400);
+    const identifier = (body.identifier ?? body.email)?.trim();
+    const password = body.password;
+
+    if (!identifier || !password) {
+      return jsonError("Email or Online ID and password are required", 400);
     }
 
-    const row = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() },
-      include: userInclude,
-    });
+    const row = await findUserByLoginIdentifier(identifier);
 
     if (!row || !(await verifyPassword(password, row.passwordHash))) {
-      return jsonError("Invalid email or password", 401);
+      return jsonError("Invalid email, Online ID, or password", 401);
     }
 
     const token = await createSession(row.id);

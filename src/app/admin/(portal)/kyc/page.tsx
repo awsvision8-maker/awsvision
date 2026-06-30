@@ -23,6 +23,7 @@ interface KycUser {
   profileType: string;
   createdAt: string;
   kycData: Record<string, string> | null;
+  pendingRequests: { documentKey: string; adminNote?: string | null }[];
 }
 
 export default function AdminKycPage() {
@@ -103,7 +104,13 @@ export default function AdminKycPage() {
                   </button>
                   {expanded === u.id && (
                     <div className="mt-3 rounded-lg border border-slate-200 bg-white p-4">
-                      <KycDocumentViewer kycData={u.kycData} />
+                      <KycDocumentViewer
+                        kycData={u.kycData}
+                        userId={u.id}
+                        profileType={u.profileType}
+                        pendingRequests={u.pendingRequests}
+                        onReuploadRequested={() => void load()}
+                      />
                     </div>
                   )}
                 </div>

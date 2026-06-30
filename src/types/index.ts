@@ -1,4 +1,4 @@
-export type KYCStatus = "pending" | "submitted" | "verified" | "rejected";
+export type KYCStatus = "pending" | "submitted" | "verified" | "rejected" | "resubmit_required";
 export type AccountType = "savings" | "fixed_deposit" | "investment" | "nonprofit_fund";
 export type TransactionType = "deposit" | "withdrawal" | "profit" | "fee";
 export type ApplicationStatus = "draft" | "submitted" | "under_review" | "approved" | "rejected";
@@ -174,6 +174,8 @@ export interface KYCData {
   idBackPreview?: string;
   selfieName?: string;
   selfiePreview?: string;
+  taxExemptDocName?: string;
+  taxExemptDocPreview?: string;
 }
 
 export interface Account {

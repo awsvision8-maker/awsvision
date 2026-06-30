@@ -13,12 +13,13 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  signup: (data: SignupApplication) => Promise<boolean>;
-  signupNonprofit: (data: NonprofitSignupApplication) => Promise<boolean>;
+  login: (identifier: string, password: string) => Promise<boolean>;
+  signup: (data: SignupApplication) => Promise<void>;
+  signupNonprofit: (data: NonprofitSignupApplication) => Promise<void>;
   recordDeposit: (accountId: string, amount: number, description: string) => Promise<boolean>;
   logout: () => Promise<void>;
   updateKYC: (data: KYCData) => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,11 +43,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setIsLoading(false));
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (identifier: string, password: string) => {
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ identifier, password }),
     });
     const data = await parseResponse<{ user: User }>(res);
     if (data?.user) {
@@ -62,12 +63,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    const result = await parseResponse<{ user: User }>(res);
+    const result = (await res.json().catch(() => null)) as { user?: User; error?: string } | null;
+    if (!res.ok) {
+      throw new Error(result?.error ?? "Application submission failed. Please try again.");
+    }
     if (result?.user) {
       setUser(result.user);
-      return true;
+      return;
     }
-    return false;
+    throw new Error("Application submission failed. Please try again.");
   };
 
   const signupNonprofit = async (data: NonprofitSignupApplication) => {
@@ -76,12 +80,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    const result = await parseResponse<{ user: User }>(res);
+    const result = (await res.json().catch(() => null)) as { user?: User; error?: string } | null;
+    if (!res.ok) {
+      throw new Error(result?.error ?? "Application submission failed. Please try again.");
+    }
     if (result?.user) {
       setUser(result.user);
-      return true;
+      return;
     }
-    return false;
+    throw new Error("Application submission failed. Please try again.");
   };
 
   const recordDeposit = async (accountId: string, amount: number, description: string) => {
@@ -113,6 +120,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (result?.user) setUser(result.user);
   };
 
+  const refreshUser = async () => {
+    const data = await parseResponse<{ user: User }>(await fetch("/api/auth/me"));
+    if (data?.user) setUser(data.user);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -125,6 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         recordDeposit,
         logout,
         updateKYC,
+        refreshUser,
       }}
     >
       {children}
