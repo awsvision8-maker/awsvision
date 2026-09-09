@@ -80,8 +80,8 @@ export async function requestKycDocumentReupload(params: {
     select: { id: true, email: true, firstName: true, lastName: true, profileType: true, kycStatus: true },
   });
   if (!user) throw new Error("User not found");
-  if (user.kycStatus === "verified") {
-    throw new Error("User KYC is already verified");
+  if (user.kycStatus === "rejected") {
+    throw new Error("User KYC is rejected — change status before requesting documents");
   }
 
   const allowed = documentsForProfileType(user.profileType).map((d) => d.key);
@@ -129,10 +129,12 @@ export async function requestKycDocumentReupload(params: {
     },
   });
 
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { kycStatus: "resubmit_required" },
-  });
+  if (user.kycStatus !== "resubmit_required") {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { kycStatus: "resubmit_required" },
+    });
+  }
 
   notifyKycReuploadRequest(
     { email: user.email, firstName: user.firstName, lastName: user.lastName },

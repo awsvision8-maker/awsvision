@@ -51,6 +51,11 @@ export interface PortfolioAccount {
   /** When true, monthlyRatePercent is admin-amended and overrides auto tier matching */
   profitRateAmended?: boolean;
   amendmentNote?: string;
+  /** July promo: admin-started daily compounding (0.5%/day sheet) */
+  dailyCompoundActive?: boolean;
+  dailyCompoundStartDate?: string;
+  dailyCompoundEndDate?: string;
+  dailyCompoundRatePercent?: number;
 }
 
 export interface UserPortfolio {
@@ -189,6 +194,7 @@ export interface Account {
   maturityDate?: string;
   status: "active" | "matured" | "closed";
   createdAt: string;
+  dailyCompound?: import("@/lib/promo-daily-compound").PromoDailyCompoundResult | null;
 }
 
 export interface InvestmentHolding {
@@ -201,6 +207,10 @@ export interface InvestmentHolding {
   value: number;
   monthlyReturn: number;
   ytdReturn: number;
+  accountId?: string;
+  accountLabel?: string;
+  assetClass?: "Equity" | "Bond" | "Yield" | "Real Estate";
+  tenYearNote?: string;
 }
 
 export interface Transaction {

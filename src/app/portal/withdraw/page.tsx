@@ -1,15 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, Lock } from "lucide-react";
 import { PortalHeader } from "@/components/portal/sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { getAccountLabel } from "@/lib/portfolio-engine";
+import { isFdPromoPlanId } from "@/lib/promotions";
 import { usePortfolio } from "@/lib/use-portfolio";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatDate } from "@/lib/utils";
 
 export default function WithdrawPage() {
   const portfolio = usePortfolio();
@@ -24,9 +25,24 @@ export default function WithdrawPage() {
   const selectedAccount =
     portfolio.accounts.find((a) => a.id === accountId) ?? portfolio.accounts[0];
   const isFD = selectedAccount?.type === "fixed_deposit";
+  const isJulyPromoFd = isFdPromoPlanId(selectedAccount?.investmentPlanId);
+  const promoMaturity = selectedAccount?.maturityDate
+    ? new Date(selectedAccount.maturityDate)
+    : null;
+  const promoLocked =
+    isJulyPromoFd &&
+    (!promoMaturity ||
+      Number.isNaN(promoMaturity.getTime()) ||
+      new Date() < promoMaturity);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (promoLocked) {
+      setError(
+        "July Wealth Accelerator FD withdrawals open only after the 6-month maturity date."
+      );
+      return;
+    }
     setError("");
     setLoading(true);
     try {
@@ -97,7 +113,26 @@ export default function WithdrawPage() {
         subtitle="Place a withdrawal request from your account"
       />
       <div className="mx-auto max-w-2xl space-y-6 p-4 sm:p-6 lg:p-8">
-        {isFD && (
+        {promoLocked && (
+          <div className="flex items-start gap-3 rounded-lg border border-teal-200 bg-teal-50 p-4">
+            <Lock className="h-5 w-5 shrink-0 text-teal-700" />
+            <div>
+              <p className="text-sm font-medium text-teal-900">
+                July Wealth Accelerator — withdrawal locked until maturity
+              </p>
+              <p className="mt-1 text-xs text-teal-800">
+                This promotional Fixed Deposit earns 90% over 6 months. Capital and profit can be
+                withdrawn only after{" "}
+                {promoMaturity && !Number.isNaN(promoMaturity.getTime())
+                  ? formatDate(promoMaturity.toISOString())
+                  : "the 6-month maturity date"}
+                . Early withdrawal is not available on this package.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {isFD && !isJulyPromoFd && (
           <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
             <AlertCircle className="h-5 w-5 shrink-0 text-amber-600" />
             <div>
@@ -135,6 +170,7 @@ export default function WithdrawPage() {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 required
+                disabled={promoLocked}
               />
               <Select
                 label="Withdrawal Method"
@@ -150,7 +186,7 @@ export default function WithdrawPage() {
                   <span className="text-slate-500">Available Balance</span>
                   <span className="font-medium">{formatCurrency(selectedAccount.balance)}</span>
                 </div>
-                {amount && (
+                {amount && !promoLocked && (
                   <div className="flex justify-between">
                     <span className="text-slate-500">Remaining After Withdrawal</span>
                     <span className="font-medium">
@@ -164,12 +200,13 @@ export default function WithdrawPage() {
                 className="w-full"
                 loading={loading}
                 disabled={
+                  promoLocked ||
                   !amount ||
                   Number(amount) < 50 ||
                   Number(amount) > selectedAccount.balance
                 }
               >
-                Submit Withdrawal Request
+                {promoLocked ? "Locked until maturity" : "Submit Withdrawal Request"}
               </Button>
               {error && <p className="text-sm text-red-600">{error}</p>}
             </form>

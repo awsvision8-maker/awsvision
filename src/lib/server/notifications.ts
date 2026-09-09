@@ -20,6 +20,7 @@ import {
   ambassadorApprovedEmail,
   ambassadorRejectedEmail,
   birthdayWishEmail,
+  depositShortfallAlertEmail,
   kycReuploadRequestEmail,
 } from "@/lib/server/email-templates";
 import { adminEmail, sendMailAsync } from "@/lib/server/mail";
@@ -178,5 +179,14 @@ export function notifyKycReuploadRequest(
   adminNote?: string | null
 ) {
   const msg = kycReuploadRequestEmail(user, documentLabel, adminNote);
+  sendMailAsync({ to: user.email, ...msg });
+}
+
+export function notifyDepositShortfall(
+  user: { email: string; firstName: string; lastName: string },
+  amountDue: number,
+  adminNote?: string | null
+) {
+  const msg = depositShortfallAlertEmail(user, amountDue, adminNote);
   sendMailAsync({ to: user.email, ...msg });
 }

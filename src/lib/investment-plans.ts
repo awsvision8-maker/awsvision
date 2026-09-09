@@ -1,3 +1,5 @@
+import { getFdPromoPlan, isFdPromoPlanId } from "@/lib/promotions";
+
 export interface InvestmentPlan {
   id: string;
   name: string;
@@ -106,27 +108,29 @@ export const INVESTMENT_PLANS: InvestmentPlan[] = [
 export const INVESTMENT_HOW_IT_WORKS = [
   {
     step: 1,
+    title: "Talk to Support",
+    description: "Speak with our team or a representative to confirm your capital tier and personalized terms.",
+  },
+  {
+    step: 2,
     title: "Create Account",
     description: "Open your investment account with valid KYC information.",
   },
   {
-    step: 2,
-    title: "Add Funds",
-    description: "Deposit capital using our supported payment channels.",
-  },
-  {
     step: 3,
-    title: "Select Investment Plan",
-    description: "Choose a tier that matches your capital and return objectives.",
+    title: "Add Funds",
+    description: "Deposit capital at your chosen minimum tier using our supported payment channels.",
   },
   {
     step: 4,
     title: "Receive Monthly Profit",
-    description: "Withdraw monthly profit or reinvest — compound interest available.",
+    description: "Withdraw monthly profit or reinvest — compound interest available per your agreed terms.",
   },
 ] as const;
 
-export function getInvestmentPlan(id: string | undefined) {
+export function getInvestmentPlan(id: string | undefined): InvestmentPlan | undefined {
+  if (!id) return undefined;
+  if (isFdPromoPlanId(id)) return getFdPromoPlan() as InvestmentPlan;
   return INVESTMENT_PLANS.find((p) => p.id === id);
 }
 

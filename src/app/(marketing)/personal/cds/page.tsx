@@ -4,10 +4,11 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata("/personal/cds");
 
-export default function CDsPage() {
+export default async function CDsPage() {
+  const data = await getCdsServicePage();
   return (
     <ServicePageLayout
-      data={getCdsServicePage() as Parameters<typeof ServicePageLayout>[0]["data"]}
+      data={data as Parameters<typeof ServicePageLayout>[0]["data"]}
       status="available"
     />
   );

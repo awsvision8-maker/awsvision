@@ -13,11 +13,15 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  /** Admin viewing this portal as the user — no writes allowed */
+  isViewOnly: boolean;
+  adminPreview: boolean;
   login: (identifier: string, password: string) => Promise<boolean>;
   signup: (data: SignupApplication) => Promise<void>;
   signupNonprofit: (data: NonprofitSignupApplication) => Promise<void>;
   recordDeposit: (accountId: string, amount: number, description: string) => Promise<boolean>;
   logout: () => Promise<void>;
+  exitAdminPreview: () => Promise<string | null>;
   updateKYC: (data: KYCData) => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -33,12 +37,20 @@ async function parseResponse<T>(res: Response): Promise<T | null> {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isViewOnly, setIsViewOnly] = useState(false);
+  const [adminPreview, setAdminPreview] = useState(false);
 
   useEffect(() => {
     fetch("/api/auth/me")
-      .then((res) => parseResponse<{ user: User }>(res))
+      .then((res) =>
+        parseResponse<{ user: User; viewOnly?: boolean; adminPreview?: boolean }>(res)
+      )
       .then((data) => {
-        if (data?.user) setUser(data.user);
+        if (data?.user) {
+          setUser(data.user);
+          setIsViewOnly(Boolean(data.viewOnly));
+          setAdminPreview(Boolean(data.adminPreview));
+        }
       })
       .finally(() => setIsLoading(false));
   }, []);
@@ -52,6 +64,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const data = await parseResponse<{ user: User }>(res);
     if (data?.user) {
       setUser(data.user);
+      setIsViewOnly(false);
+      setAdminPreview(false);
       return true;
     }
     return false;
@@ -69,6 +83,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     if (result?.user) {
       setUser(result.user);
+      setIsViewOnly(false);
+      setAdminPreview(false);
       return;
     }
     throw new Error("Application submission failed. Please try again.");
@@ -86,12 +102,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     if (result?.user) {
       setUser(result.user);
+      setIsViewOnly(false);
+      setAdminPreview(false);
       return;
     }
     throw new Error("Application submission failed. Please try again.");
   };
 
   const recordDeposit = async (accountId: string, amount: number, description: string) => {
+    if (isViewOnly) return false;
     const res = await fetch("/api/portfolio/deposit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -105,12 +124,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return false;
   };
 
+  const exitAdminPreview = async () => {
+    const res = await fetch("/api/admin/preview/exit", { method: "POST" });
+    const data = await parseResponse<{ userId?: string | null }>(res);
+    setUser(null);
+    setIsViewOnly(false);
+    setAdminPreview(false);
+    return data?.userId ?? null;
+  };
+
   const logout = async () => {
+    if (adminPreview) {
+      await exitAdminPreview();
+      return;
+    }
     await fetch("/api/auth/logout", { method: "POST" });
     setUser(null);
+    setIsViewOnly(false);
+    setAdminPreview(false);
   };
 
   const updateKYC = async (data: KYCData) => {
+    if (isViewOnly) return;
     const res = await fetch("/api/auth/kyc", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -121,8 +156,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const refreshUser = async () => {
-    const data = await parseResponse<{ user: User }>(await fetch("/api/auth/me"));
-    if (data?.user) setUser(data.user);
+    const data = await parseResponse<{
+      user: User;
+      viewOnly?: boolean;
+      adminPreview?: boolean;
+    }>(await fetch("/api/auth/me"));
+    if (data?.user) {
+      setUser(data.user);
+      setIsViewOnly(Boolean(data.viewOnly));
+      setAdminPreview(Boolean(data.adminPreview));
+    }
   };
 
   return (
@@ -131,11 +174,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         isAuthenticated: !!user,
         isLoading,
+        isViewOnly,
+        adminPreview,
         login,
         signup,
         signupNonprofit,
         recordDeposit,
         logout,
+        exitAdminPreview,
         updateKYC,
         refreshUser,
       }}

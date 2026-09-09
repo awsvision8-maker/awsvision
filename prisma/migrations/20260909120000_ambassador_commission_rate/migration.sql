@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "BrandAmbassador" ADD COLUMN IF NOT EXISTS "commissionRatePercent" DOUBLE PRECISION NOT NULL DEFAULT 3;

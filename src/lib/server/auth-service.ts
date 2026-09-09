@@ -10,6 +10,8 @@ import {
 } from "@/lib/portfolio-engine";
 import { createAgreementOnDepositApproval } from "@/lib/server/agreement-service";
 import { getInvestmentPlan } from "@/lib/investment-plans";
+import { FD_PROMO_TERMS, isFdPromoPlanId, isFdPromoOfferingOpen } from "@/lib/promotions";
+import { getFdPromoConfig } from "@/lib/server/fd-promo-config";
 import { mapUser, userInclude } from "@/lib/server/user-mapper";
 import {
   checkOnlineIdAvailability,
@@ -64,7 +66,26 @@ export async function createIndividualUser(
   ambassadorId?: string | null
 ) {
   const createdAt = new Date();
-  const { account } = createAccountFromSignup(data, createdAt);
+  const wantsPromoFd =
+    data.accountType === "fixed_deposit" &&
+    (isFdPromoPlanId(data.investmentPlanId) || !data.investmentPlanId);
+
+  let promoTerms: { returnPercent: number; termMonths: number; planId: string } | undefined;
+  if (wantsPromoFd) {
+    const promoConfig = await getFdPromoConfig();
+    if (!isFdPromoOfferingOpen(promoConfig, createdAt)) {
+      throw new Error(
+        "The Wealth Accelerator Fixed Deposit promotion is not open for new enrollments right now."
+      );
+    }
+    promoTerms = {
+      returnPercent: promoConfig.returnPercent,
+      termMonths: promoConfig.termMonths,
+      planId: promoConfig.planId,
+    };
+  }
+
+  const { account } = createAccountFromSignup(data, createdAt, promoTerms);
   const onlineId = normalizeOnlineId(data.onlineId);
 
   const idCheck = await checkOnlineIdAvailability(onlineId, {
@@ -200,6 +221,10 @@ export async function submitDepositRequest(
       profitEligibleAt: a.profitEligibleAt?.toISOString(),
       profitRateAmended: a.profitRateAmended,
       amendmentNote: a.amendmentNote ?? undefined,
+      dailyCompoundActive: a.dailyCompoundActive,
+      dailyCompoundStartDate: a.dailyCompoundStartDate?.toISOString(),
+      dailyCompoundEndDate: a.dailyCompoundEndDate?.toISOString(),
+      dailyCompoundRatePercent: a.dailyCompoundRatePercent,
     })),
     transactions: user.transactions.map((t) => ({
       id: t.id,
@@ -258,16 +283,43 @@ export async function approveDeposit(transactionId: string) {
     newPrincipal
   );
 
+  const isJulyPromoFd =
+    isFdPromoPlanId(tx.account.investmentPlanId) ||
+    isFdPromoPlanId(rates.investmentPlanId);
+
   const plan = rates.investmentPlanId ? getInvestmentPlan(rates.investmentPlanId) : null;
-  const maturityDate =
-    tx.account.maturityDate ??
-    (plan && (tx.account.type === "investment" || tx.account.type === "fixed_deposit")
-      ? (() => {
-          const d = new Date(approvedAt);
-          d.setMonth(d.getMonth() + plan.termMonths);
-          return d;
-        })()
-      : null);
+  // Promo FD maturity: approval + snapshotted term (from account rate / current program)
+  let promoTermMonths: number = FD_PROMO_TERMS.termMonths;
+  if (isJulyPromoFd) {
+    try {
+      const promoConfig = await getFdPromoConfig();
+      promoTermMonths = promoConfig.termMonths;
+      // Prefer term implied by account monthly rate vs program return when available
+      if (tx.account.monthlyRatePercent > 0 && promoConfig.returnPercent > 0) {
+        const implied = Math.round(
+          promoConfig.returnPercent / tx.account.monthlyRatePercent
+        );
+        if (implied >= 1 && implied <= 60) promoTermMonths = implied;
+      }
+    } catch {
+      /* keep default */
+    }
+  }
+
+  const maturityDate = isJulyPromoFd
+    ? (() => {
+        const d = new Date(approvedAt);
+        d.setMonth(d.getMonth() + promoTermMonths);
+        return d;
+      })()
+    : tx.account.maturityDate ??
+      (plan && (tx.account.type === "investment" || tx.account.type === "fixed_deposit")
+        ? (() => {
+            const d = new Date(approvedAt);
+            d.setMonth(d.getMonth() + plan.termMonths);
+            return d;
+          })()
+        : null);
 
   await prisma.$transaction([
     prisma.transaction.update({
@@ -280,7 +332,11 @@ export async function approveDeposit(transactionId: string) {
         principal: newPrincipal,
         monthlyRatePercent: rates.monthlyRatePercent,
         ...(rates.investmentPlanId ? { investmentPlanId: rates.investmentPlanId } : {}),
-        ...(maturityDate && !tx.account.maturityDate ? { maturityDate } : {}),
+        ...(isJulyPromoFd && !tx.account.profitEligibleAt
+          ? { maturityDate }
+          : maturityDate && !tx.account.maturityDate
+            ? { maturityDate }
+            : {}),
         ...(!tx.account.profitEligibleAt ? { profitEligibleAt } : {}),
       },
     }),

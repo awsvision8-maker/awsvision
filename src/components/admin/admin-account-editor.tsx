@@ -5,6 +5,8 @@ import { Loader2, Minus, Plus, Save } from "lucide-react";
 import { AdminActionButton } from "@/components/admin/admin-ui";
 import { Button } from "@/components/ui/button";
 import { INVESTMENT_PLANS } from "@/lib/investment-plans";
+import { isFdPromoPlanId } from "@/lib/promotions";
+import { PROMO_DAILY_RATE_PERCENT } from "@/lib/promo-daily-compound";
 import {
   accountRatesForPrincipal,
   getAccountLabel,
@@ -22,6 +24,10 @@ export interface AdminAccountData {
   investmentPlanId: string | null;
   profitEligibleAt: string | null;
   maturityDate: string | null;
+  dailyCompoundActive?: boolean;
+  dailyCompoundStartDate?: string | null;
+  dailyCompoundEndDate?: string | null;
+  dailyCompoundRatePercent?: number;
 }
 
 interface AdminAccountEditorProps {
@@ -58,9 +64,18 @@ export function AdminAccountEditor({ userId, account, onSaved }: AdminAccountEdi
   const [adjustAmount, setAdjustAmount] = useState("");
   const [adjustDesc, setAdjustDesc] = useState("Admin balance adjustment");
   const [saving, setSaving] = useState(false);
+  const [savingDaily, setSavingDaily] = useState(false);
   const [adjusting, setAdjusting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const isPromoFd = isFdPromoPlanId(account.investmentPlanId);
+  const [dailyActive, setDailyActive] = useState(Boolean(account.dailyCompoundActive));
+  const [dailyStart, setDailyStart] = useState(toDateInputValue(account.dailyCompoundStartDate ?? null));
+  const [dailyEnd, setDailyEnd] = useState(toDateInputValue(account.dailyCompoundEndDate ?? null));
+  const [dailyRate, setDailyRate] = useState(
+    String(account.dailyCompoundRatePercent ?? PROMO_DAILY_RATE_PERCENT)
+  );
 
   const isInvestmentType =
     account.type === "investment" || account.type === "fixed_deposit";
@@ -130,6 +145,43 @@ export function AdminAccountEditor({ userId, account, onSaved }: AdminAccountEdi
       setError(e instanceof Error ? e.message : "Save failed");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const saveDailyCompound = async () => {
+    if (!dailyStart) {
+      setError("Set a daily compound start date");
+      return;
+    }
+    setSavingDaily(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/accounts/${account.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          autoMatchPlan: false,
+          investmentPlanId: account.investmentPlanId,
+          monthlyRatePercent: account.monthlyRatePercent,
+          dailyCompoundActive: dailyActive,
+          dailyCompoundStartDate: new Date(dailyStart).toISOString(),
+          dailyCompoundEndDate: dailyEnd ? new Date(dailyEnd).toISOString() : null,
+          dailyCompoundRatePercent: parseFloat(dailyRate) || PROMO_DAILY_RATE_PERCENT,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed to save daily compound");
+      setMessage(
+        dailyActive
+          ? `Daily 0.5% compounding started. First profit credits the day after ${dailyStart}.`
+          : "Daily compounding paused for this promo account."
+      );
+      onSaved();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Save failed");
+    } finally {
+      setSavingDaily(false);
     }
   };
 
@@ -293,6 +345,72 @@ export function AdminAccountEditor({ userId, account, onSaved }: AdminAccountEdi
           Save account
         </Button>
       </div>
+
+      {isPromoFd && (
+        <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50/70 p-4">
+          <p className="text-sm font-semibold text-amber-950">
+            July Promo — Daily 0.5% compounding ($50k sheet)
+          </p>
+          <p className="mt-1 text-xs text-amber-800">
+            When started, profit begins the <strong>next calendar day</strong> after the start date.
+            Balance compounds at 0.5% every day until the end date (admin-controlled).
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <label className="flex items-center gap-2 text-sm sm:col-span-2 lg:col-span-1">
+              <input
+                type="checkbox"
+                checked={dailyActive}
+                onChange={(e) => setDailyActive(e.target.checked)}
+                className="h-4 w-4 rounded border-slate-300 text-teal-600"
+              />
+              <span className="font-medium text-slate-800">Active / started</span>
+            </label>
+            <label className="block text-sm">
+              <span className="font-medium text-slate-700">Start date</span>
+              <input
+                type="date"
+                className={inputClass}
+                value={dailyStart}
+                onChange={(e) => setDailyStart(e.target.value)}
+              />
+            </label>
+            <label className="block text-sm">
+              <span className="font-medium text-slate-700">End date</span>
+              <input
+                type="date"
+                className={inputClass}
+                value={dailyEnd}
+                onChange={(e) => setDailyEnd(e.target.value)}
+              />
+            </label>
+            <label className="block text-sm">
+              <span className="font-medium text-slate-700">Daily rate %</span>
+              <input
+                type="number"
+                min={0.01}
+                max={5}
+                step="0.01"
+                className={inputClass}
+                value={dailyRate}
+                onChange={(e) => setDailyRate(e.target.value)}
+              />
+            </label>
+          </div>
+          <Button
+            size="sm"
+            className="mt-4"
+            onClick={() => void saveDailyCompound()}
+            disabled={savingDaily}
+          >
+            {savingDaily ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
+            Save daily compounding
+          </Button>
+        </div>
+      )}
 
       <div className="mt-6 rounded-lg border border-dashed border-slate-200 bg-slate-50/80 p-4">
         <p className="text-sm font-medium text-slate-800">Quick balance adjust</p>

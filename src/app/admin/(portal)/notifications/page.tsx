@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Bell, Send, Users } from "lucide-react";
+import { Bell, Send, Trash2, Users } from "lucide-react";
 import {
   AdminEmptyState,
   AdminLoading,
@@ -10,7 +10,7 @@ import {
 } from "@/components/admin/admin-ui";
 import { formatDate } from "@/lib/utils";
 
-type NotificationType = "info" | "success" | "warning" | "action";
+type NotificationType = "info" | "success" | "warning" | "action" | "alert";
 
 interface Broadcast {
   id: string;
@@ -38,6 +38,7 @@ const TYPE_OPTIONS: { value: NotificationType; label: string }[] = [
   { value: "success", label: "Success" },
   { value: "warning", label: "Warning" },
   { value: "action", label: "Action required" },
+  { value: "alert", label: "Red alert" },
 ];
 
 export default function AdminNotificationsPage() {
@@ -48,6 +49,7 @@ export default function AdminNotificationsPage() {
   const [users, setUsers] = useState<UserOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -144,6 +146,33 @@ export default function AdminNotificationsPage() {
       setError("Failed to send notification");
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleDelete = async (broadcast: Broadcast) => {
+    const ok = window.confirm(
+      `Delete “${broadcast.title}”? This removes it from all ${broadcast.recipientCount} recipient portal(s).`
+    );
+    if (!ok) return;
+
+    setError(null);
+    setSuccess(null);
+    setDeletingId(broadcast.id);
+    try {
+      const res = await fetch(`/api/admin/notifications/${broadcast.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Failed to delete notification");
+        return;
+      }
+      setBroadcasts((prev) => prev.filter((b) => b.id !== broadcast.id));
+      setSuccess(`Deleted “${broadcast.title}” for ${data.recipientCount ?? broadcast.recipientCount} recipient(s).`);
+    } catch {
+      setError("Failed to delete notification");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -332,13 +361,25 @@ export default function AdminNotificationsPage() {
                 className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="font-semibold text-slate-900">{b.title}</p>
                     <p className="mt-1 text-sm text-slate-600 whitespace-pre-wrap">{b.message}</p>
                   </div>
-                  <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium capitalize text-slate-700">
-                    {b.type}
-                  </span>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium capitalize text-slate-700">
+                      {b.type}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => void handleDelete(b)}
+                      disabled={deletingId === b.id}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 disabled:opacity-50 cursor-pointer"
+                      title="Delete notification for all recipients"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      {deletingId === b.id ? "Deleting…" : "Delete"}
+                    </button>
+                  </div>
                 </div>
                 <p className="mt-3 text-xs text-slate-500">
                   {formatDate(b.createdAt)} ·{" "}

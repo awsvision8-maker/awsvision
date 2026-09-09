@@ -41,7 +41,9 @@ function ManagerLoginForm() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-white">Brand Ambassador Portal</h1>
-            <p className="text-sm text-slate-400">Manager sign-in — not client or admin</p>
+            <p className="text-sm text-slate-400">
+              Authorized ambassador access for referral and commission reporting
+            </p>
           </div>
         </div>
 
@@ -72,9 +74,9 @@ function ManagerLoginForm() {
         </form>
 
         <p className="mt-6 text-center text-xs text-slate-500">
-          Want to join?{" "}
-          <Link href="/referral-program" className="text-violet-400 hover:underline">
-            Apply to the referral program
+          New ambassadors:{" "}
+          <Link href="/referral-program" className="text-teal-400 hover:underline">
+            submit an application
           </Link>
         </p>
       </div>

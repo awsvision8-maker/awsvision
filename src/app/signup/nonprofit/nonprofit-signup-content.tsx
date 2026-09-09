@@ -26,10 +26,9 @@ import { SITE } from "@/lib/site-config";
 import {
   NONPROFIT_CAPITAL_TIERS,
   ORGANIZATION_TYPES,
-  estimateMonthlyProfit,
   formatNonprofitUsd,
-  getNonprofitMonthlyRate,
 } from "@/lib/nonprofit-program";
+import { NonprofitPackageCard } from "@/components/signup/nonprofit-package-card";
 
 const US_STATES = [
   "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA",
@@ -40,7 +39,7 @@ const US_STATES = [
 
 const CAPITAL_OPTIONS = NONPROFIT_CAPITAL_TIERS.map((tier) => ({
   value: String(tier.capital),
-  label: `${formatNonprofitUsd(tier.capital)} — ${tier.monthlyRate}% monthly`,
+  label: `${tier.label} — from ${formatNonprofitUsd(tier.capital)}`,
 }));
 
 export default function NonprofitSignupContent() {
@@ -70,8 +69,6 @@ export default function NonprofitSignupContent() {
   };
 
   const capital = Number(form.expectedFundCapital);
-  const monthlyRate = getNonprofitMonthlyRate(capital);
-  const monthlyProfit = estimateMonthlyProfit(capital);
 
   const update = <K extends keyof NonprofitSignupApplication>(
     field: K,
@@ -204,10 +201,15 @@ export default function NonprofitSignupContent() {
           </div>
           <h1 className="mt-3 text-2xl font-bold text-slate-900">Open a Non-Profit Fund Account</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Dedicated enrollment for tax-exempt organizations. Minimum fund capital{" "}
-            {formatNonprofitUsd(100_000)} — monthly profit from 8% to 10%.{" "}
+            Dedicated enrollment for tax-exempt organizations. Separate non-profit fund package —
+            minimum capital {formatNonprofitUsd(100_000)}. Returns finalized with your
+            representative.{" "}
             <Link href="/nonprofit" className="text-violet-600 hover:underline">
               View program details
+            </Link>
+            {" · "}
+            <Link href="/contact" className="text-violet-600 hover:underline">
+              Talk to representative
             </Link>
           </p>
         </div>
@@ -286,6 +288,8 @@ export default function NonprofitSignupContent() {
                   placeholder="Briefly describe your organization's mission and how fund returns support your programs."
                 />
               </div>
+              <NonprofitPackageCard fundCapital={capital || undefined} />
+
               <div className="rounded-lg border border-violet-200 bg-violet-50/50 p-4">
                 <Select
                   label="Expected Fund Capital *"
@@ -294,8 +298,9 @@ export default function NonprofitSignupContent() {
                   options={CAPITAL_OPTIONS}
                 />
                 <p className="mt-2 text-sm text-violet-800">
-                  Selected rate: <strong>{monthlyRate}% monthly</strong> · Estimated monthly profit:{" "}
-                  <strong>{formatNonprofitUsd(monthlyProfit)}</strong>
+                  Selected capital:{" "}
+                  <strong>{formatNonprofitUsd(capital || 100_000)}</strong> · Profit terms —
+                  talk to representative to finalize on your support call.
                 </p>
               </div>
             </div>
@@ -463,9 +468,16 @@ export default function NonprofitSignupContent() {
                   <span className="text-slate-500">EIN:</span> <strong>{form.ein}</strong>
                 </p>
                 <p>
+                  <span className="text-slate-500">Package:</span>{" "}
+                  <strong>Non-Profit Fund Account</strong>
+                </p>
+                <p>
                   <span className="text-slate-500">Fund capital:</span>{" "}
-                  <strong>{formatNonprofitUsd(capital)}</strong> at{" "}
-                  <strong>{monthlyRate}% monthly</strong>
+                  <strong>{formatNonprofitUsd(capital)}</strong>
+                </p>
+                <p>
+                  <span className="text-slate-500">Returns:</span>{" "}
+                  <strong>Talk to representative — finalized on support call</strong>
                 </p>
                 <p>
                   <span className="text-slate-500">Representative:</span>{" "}

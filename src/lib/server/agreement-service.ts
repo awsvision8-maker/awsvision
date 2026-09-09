@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getInvestmentPlan } from "@/lib/investment-plans";
 import { resolvePlanTierFromPrincipal } from "@/lib/portfolio-engine";
+import { FD_PROMO_TERMS, isFdPromoPlanId } from "@/lib/promotions";
 import type { InvestmentAgreement, PortfolioAccount } from "@/types";
 import type { InvestmentAgreement as DbAgreement } from "@prisma/client";
 
@@ -99,8 +100,13 @@ export async function createAgreementOnDepositApproval(params: {
 
   if (!plan) return null;
 
+  const isJulyPromo = isFdPromoPlanId(params.investmentPlanId) || isFdPromoPlanId(plan.id);
   const maturityDate =
-    account.maturityDate ?? addMonths(params.approvedAt, plan.termMonths);
+    account.maturityDate ??
+    addMonths(
+      params.approvedAt,
+      isJulyPromo ? FD_PROMO_TERMS.termMonths : plan.termMonths
+    );
 
   const row = await prisma.investmentAgreement.create({
     data: {
@@ -111,8 +117,8 @@ export async function createAgreementOnDepositApproval(params: {
       planId: plan.id,
       planName: plan.name,
       monthlyRatePercent: params.monthlyRatePercent,
-      termMonths: plan.termMonths,
-      totalRoiPercent: plan.totalRoiPercent,
+      termMonths: isJulyPromo ? FD_PROMO_TERMS.termMonths : plan.termMonths,
+      totalRoiPercent: isJulyPromo ? FD_PROMO_TERMS.returnPercent : plan.totalRoiPercent,
       depositAmount: params.depositAmount,
       totalPrincipal: params.newPrincipal,
       accountNumber: account.accountNumber,

@@ -133,15 +133,15 @@ export async function listAllUsers() {
     orderBy: { createdAt: "desc" },
     include: {
       nonprofitProfile: true,
-      accounts: {
+      accounts: { orderBy: { createdAt: "asc" } },
+      transactions: { orderBy: { date: "desc" } },
+      investmentAgreements: { orderBy: { issuedAt: "asc" } },
+      ambassador: {
         select: {
           id: true,
-          accountNumber: true,
-          type: true,
-          principal: true,
-          status: true,
-          investmentPlanId: true,
-          profitEligibleAt: true,
+          firstName: true,
+          lastName: true,
+          referralCode: true,
         },
       },
       _count: { select: { transactions: true, withdrawalRequests: true } },
@@ -161,6 +161,113 @@ export async function getUserDetail(userId: string) {
         where: { status: "pending" },
         orderBy: { requestedAt: "desc" },
       },
+      ambassador: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          referralCode: true,
+          status: true,
+        },
+      },
+    },
+  });
+}
+
+/**
+ * Link an existing client to a brand ambassador (by referral code or ambassador id),
+ * or clear the link so they no longer appear on any ambassador dashboard.
+ */
+export async function adminAssignUserAmbassador(
+  userId: string,
+  input: { referralCode?: string | null; ambassadorId?: string | null; clear?: boolean }
+) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
+  if (!user) throw new Error("User not found");
+
+  if (input.clear || input.referralCode === "" || input.ambassadorId === null) {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { ambassadorId: null },
+    });
+    return getUserDetail(userId);
+  }
+
+  let ambassadorId: string | null = null;
+
+  if (input.ambassadorId?.trim()) {
+    const byId = await prisma.brandAmbassador.findFirst({
+      where: { id: input.ambassadorId.trim(), status: "active" },
+    });
+    if (!byId) throw new Error("Ambassador not found or inactive");
+    ambassadorId = byId.id;
+  } else if (input.referralCode?.trim()) {
+    const { getAmbassadorByReferralCode } = await import("@/lib/server/ambassador-service");
+    const byCode = await getAmbassadorByReferralCode(input.referralCode);
+    if (!byCode) throw new Error("Invalid or inactive referral code");
+    ambassadorId = byCode.id;
+  } else {
+    throw new Error("Provide a referral code or ambassador, or clear the link");
+  }
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { ambassadorId },
+  });
+
+  return getUserDetail(userId);
+}
+
+/** Assign multiple existing clients under one brand ambassador */
+export async function adminBulkAssignUsersToAmbassador(
+  ambassadorId: string,
+  userIds: string[]
+) {
+  const ambassador = await prisma.brandAmbassador.findFirst({
+    where: { id: ambassadorId, status: "active" },
+    select: { id: true, referralCode: true, firstName: true, lastName: true },
+  });
+  if (!ambassador) throw new Error("Ambassador not found or inactive");
+
+  const uniqueIds = [...new Set(userIds.map((id) => id.trim()).filter(Boolean))];
+  if (uniqueIds.length === 0) throw new Error("Select at least one client");
+
+  const result = await prisma.user.updateMany({
+    where: { id: { in: uniqueIds } },
+    data: { ambassadorId: ambassador.id },
+  });
+
+  return {
+    ambassador,
+    assignedCount: result.count,
+    requestedCount: uniqueIds.length,
+  };
+}
+
+/** Lightweight client list for ambassador assign picker */
+export async function listUsersForAmbassadorAssign() {
+  return prisma.user.findMany({
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      phone: true,
+      onlineId: true,
+      kycStatus: true,
+      profileType: true,
+      createdAt: true,
+      ambassadorId: true,
+      ambassador: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          referralCode: true,
+        },
+      },
     },
   });
 }
@@ -170,7 +277,14 @@ export async function adminDeleteUser(userId: string) {
   return deleteUserAccount(userId);
 }
 
-export async function setUserKycStatus(userId: string, status: "verified" | "rejected") {
+const KYC_STATUSES = ["pending", "submitted", "verified", "rejected", "resubmit_required"] as const;
+
+export type AdminKycStatus = (typeof KYC_STATUSES)[number];
+
+export async function setUserKycStatus(userId: string, status: AdminKycStatus) {
+  if (!KYC_STATUSES.includes(status)) {
+    throw new Error("Invalid KYC status");
+  }
   return prisma.user.update({
     where: { id: userId },
     data: { kycStatus: status },
@@ -336,6 +450,10 @@ export interface AdminAccountUpdate {
   recordAdjustment?: boolean;
   profitRateAmended?: boolean;
   amendmentNote?: string | null;
+  dailyCompoundActive?: boolean;
+  dailyCompoundStartDate?: string | null;
+  dailyCompoundEndDate?: string | null;
+  dailyCompoundRatePercent?: number;
 }
 
 export async function adminUpdateUserProfile(userId: string, data: AdminUserProfileUpdate) {
@@ -344,7 +462,12 @@ export async function adminUpdateUserProfile(userId: string, data: AdminUserProf
   if (data.lastName !== undefined) updates.lastName = data.lastName.trim();
   if (data.phone !== undefined) updates.phone = data.phone.trim();
   if (data.email !== undefined) updates.email = data.email.toLowerCase().trim();
-  if (data.kycStatus !== undefined) updates.kycStatus = data.kycStatus;
+  if (data.kycStatus !== undefined) {
+    if (!KYC_STATUSES.includes(data.kycStatus as AdminKycStatus)) {
+      throw new Error("Invalid KYC status");
+    }
+    updates.kycStatus = data.kycStatus;
+  }
 
   if (Object.keys(updates).length === 0) {
     throw new Error("No profile fields to update");
@@ -414,6 +537,10 @@ export async function adminUpdatePortfolioAccount(
     maturityDate?: Date | null;
     profitRateAmended?: boolean;
     amendmentNote?: string | null;
+    dailyCompoundActive?: boolean;
+    dailyCompoundStartDate?: Date | null;
+    dailyCompoundEndDate?: Date | null;
+    dailyCompoundRatePercent?: number;
   } = {};
 
   if (data.principal !== undefined) {
@@ -469,6 +596,57 @@ export async function adminUpdatePortfolioAccount(
   if (data.status !== undefined) updates.status = data.status;
   if (data.maturityDate !== undefined) {
     updates.maturityDate = data.maturityDate ? new Date(data.maturityDate) : null;
+  }
+  if (data.dailyCompoundActive !== undefined) {
+    updates.dailyCompoundActive = data.dailyCompoundActive;
+  }
+  if (data.dailyCompoundStartDate !== undefined) {
+    updates.dailyCompoundStartDate = data.dailyCompoundStartDate
+      ? new Date(data.dailyCompoundStartDate)
+      : null;
+  }
+  if (data.dailyCompoundEndDate !== undefined) {
+    updates.dailyCompoundEndDate = data.dailyCompoundEndDate
+      ? new Date(data.dailyCompoundEndDate)
+      : null;
+  }
+  if (data.dailyCompoundRatePercent !== undefined) {
+    if (data.dailyCompoundRatePercent <= 0 || data.dailyCompoundRatePercent > 5) {
+      throw new Error("Daily compound rate must be between 0 and 5%");
+    }
+    updates.dailyCompoundRatePercent = data.dailyCompoundRatePercent;
+  }
+
+  // When starting daily compound, align profitEligibleAt to first profit day (start + 1)
+  if (
+    updates.dailyCompoundActive === true ||
+    (updates.dailyCompoundActive === undefined &&
+      account.dailyCompoundActive &&
+      data.dailyCompoundStartDate)
+  ) {
+    const startIso =
+      updates.dailyCompoundStartDate?.toISOString() ??
+      data.dailyCompoundStartDate ??
+      account.dailyCompoundStartDate?.toISOString();
+    if (startIso) {
+      const start = new Date(startIso);
+      const firstProfit = new Date(
+        Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate() + 1)
+      );
+      if (!updates.profitEligibleAt) {
+        updates.profitEligibleAt = firstProfit;
+      }
+      if (updates.dailyCompoundEndDate ?? account.dailyCompoundEndDate) {
+        const end =
+          updates.dailyCompoundEndDate ??
+          (account.dailyCompoundEndDate
+            ? new Date(account.dailyCompoundEndDate)
+            : null);
+        if (end && !updates.maturityDate) {
+          updates.maturityDate = end;
+        }
+      }
+    }
   }
 
   if (Object.keys(updates).length === 0) {

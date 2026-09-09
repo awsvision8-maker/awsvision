@@ -32,6 +32,12 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+
+.cpanel-cookies.txt
+.cpanel-db-pass.txt
+.cpanel-*.html
+backups/
+scripts/cloudflared-linux-amd64
 !.env.example
 
 # database
@@ -46,3 +52,9 @@ prisma/dev.db-journal
 next-env.d.ts
 
 .vercel
+
+.vercel
+.env*
+
+.vercel
+.env*

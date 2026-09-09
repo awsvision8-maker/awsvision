@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
@@ -18,6 +19,9 @@ import {
 } from "@/components/charts/investment-charts";
 import { NonprofitProfileBanner } from "@/components/portal/nonprofit-profile-banner";
 import { BirthdayBanner } from "@/components/portal/birthday-banner";
+import { DepositAlertBanner } from "@/components/portal/deposit-alert-banner";
+import { PromoDailyCompoundPanel } from "@/components/portal/promo-daily-compound-panel";
+import { LiveUsHoldingsPanel } from "@/components/portal/live-us-holdings-panel";
 import { PortalHeader } from "@/components/portal/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,10 +34,31 @@ import { usePortfolio } from "@/lib/use-portfolio";
 import { formatCurrency, formatDate, formatMonthYear } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
 
+interface DepositAlert {
+  id: string;
+  title: string;
+  message: string;
+}
+
 export default function DashboardPage() {
   const { user } = useAuth();
   const portfolio = usePortfolio();
   const isNonprofit = user?.profileType === "nonprofit" && user.nonprofitProfile;
+  const [depositAlerts, setDepositAlerts] = useState<DepositAlert[]>([]);
+
+  const loadAlerts = useCallback(async () => {
+    try {
+      const res = await fetch("/api/notifications/alerts");
+      const data = await res.json();
+      if (res.ok) setDepositAlerts(data.alerts ?? []);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadAlerts();
+  }, [loadAlerts]);
 
   const welcomeName = isNonprofit
     ? user.nonprofitProfile!.organizationLegalName
@@ -109,16 +134,44 @@ export default function DashboardPage() {
   const birthdayDob = user?.kycData?.dateOfBirth ?? null;
   const showBirthdayBanner = !isNonprofit && birthdayDob && isBirthdayToday(birthdayDob);
 
+  const dailyCompoundAccounts = portfolio.accounts.filter(
+    (a) => a.dailyCompound?.active
+  );
+
+  const liveAccounts = portfolio.accounts.map((a) => {
+    const ledger = portfolio.portfolioAccounts.find((p) => p.id === a.id);
+    return {
+      id: a.id,
+      label: getAccountLabel(a),
+      balance: Math.max(a.balance, ledger?.principal ?? 0),
+      annualReturnPercent: a.interestRate || portfolio.annualReturn || 12,
+    };
+  });
+
   return (
     <>
       <PortalHeader title={`Welcome back, ${welcomeName}`} subtitle={subtitle} />
       <div className="space-y-6 p-4 sm:p-6 lg:p-8">
+        {depositAlerts.map((alert) => (
+          <DepositAlertBanner key={alert.id} title={alert.title} message={alert.message} />
+        ))}
+
         {isNonprofit && user.nonprofitProfile && (
           <NonprofitProfileBanner profile={user.nonprofitProfile} />
         )}
 
         {showBirthdayBanner && user && (
           <BirthdayBanner firstName={user.firstName} />
+        )}
+
+        {dailyCompoundAccounts.map((acc) =>
+          acc.dailyCompound ? (
+            <PromoDailyCompoundPanel
+              key={`daily-${acc.id}`}
+              seed={acc.dailyCompound}
+              accountLabel={getAccountLabel(acc)}
+            />
+          ) : null
         )}
 
         {showFundAccountCta && (
@@ -258,6 +311,11 @@ export default function DashboardPage() {
                 invested={portfolio.approvedDepositTotal > 0}
               />
             </div>
+
+            <LiveUsHoldingsPanel
+              accounts={liveAccounts}
+              invested={portfolio.approvedDepositTotal > 0}
+            />
           </>
         )}
 

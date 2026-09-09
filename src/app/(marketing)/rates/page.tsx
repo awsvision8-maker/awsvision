@@ -3,16 +3,18 @@ import { Button } from "@/components/ui/button";
 import { MobileDataCard } from "@/components/ui/mobile-data-card";
 import { RATES_DATA } from "@/lib/site-data";
 import { getFdRates } from "@/lib/fd-rates";
-import { getActiveFdPromo } from "@/lib/promotions";
 import { OPEN_NOW_MESSAGE, COMING_SOON_MESSAGE } from "@/lib/product-availability";
 import { RatesJsonLd } from "@/components/seo/rates-json-ld";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata("/rates");
 
-export default function RatesPage() {
-  const fdRates = getFdRates();
-  const promo = getActiveFdPromo();
+export default async function RatesPage() {
+  const { resolveActiveFdPromo } = await import("@/lib/server/fd-promo-config");
+  const { buildActiveFdPromo, defaultFdPromoRuntimeConfig } = await import("@/lib/promotions");
+  const promo =
+    (await resolveActiveFdPromo()) ?? buildActiveFdPromo(defaultFdPromoRuntimeConfig());
+  const fdRates = getFdRates(promo);
 
   return (
     <div className="overflow-x-hidden">
@@ -120,12 +122,11 @@ export default function RatesPage() {
         </RateSection>
 
         <p className="-mt-4 text-xs text-slate-500 leading-relaxed sm:-mt-6">
-          FD rates mirror AWS Vision investment plan tiers (Silver through Executive). Monthly gratuity
-          is credited each month; total return is over the full term at enrollment. {promo.monthLong}{" "}
-          Promo requires
-          {` ${fdRates[0]?.min ?? "$50,000+"} `}
-          minimum and enrollment by {promo.endsLabel.replace("Offer ends ", "")}. Early withdrawal:
-          contact your relationship manager to initiate — not available self-service in the portal.
+          The {promo.monthLong} Promo FD is our current Fixed Deposit offering:{" "}
+          {fdRates[0]?.min ?? "$50,000+"} minimum, {promo.returnPercent}% total return over{" "}
+          {promo.termMonths} months. Enrollment by {promo.endsLabel.replace("Offer ends ", "")}.
+          Early withdrawal: contact your relationship manager to initiate — not available
+          self-service in the portal.
         </p>
 
         <RateSection

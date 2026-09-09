@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2, ArrowRight, Shield, RefreshCw, Lock } from "lucide-react";
+import { CheckCircle2, ArrowRight, Shield, RefreshCw, Lock, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   INVESTMENT_PLANS,
@@ -37,39 +37,35 @@ function PlanCard({
     >
       <div className={cn("h-1.5 w-full", plan.accentClass)} />
       <div className="flex flex-1 flex-col p-6">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Investment Plan
-            </p>
-            <h3 className="mt-1 text-xl font-bold text-slate-900">{plan.name}</h3>
-          </div>
-          <span className="shrink-0 rounded border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700">
-            {plan.totalRoiPercent}% total ROI
-          </span>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            Investment Plan
+          </p>
+          <h3 className="mt-1 text-xl font-bold text-slate-900">{plan.name}</h3>
         </div>
 
         <div className="mt-6 rounded-lg border border-slate-100 bg-slate-50 p-4">
-          <p className="text-3xl font-bold text-teal-700 tabular-nums">
-            {plan.monthlyRate.toFixed(2)}%
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Minimum investment
+          </p>
+          <p className="mt-1 text-3xl font-bold text-teal-700 tabular-nums">
+            {formatUsd(plan.minInvestment)}
           </p>
           <p className="mt-1 text-sm font-medium text-slate-600">
-            Every month · {plan.termMonths} months
+            Returns customized with your representative
           </p>
         </div>
 
         <dl className="mt-5 space-y-2.5 border-t border-slate-100 pt-5 text-sm">
           <div className="flex justify-between gap-2">
-            <dt className="text-slate-500">Minimum investment</dt>
-            <dd className="font-semibold text-slate-900 tabular-nums">{formatUsd(plan.minInvestment)}</dd>
+            <dt className="text-slate-500">Starting capital</dt>
+            <dd className="font-semibold text-slate-900 tabular-nums">
+              {formatUsd(plan.minInvestment)}+
+            </dd>
           </div>
           <div className="flex justify-between gap-2">
-            <dt className="text-slate-500">Maximum earnings</dt>
-            <dd className="font-semibold text-slate-900 tabular-nums">{formatUsd(plan.maxEarnings)}</dd>
-          </div>
-          <div className="flex justify-between gap-2">
-            <dt className="text-slate-500">Total return</dt>
-            <dd className="font-semibold text-teal-700">{plan.totalReturnLabel}</dd>
+            <dt className="text-slate-500">Program terms</dt>
+            <dd className="font-semibold text-slate-900">Discuss on call</dd>
           </div>
         </dl>
 
@@ -86,12 +82,16 @@ function PlanCard({
               Hold capital &amp; reinvest
             </li>
           )}
+          <li className="flex items-center gap-2">
+            <Phone className="h-3.5 w-3.5 text-teal-600 shrink-0" />
+            Personalized figures with support
+          </li>
         </ul>
 
         {!onSelect && (
-          <Link href={`/signup?account=investment&plan=${plan.id}`} className="mt-6 block">
+          <Link href="/contact" className="mt-6 block">
             <Button className="w-full" variant={plan.id === "diamond" ? "primary" : "outline"}>
-              Invest Now
+              Talk to Support
               <ArrowRight className="h-4 w-4" />
             </Button>
           </Link>
@@ -126,26 +126,17 @@ export function InvestmentPlansSection({
               Structured Investment Products
             </p>
             <h2 className="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">
-              Investment Plans &amp; Returns
+              Investment Plans
             </h2>
             <p className="mt-2 max-w-2xl text-sm text-slate-600 leading-relaxed">
-              Tiered capital plans with fixed monthly profit rates and defined terms — presented in
-              accordance with microfinance and institutional disclosure standards. Rates mirror our
-              live program at{" "}
-              <a
-                href="https://awsvision.com/portal/"
-                className="text-teal-600 hover:underline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                awsvision.com/portal
-              </a>
-              .
+              Choose a capital tier based on how much you can invest. Profit rates and program terms
+              are customized on a call with our support team or representative — figures are not
+              listed publicly.
             </p>
           </div>
           <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-3 text-xs text-slate-600">
             <Shield className="h-4 w-4 text-teal-600 shrink-0" />
-            Licensed U.S. &amp; UAE · Monthly profit distribution
+            Licensed U.S. &amp; UAE · Talk to a representative
           </div>
         </div>
 
@@ -167,10 +158,10 @@ export function InvestmentPlansSection({
 
         <p className="mt-8 text-xs text-slate-500 leading-relaxed max-w-4xl border-l-2 border-slate-200 pl-4">
           <strong className="font-semibold text-slate-700">Important disclosure:</strong> Investment
-          products are not bank deposits and are not FDIC insured. Returns are based on program
-          terms at enrollment. Past performance does not guarantee future results. Capital is
-          allocated across diversified global sectors under AWS Vision asset management. Review all
-          terms before investing.
+          products are not bank deposits and are not FDIC insured. Program terms and returns are
+          confirmed with your representative before enrollment. Capital is allocated across
+          diversified global sectors under AWS Vision asset management. Review all terms before
+          investing.
         </p>
       </div>
 
@@ -178,18 +169,21 @@ export function InvestmentPlansSection({
         <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
           <div className="border-b border-slate-200 bg-slate-50 px-6 py-4">
             <h3 className="font-bold text-slate-900">Plan Comparison Schedule</h3>
-            <p className="text-sm text-slate-500 mt-0.5">All figures in USD · Monthly profit rates</p>
+            <p className="text-sm text-slate-500 mt-0.5">
+              Minimum investment by tier · Returns discussed with support
+            </p>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-sm">
+            <table className="w-full min-w-[560px] text-sm">
               <thead>
                 <tr className="border-b border-slate-200 bg-white text-left">
                   <th className="px-6 py-3 font-semibold text-slate-700">Plan</th>
-                  <th className="px-4 py-3 font-semibold text-slate-700 text-right">Monthly rate</th>
-                  <th className="px-4 py-3 font-semibold text-slate-700 text-right">Term</th>
-                  <th className="px-4 py-3 font-semibold text-slate-700 text-right">Min. investment</th>
-                  <th className="px-4 py-3 font-semibold text-slate-700 text-right">Max. earnings</th>
-                  <th className="px-4 py-3 font-semibold text-slate-700 text-right">Total ROI</th>
+                  <th className="px-4 py-3 font-semibold text-slate-700 text-right">
+                    Min. investment
+                  </th>
+                  <th className="px-4 py-3 font-semibold text-slate-700 text-right">
+                    Program terms
+                  </th>
                   <th className="px-6 py-3 font-semibold text-slate-700 text-center">Action</th>
                 </tr>
               </thead>
@@ -204,26 +198,15 @@ export function InvestmentPlansSection({
                   >
                     <td className="px-6 py-4 font-semibold text-slate-900">{plan.name}</td>
                     <td className="px-4 py-4 text-right font-bold text-teal-700 tabular-nums">
-                      {plan.monthlyRate.toFixed(2)}%
-                    </td>
-                    <td className="px-4 py-4 text-right text-slate-600 tabular-nums">
-                      {plan.termMonths} mo
-                    </td>
-                    <td className="px-4 py-4 text-right text-slate-900 tabular-nums">
                       {formatUsd(plan.minInvestment)}
                     </td>
-                    <td className="px-4 py-4 text-right text-slate-900 tabular-nums">
-                      {formatUsd(plan.maxEarnings)}
-                    </td>
-                    <td className="px-4 py-4 text-right font-medium text-slate-900">
-                      {plan.totalRoiPercent}%
-                    </td>
+                    <td className="px-4 py-4 text-right text-slate-600">Discuss on call</td>
                     <td className="px-6 py-4 text-center">
                       <Link
-                        href={`/signup?account=investment&plan=${plan.id}`}
+                        href="/contact"
                         className="text-teal-700 font-semibold hover:underline text-xs"
                       >
-                        Apply
+                        Talk to Support
                       </Link>
                     </td>
                   </tr>
@@ -238,7 +221,7 @@ export function InvestmentPlansSection({
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 lg:p-10">
           <h3 className="text-xl font-bold text-slate-900">How AWS Vision Investment Works</h3>
           <p className="mt-2 text-sm text-slate-600 max-w-2xl">
-            A transparent four-step process — from account opening to monthly profit withdrawal.
+            A transparent process — from speaking with support to funding your account.
           </p>
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {INVESTMENT_HOW_IT_WORKS.map((item) => (
@@ -253,11 +236,17 @@ export function InvestmentPlansSection({
           </div>
           <div className="mt-8 flex flex-wrap gap-6 text-xs text-slate-500">
             <span className="flex items-center gap-1.5">
-              <RefreshCw className="h-3.5 w-3.5" /> Compound interest on all plans
+              <RefreshCw className="h-3.5 w-3.5" /> Personalized program terms
             </span>
             <span className="flex items-center gap-1.5">
               <Lock className="h-3.5 w-3.5" /> Hold capital option available
             </span>
+            <Link
+              href="/contact"
+              className="flex items-center gap-1.5 font-semibold text-teal-700 hover:underline"
+            >
+              <Phone className="h-3.5 w-3.5" /> Talk to a representative
+            </Link>
           </div>
         </div>
       )}

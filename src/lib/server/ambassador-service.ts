@@ -3,7 +3,8 @@ import { hashPassword, verifyPassword } from "@/lib/server/auth-service";
 import { SITE } from "@/lib/site-config";
 
 const REFERRAL_PREFIX = "AV";
-const COMMISSION_RATE = 0.03;
+/** Default commission % when a new ambassador is approved (admin can change per ambassador). */
+export const DEFAULT_COMMISSION_RATE_PERCENT = 3;
 
 /** Minimum active clients required per calendar month (brand ambassador program). */
 export const MONTHLY_ACTIVE_CLIENT_TARGET = 1;
@@ -66,8 +67,13 @@ function pendingFirstDeposit(transactions: DepositTx[]) {
   return transactions.find((t) => t.status === "pending") ?? null;
 }
 
-function referralCommissionFromDeposit(firstDepositAmount: number, firstDepositApprovedAt: Date) {
-  const commission = firstDepositAmount * COMMISSION_RATE;
+function referralCommissionFromDeposit(
+  firstDepositAmount: number,
+  firstDepositApprovedAt: Date,
+  commissionRatePercent: number
+) {
+  const rate = Math.max(0, commissionRatePercent) / 100;
+  const commission = firstDepositAmount * rate;
   const payable = isCommissionPayable(firstDepositApprovedAt);
   return {
     firstDepositAmount,
@@ -232,7 +238,19 @@ export async function listAmbassadorApplications(status?: string) {
   return prisma.brandAmbassadorApplication.findMany({
     where: status ? { status } : undefined,
     orderBy: { createdAt: "desc" },
-    include: { ambassador: { select: { id: true, username: true, referralCode: true } } },
+    include: {
+      ambassador: {
+        select: {
+          id: true,
+          username: true,
+          referralCode: true,
+          status: true,
+          approvedAt: true,
+          commissionRatePercent: true,
+          _count: { select: { referrals: true } },
+        },
+      },
+    },
   });
 }
 
@@ -309,6 +327,23 @@ export async function getAmbassadorByReferralCode(code: string) {
   });
 }
 
+/** Active ambassadors for admin referral assignment dropdowns */
+export async function listActiveAmbassadors() {
+  return prisma.brandAmbassador.findMany({
+    where: { status: "active" },
+    orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      referralCode: true,
+      username: true,
+      _count: { select: { referrals: true } },
+    },
+  });
+}
+
 export async function getAmbassadorDashboard(ambassadorId: string) {
   const ambassador = await prisma.brandAmbassador.findUnique({
     where: { id: ambassadorId },
@@ -382,7 +417,11 @@ export async function getAmbassadorDashboard(ambassadorId: string) {
     };
 
     if (approved) {
-      const commission = referralCommissionFromDeposit(approved.amount, approved.date);
+      const commission = referralCommissionFromDeposit(
+        approved.amount,
+        approved.date,
+        ambassador.commissionRatePercent
+      );
       return {
         ...base,
         firstDepositAmount: commission.firstDepositAmount,
@@ -439,6 +478,7 @@ export async function getAmbassadorDashboard(ambassadorId: string) {
       lastName: ambassador.lastName,
       referralCode: ambassador.referralCode,
       referralUrl: ambassadorReferralUrl(ambassador.referralCode),
+      commissionRatePercent: ambassador.commissionRatePercent,
     },
     monthlyTarget: {
       requiredPerMonth: MONTHLY_ACTIVE_CLIENT_TARGET,
@@ -467,6 +507,203 @@ export async function getAmbassadorDashboard(ambassadorId: string) {
       totalCommissionPending,
       totalCommission: totalCommissionEarned + totalCommissionPending,
     },
+    commissionRatePercent: ambassador.commissionRatePercent,
     referrals,
   };
+}
+
+/** Full ambassador profile for admin — application + live commission/referral dashboard */
+export async function getAdminAmbassadorProfile(ambassadorId: string) {
+  const row = await prisma.brandAmbassador.findUnique({
+    where: { id: ambassadorId },
+    include: {
+      application: true,
+    },
+  });
+  if (!row) return null;
+
+  const dashboard = await getAmbassadorDashboard(ambassadorId);
+  if (!dashboard) return null;
+
+  return {
+    profile: {
+      id: row.id,
+      username: row.username,
+      email: row.email,
+      firstName: row.firstName,
+      lastName: row.lastName,
+      phone: row.phone,
+      referralCode: row.referralCode,
+      referralUrl: ambassadorReferralUrl(row.referralCode),
+      status: row.status,
+      approvedAt: row.approvedAt,
+      createdAt: row.createdAt,
+      managerLoginUrl: managerPortalUrl(),
+      commissionRatePercent: row.commissionRatePercent,
+    },
+    application: row.application
+      ? {
+          id: row.application.id,
+          firstName: row.application.firstName,
+          lastName: row.application.lastName,
+          email: row.application.email,
+          phone: row.application.phone,
+          city: row.application.city,
+          state: row.application.state,
+          linkedin: row.application.linkedin,
+          experience: row.application.experience,
+          message: row.application.message,
+          status: row.application.status,
+          reviewNote: row.application.reviewNote,
+          reviewedAt: row.application.reviewedAt,
+          createdAt: row.application.createdAt,
+        }
+      : null,
+    commissionRatePercent: row.commissionRatePercent,
+    monthlyTarget: dashboard.monthlyTarget,
+    currentMonth: dashboard.currentMonth,
+    monthlyTargets: dashboard.monthlyTargets,
+    stats: dashboard.stats,
+    referrals: dashboard.referrals,
+  };
+}
+
+/** Admin sets this ambassador's commission % of first approved deposit */
+export async function adminUpdateAmbassadorCommission(
+  ambassadorId: string,
+  commissionRatePercent: number
+) {
+  if (!Number.isFinite(commissionRatePercent)) {
+    throw new Error("Commission rate must be a number");
+  }
+  if (commissionRatePercent < 0 || commissionRatePercent > 100) {
+    throw new Error("Commission rate must be between 0 and 100");
+  }
+
+  return prisma.brandAmbassador.update({
+    where: { id: ambassadorId },
+    data: { commissionRatePercent },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      referralCode: true,
+      commissionRatePercent: true,
+    },
+  });
+}
+
+export type AdminAmbassadorProfileUpdate = {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  username?: string;
+  status?: string;
+  referralCode?: string;
+  newPassword?: string;
+};
+
+/** Admin edits ambassador contact / login profile fields */
+export async function adminUpdateAmbassadorProfile(
+  ambassadorId: string,
+  input: AdminAmbassadorProfileUpdate
+) {
+  const existing = await prisma.brandAmbassador.findUnique({ where: { id: ambassadorId } });
+  if (!existing) throw new Error("Ambassador not found");
+
+  const data: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    username?: string;
+    status?: string;
+    referralCode?: string;
+    passwordHash?: string;
+  } = {};
+
+  if (input.firstName !== undefined) {
+    const v = input.firstName.trim();
+    if (!v) throw new Error("First name is required");
+    data.firstName = v;
+  }
+  if (input.lastName !== undefined) {
+    const v = input.lastName.trim();
+    if (!v) throw new Error("Last name is required");
+    data.lastName = v;
+  }
+  if (input.phone !== undefined) {
+    const v = input.phone.trim();
+    if (!v) throw new Error("Phone is required");
+    data.phone = v;
+  }
+  if (input.status !== undefined) {
+    const status = input.status.trim().toLowerCase();
+    if (!["active", "inactive", "suspended"].includes(status)) {
+      throw new Error("Status must be active, inactive, or suspended");
+    }
+    data.status = status;
+  }
+  if (input.email !== undefined) {
+    const email = input.email.toLowerCase().trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new Error("Enter a valid email address");
+    }
+    const clash = await prisma.brandAmbassador.findFirst({
+      where: { email, NOT: { id: ambassadorId } },
+      select: { id: true },
+    });
+    if (clash) throw new Error("Another ambassador already uses this email");
+    data.email = email;
+  }
+  if (input.username !== undefined) {
+    const username = input.username.trim().toLowerCase();
+    if (username.length < 4) throw new Error("Username must be at least 4 characters");
+    if (!/^[a-z0-9._-]+$/.test(username)) {
+      throw new Error("Username may only contain letters, numbers, dots, dashes, and underscores");
+    }
+    const clash = await prisma.brandAmbassador.findFirst({
+      where: { username, NOT: { id: ambassadorId } },
+      select: { id: true },
+    });
+    if (clash) throw new Error("Another ambassador already uses this username");
+    data.username = username;
+  }
+  if (input.referralCode !== undefined) {
+    const code = input.referralCode.trim().toUpperCase().replace(/\s/g, "");
+    if (code.length < 4) throw new Error("Referral code must be at least 4 characters");
+    const clash = await prisma.brandAmbassador.findFirst({
+      where: { referralCode: code, NOT: { id: ambassadorId } },
+      select: { id: true },
+    });
+    if (clash) throw new Error("This referral code is already in use");
+    data.referralCode = code;
+  }
+  if (input.newPassword !== undefined && input.newPassword.length > 0) {
+    if (input.newPassword.length < 8) {
+      throw new Error("New password must be at least 8 characters");
+    }
+    data.passwordHash = await hashPassword(input.newPassword);
+  }
+
+  if (Object.keys(data).length === 0) {
+    throw new Error("No profile fields to update");
+  }
+
+  return prisma.brandAmbassador.update({
+    where: { id: ambassadorId },
+    data,
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      phone: true,
+      username: true,
+      referralCode: true,
+      status: true,
+      commissionRatePercent: true,
+    },
+  });
 }

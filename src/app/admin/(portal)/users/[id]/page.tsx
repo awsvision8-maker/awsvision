@@ -3,13 +3,16 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, CheckCircle2, Pencil, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ExternalLink, Pencil, XCircle } from "lucide-react";
 import { AdminAccountEditor } from "@/components/admin/admin-account-editor";
 import { AdminUserProfileEditor } from "@/components/admin/admin-user-profile-editor";
+import { AdminDepositAlertPanel } from "@/components/admin/admin-deposit-alert-panel";
+import { AdminKycControls } from "@/components/admin/admin-kyc-controls";
 import { KycDocumentViewer } from "@/components/admin/kyc-document-viewer";
 import { AdminInvestmentAgreementsPanel } from "@/components/admin/admin-investment-agreements-panel";
 import { AdminDeleteUserPanel } from "@/components/admin/admin-delete-user-panel";
 import { AdminProfitAmendmentPanel } from "@/components/admin/admin-profit-amendment-panel";
+import { AdminReferralAssignPanel } from "@/components/admin/admin-referral-assign-panel";
 import {
   AdminActionButton,
   AdminLoading,
@@ -56,6 +59,10 @@ interface UserDetail {
     maturityDate: string | null;
     profitRateAmended?: boolean;
     amendmentNote?: string | null;
+    dailyCompoundActive?: boolean;
+    dailyCompoundStartDate?: string | null;
+    dailyCompoundEndDate?: string | null;
+    dailyCompoundRatePercent?: number;
   }[];
   pendingDeposits: {
     id: string;
@@ -80,6 +87,14 @@ interface UserDetail {
     status: string;
     createdAt: string;
   }[];
+  ambassador: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    referralCode: string;
+    status: string;
+  } | null;
 }
 
 export default function AdminUserDetailPage() {
@@ -105,20 +120,6 @@ export default function AdminUserDetailPage() {
   useEffect(() => {
     load();
   }, [load]);
-
-  const kycAction = async (action: "approve" | "reject") => {
-    setActing(true);
-    try {
-      const res = await fetch(`/api/admin/users/${userId}/kyc`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action }),
-      });
-      if (res.ok) await load();
-    } finally {
-      setActing(false);
-    }
-  };
 
   const depositAction = async (depositId: string, action: "approve" | "reject") => {
     setActing(true);
@@ -161,7 +162,16 @@ export default function AdminUserDetailPage() {
           <p className="text-slate-600">{user.email}</p>
           <p className="text-sm text-slate-500">{user.phone}</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href={`/api/admin/users/${userId}/preview`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+          >
+            <ExternalLink className="h-4 w-4" />
+            View client dashboard
+          </a>
           <AdminStatusBadge status={user.kycStatus} />
           <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium capitalize">
             {user.profileType}
@@ -192,6 +202,13 @@ export default function AdminUserDetailPage() {
             : "Not set"}
         · Next month est. {formatCurrency(ps.nextMonthMonthlyProfit)}
       </p>
+
+      <section className="mt-6">
+        <AdminDepositAlertPanel
+          userId={userId}
+          userName={`${user.firstName} ${user.lastName}`}
+        />
+      </section>
 
       <section className="mt-6">
         <AdminProfitAmendmentPanel
@@ -248,17 +265,14 @@ export default function AdminUserDetailPage() {
         </div>
       )}
 
-      {user.kycStatus !== "verified" && (
-        <div className="mt-6 flex flex-wrap gap-2 rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="w-full text-sm font-medium text-amber-900">KYC pending review</p>
-          <AdminActionButton variant="approve" disabled={acting} onClick={() => kycAction("approve")}>
-            <CheckCircle2 className="h-3.5 w-3.5" /> Approve
-          </AdminActionButton>
-          <AdminActionButton variant="reject" disabled={acting} onClick={() => kycAction("reject")}>
-            <XCircle className="h-3.5 w-3.5" /> Reject
-          </AdminActionButton>
-        </div>
-      )}
+      <section className="mt-6">
+        <AdminKycControls
+          key={user.kycStatus}
+          userId={userId}
+          kycStatus={user.kycStatus}
+          onUpdated={load}
+        />
+      </section>
 
       <section className="mt-8">
         <div className="mb-3 flex items-center gap-2">
@@ -290,6 +304,15 @@ export default function AdminUserDetailPage() {
           }
           onSaved={load}
         />
+
+        <div className="mt-4">
+          <AdminReferralAssignPanel
+            key={user.ambassador?.id ?? "none"}
+            userId={userId}
+            ambassador={user.ambassador}
+            onUpdated={load}
+          />
+        </div>
       </section>
 
       <section className="mt-8">
@@ -300,7 +323,7 @@ export default function AdminUserDetailPage() {
           ) : (
             user.accounts.map((a) => (
               <AdminAccountEditor
-                key={`${a.id}-${a.principal}-${a.monthlyRatePercent}-${a.profitEligibleAt}`}
+                key={`${a.id}-${a.principal}-${a.monthlyRatePercent}-${a.profitEligibleAt}-${a.dailyCompoundActive}-${a.dailyCompoundStartDate}-${a.dailyCompoundEndDate}`}
                 userId={userId}
                 account={a}
                 onSaved={load}
@@ -384,9 +407,12 @@ export default function AdminUserDetailPage() {
         </div>
       </section>
 
-      {(user.kycData || user.kycStatus !== "verified") && (
+      {(user.kycData || user.kycStatus) && (
         <section className="mt-8">
           <h2 className="text-lg font-semibold text-slate-900">KYC documents</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Review uploaded images and request re-uploads — including for verified clients.
+          </p>
           <div className="mt-3 rounded-xl border border-slate-200 bg-white p-4">
             <KycDocumentViewer
               kycData={user.kycData ?? {}}

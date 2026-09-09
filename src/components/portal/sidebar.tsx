@@ -42,7 +42,7 @@ const navItems = [
 
 export function PortalSidebar() {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user, logout, isViewOnly, adminPreview, exitAdminPreview } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -99,6 +99,11 @@ export function PortalSidebar() {
 
       <div className="border-t border-slate-800 p-4">
         <div className="mb-3 rounded-lg bg-slate-900 px-3 py-2">
+          {isViewOnly && (
+            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
+              Admin view-only
+            </p>
+          )}
           {user?.profileType === "nonprofit" && user.nonprofitProfile ? (
             <>
               <p className="text-[10px] font-semibold uppercase tracking-wide text-violet-300">
@@ -119,11 +124,21 @@ export function PortalSidebar() {
           )}
         </div>
         <button
-          onClick={logout}
+          onClick={() => {
+            if (adminPreview) {
+              void exitAdminPreview().then((userId) => {
+                window.location.href = userId
+                  ? `/admin/users/${userId}`
+                  : "/admin/users";
+              });
+              return;
+            }
+            void logout();
+          }}
           className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-slate-800 hover:text-white cursor-pointer"
         >
           <LogOut className="h-4 w-4" />
-          Sign Out
+          {adminPreview ? "Exit preview" : "Sign Out"}
         </button>
         <DeveloperCredit className="mt-4 px-1 text-slate-600" />
       </div>

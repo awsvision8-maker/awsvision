@@ -1,4 +1,4 @@
-/** Non-profit organization fund program — $100K–$1M, 8%–10% monthly */
+/** Non-profit organization fund program — capital tiers; public rates finalized with representative */
 
 export const NONPROFIT_MIN_CAPITAL = 100_000;
 export const NONPROFIT_MAX_CAPITAL = 1_000_000;

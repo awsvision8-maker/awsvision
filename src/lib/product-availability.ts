@@ -14,14 +14,14 @@ export const OPEN_ACCOUNT_TYPES = [
   },
   {
     value: "fixed_deposit" as const,
-    label: "Fixed Deposit (FD) Account",
-    description: "Fixed term with monthly and yearly gratuity benefits",
+    label: "July Wealth Accelerator FD (Promo)",
+    description: "Separate package — 90% return in 6 months · Minimum $50,000 · July only",
     href: "/personal/cds",
   },
   {
     value: "investment" as const,
     label: "Investment Account",
-    description: "Global sector investing with monthly profit distribution",
+    description: "Global sector investing — terms confirmed with support",
     href: "/wealth-management",
   },
 ];

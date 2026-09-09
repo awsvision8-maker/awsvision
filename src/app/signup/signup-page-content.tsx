@@ -15,6 +15,7 @@ import { SelfieCapture } from "@/components/signup/selfie-capture";
 import { OnlineIdField, verifyOnlineIdAvailable } from "@/components/signup/online-id-field";
 import { SignupStepErrors } from "@/components/signup/signup-step-errors";
 import { InvestmentPlanPicker } from "@/components/signup/investment-plan-picker";
+import { FdPromoPackageCard } from "@/components/signup/fd-promo-package-card";
 import { WealthPromoBanner } from "@/components/marketing/wealth-promo-banner";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -29,6 +30,12 @@ import { logClientSignupFailure } from "@/lib/signup-client-log";
 import { SITE } from "@/lib/site-config";
 import { OPEN_ACCOUNT_TYPES, OPEN_NOW_MESSAGE } from "@/lib/product-availability";
 import { getInvestmentPlan, formatUsd } from "@/lib/investment-plans";
+import {
+  FD_PROMO_PLAN_ID,
+  formatPromoUsd,
+  isFdPromoPlanId,
+} from "@/lib/promotions";
+import { useActiveFdPromo } from "@/lib/use-active-fd-promo";
 
 const US_STATES = [
   "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA",
@@ -67,6 +74,7 @@ export default function SignupPageContent() {
   useEffect(() => {
     const account = searchParams.get("account");
     const plan = searchParams.get("plan");
+    const promo = searchParams.get("promo");
     const ref = searchParams.get("ref");
     if (ref) {
       setForm((prev) => ({ ...prev, referralCode: ref.trim().toUpperCase() }));
@@ -77,16 +85,29 @@ export default function SignupPageContent() {
         accountType: "investment",
         investmentPlanId: plan && getInvestmentPlan(plan) ? plan : prev.investmentPlanId,
       }));
-    } else if (account === "fixed_deposit" || account === "savings") {
+    } else if (
+      account === "fixed_deposit" ||
+      isFdPromoPlanId(promo) ||
+      promo === "july-fd"
+    ) {
       setForm((prev) => ({
         ...prev,
-        accountType: account,
+        accountType: "fixed_deposit",
+        investmentPlanId: FD_PROMO_PLAN_ID,
+      }));
+    } else if (account === "savings") {
+      setForm((prev) => ({
+        ...prev,
+        accountType: "savings",
         investmentPlanId: "",
       }));
     }
   }, [searchParams]);
 
   const selectedPlan = getInvestmentPlan(form.investmentPlanId);
+  const { promo: fdPromo } = useActiveFdPromo();
+  const isFdPromoSignup =
+    form.accountType === "fixed_deposit" && isFdPromoPlanId(form.investmentPlanId);
 
   const update = <K extends keyof SignupApplication>(field: K, value: SignupApplication[K]) => {
     setErrors([]);
@@ -237,19 +258,32 @@ export default function SignupPageContent() {
                 onChange={(e) => {
                   const type = e.target.value as SignupApplication["accountType"];
                   update("accountType", type);
-                  if (type !== "investment") update("investmentPlanId", "");
+                  if (type === "fixed_deposit") {
+                    update("investmentPlanId", FD_PROMO_PLAN_ID);
+                  } else if (type !== "investment") {
+                    update("investmentPlanId", "");
+                  } else {
+                    update("investmentPlanId", "");
+                  }
                 }}
                 options={OPEN_ACCOUNT_TYPES.map((t) => ({
                   value: t.value,
                   label: t.label,
                 }))}
               />
+              {form.accountType === "fixed_deposit" && (
+                <p className="text-xs text-amber-800 font-medium">
+                  {OPEN_ACCOUNT_TYPES.find((t) => t.value === "fixed_deposit")?.description}
+                </p>
+              )}
+
+              {form.accountType === "fixed_deposit" && <FdPromoPackageCard />}
 
               {form.accountType === "investment" && (
                 <div className="rounded-lg border border-teal-200 bg-teal-50/40 p-4 sm:p-6">
                   <p className="text-sm font-semibold text-slate-900">Select investment plan *</p>
                   <p className="mt-1 text-xs text-slate-600">
-                    Choose a tier — monthly profit rates from 2% to 7% per program terms.
+                    Choose a capital tier — returns are confirmed with your representative.
                   </p>
                   <div className="mt-4">
                     <InvestmentPlanPicker
@@ -259,8 +293,8 @@ export default function SignupPageContent() {
                   </div>
                   {selectedPlan && (
                     <p className="mt-3 text-xs text-teal-800 font-medium">
-                      Selected: {selectedPlan.name} — {selectedPlan.monthlyRate}% monthly ·{" "}
-                      {formatUsd(selectedPlan.minInvestment)} minimum
+                      Selected: {selectedPlan.name} — from {formatUsd(selectedPlan.minInvestment)}{" "}
+                      minimum · terms confirmed with support
                     </p>
                   )}
                 </div>
@@ -533,11 +567,22 @@ export default function SignupPageContent() {
                   ["Phone", form.phone],
                   ["Address", `${form.addressLine1}, ${form.city}, ${form.state} ${form.postalCode}`],
                   ["Account Type", form.accountType.replace("_", " ")],
+                  ...(isFdPromoSignup && fdPromo
+                    ? [
+                        ["Selected Package", fdPromo.packageName],
+                        [
+                          "Program return",
+                          `${fdPromo.returnPercent}% after ${fdPromo.termMonths} months`,
+                        ],
+                        ["Minimum deposit", `${formatPromoUsd(fdPromo.minDeposit)}+`],
+                        ["Enrollment", fdPromo.enrollmentLabel],
+                      ]
+                    : []),
                   ...(form.accountType === "investment" && selectedPlan
                     ? [
                         [
                           "Investment Plan",
-                          `${selectedPlan.name} — ${selectedPlan.monthlyRate}%/mo · ${selectedPlan.termMonths} mo`,
+                          `${selectedPlan.name} — from ${formatUsd(selectedPlan.minInvestment)}`,
                         ],
                         ["Minimum Investment", formatUsd(selectedPlan.minInvestment)],
                       ]

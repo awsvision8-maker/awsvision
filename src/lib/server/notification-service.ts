@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 
-export type NotificationType = "info" | "success" | "warning" | "action";
+export type NotificationType = "info" | "success" | "warning" | "action" | "alert";
 
 export interface UserNotificationDto {
   id: string;
@@ -131,6 +131,133 @@ export async function issueAdminNotifications(params: {
   };
 }
 
+/** Brand ambassador notifies only clients linked under their referral tree */
+export async function issueAmbassadorNotifications(params: {
+  ambassadorId: string;
+  title: string;
+  message: string;
+  type?: NotificationType;
+  scope: "all" | "selected";
+  userIds?: string[];
+  durationDays?: number;
+  durationHours?: number;
+}) {
+  const title = params.title.trim();
+  const message = params.message.trim();
+  if (!title || !message) throw new Error("Title and message are required");
+
+  const durationDays = params.durationDays ?? 0;
+  const durationHours = params.durationHours ?? 0;
+  const now = new Date();
+  const expiresAt = computeNotificationExpiresAt(durationDays, durationHours, now);
+
+  const referred = await prisma.user.findMany({
+    where: { ambassadorId: params.ambassadorId },
+    select: { id: true },
+  });
+  const referredIds = new Set(referred.map((u) => u.id));
+  if (referredIds.size === 0) {
+    throw new Error("You have no referred clients to notify yet");
+  }
+
+  let targetUserIds: string[] = [];
+  if (params.scope === "all") {
+    targetUserIds = [...referredIds];
+  } else {
+    targetUserIds = [...new Set((params.userIds ?? []).filter(Boolean))];
+    if (targetUserIds.length === 0) throw new Error("Select at least one client");
+    const invalid = targetUserIds.filter((id) => !referredIds.has(id));
+    if (invalid.length > 0) {
+      throw new Error("You can only notify clients linked to your referral code");
+    }
+  }
+
+  const type = params.type ?? "info";
+  const scopeLabel = params.scope === "all" ? "ambassador_all" : "ambassador_selected";
+
+  const broadcast = await prisma.notificationBroadcast.create({
+    data: {
+      title,
+      message,
+      type,
+      scope: scopeLabel,
+      recipientCount: targetUserIds.length,
+      durationDays: Math.max(0, Math.floor(durationDays)),
+      durationHours: Math.max(0, Math.floor(durationHours)),
+      expiresAt,
+      ambassadorId: params.ambassadorId,
+      notifications: {
+        create: targetUserIds.map((userId) => ({
+          userId,
+          title,
+          message,
+          type,
+          expiresAt,
+        })),
+      },
+    },
+  });
+
+  return {
+    broadcastId: broadcast.id,
+    recipientCount: broadcast.recipientCount,
+    scope: broadcast.scope,
+    durationDays: broadcast.durationDays,
+    durationHours: broadcast.durationHours,
+    expiresAt: broadcast.expiresAt.toISOString(),
+    createdAt: broadcast.createdAt.toISOString(),
+  };
+}
+
+export async function listAmbassadorNotificationBroadcasts(
+  ambassadorId: string,
+  limit = 50
+) {
+  const rows = await prisma.notificationBroadcast.findMany({
+    where: { ambassadorId },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+  });
+  const now = new Date();
+  return rows.map((r) => ({
+    id: r.id,
+    title: r.title,
+    message: r.message,
+    type: r.type,
+    scope: r.scope,
+    recipientCount: r.recipientCount,
+    durationDays: r.durationDays,
+    durationHours: r.durationHours,
+    expiresAt: r.expiresAt.toISOString(),
+    expired: r.expiresAt <= now,
+    createdAt: r.createdAt.toISOString(),
+  }));
+}
+
+export async function listAmbassadorReferredClients(ambassadorId: string) {
+  const users = await prisma.user.findMany({
+    where: { ambassadorId },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      kycStatus: true,
+      createdAt: true,
+    },
+  });
+  return users.map((u) => ({
+    id: u.id,
+    email: u.email,
+    firstName: u.firstName,
+    lastName: u.lastName,
+    name: `${u.firstName} ${u.lastName}`,
+    kycStatus: u.kycStatus,
+    createdAt: u.createdAt.toISOString(),
+  }));
+}
+
 export async function listAdminNotificationBroadcasts(limit = 50) {
   const rows = await prisma.notificationBroadcast.findMany({
     orderBy: { createdAt: "desc" },
@@ -150,6 +277,26 @@ export async function listAdminNotificationBroadcasts(limit = 50) {
     expired: r.expiresAt <= now,
     createdAt: r.createdAt.toISOString(),
   }));
+}
+
+/** Remove a sent broadcast and all per-user copies so it disappears from client portals */
+export async function deleteAdminNotificationBroadcast(broadcastId: string) {
+  const existing = await prisma.notificationBroadcast.findUnique({
+    where: { id: broadcastId },
+    select: { id: true, title: true, recipientCount: true },
+  });
+  if (!existing) throw new Error("Notification not found");
+
+  await prisma.$transaction([
+    prisma.userNotification.deleteMany({ where: { broadcastId } }),
+    prisma.notificationBroadcast.delete({ where: { id: broadcastId } }),
+  ]);
+
+  return {
+    id: existing.id,
+    title: existing.title,
+    recipientCount: existing.recipientCount,
+  };
 }
 
 export async function listUserNotifications(userId: string, limit = 100) {
@@ -215,6 +362,71 @@ export async function createUserNotification(params: {
     },
   });
   return mapNotification(row);
+}
+
+/** Admin request: remaining deposit amount the client still needs to fund. */
+export async function sendDepositShortfallAlert(params: {
+  userId: string;
+  amountDue: number;
+  adminNote?: string;
+  durationDays?: number;
+}) {
+  const amountDue = Number(params.amountDue);
+  if (!Number.isFinite(amountDue) || amountDue <= 0) {
+    throw new Error("Enter a valid amount greater than zero");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: params.userId },
+    select: { id: true, email: true, firstName: true, lastName: true },
+  });
+  if (!user) throw new Error("User not found");
+
+  const formatted = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(amountDue);
+
+  const note = params.adminNote?.trim() || null;
+  const title = `Deposit required — ${formatted} outstanding`;
+  const message = [
+    `Our records show you have not deposited the full amount you committed. Please deposit the remaining ${formatted} as soon as possible.`,
+    note ? `Note from your account team: ${note}` : null,
+    "Sign in to your portal and submit a deposit. Your balance updates after admin approval.",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+
+  const notification = await createUserNotification({
+    userId: user.id,
+    title,
+    message,
+    type: "alert",
+    durationDays: params.durationDays ?? 30,
+  });
+
+  const { notifyDepositShortfall } = await import("@/lib/server/notifications");
+  notifyDepositShortfall(
+    { email: user.email, firstName: user.firstName, lastName: user.lastName },
+    amountDue,
+    note
+  );
+
+  return notification;
+}
+
+export async function listUnreadAlertNotifications(userId: string) {
+  const rows = await prisma.userNotification.findMany({
+    where: {
+      userId,
+      type: "alert",
+      readAt: null,
+      ...activeNotificationWhere(),
+    },
+    orderBy: { createdAt: "desc" },
+    take: 5,
+  });
+  return rows.map(mapNotification);
 }
 
 export async function deleteUserAccount(userId: string) {

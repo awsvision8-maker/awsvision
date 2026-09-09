@@ -12,7 +12,6 @@ interface InvestmentPlanPickerProps {
 export function InvestmentPlanPicker({ selectedPlanId, onSelect }: InvestmentPlanPickerProps) {
   return (
     <>
-      {/* Mobile / tablet: card picker */}
       <div className="space-y-3 md:hidden">
         {INVESTMENT_PLANS.map((plan) => {
           const selected = selectedPlanId === plan.id;
@@ -33,27 +32,26 @@ export function InvestmentPlanPicker({ selectedPlanId, onSelect }: InvestmentPla
                 </span>
               }
               fields={[
-                { label: "Monthly", value: `${plan.monthlyRate.toFixed(2)}%`, highlight: true },
-                { label: "Term", value: `${plan.termMonths} months` },
-                { label: "Min. invest", value: formatUsd(plan.minInvestment) },
-                { label: "Total ROI", value: `${plan.totalRoiPercent}%`, highlight: true },
+                {
+                  label: "Min. invest",
+                  value: formatUsd(plan.minInvestment),
+                  highlight: true,
+                },
+                { label: "Terms", value: "Discuss with support" },
               ]}
             />
           );
         })}
       </div>
 
-      {/* Desktop: comparison table */}
       <div className="hidden overflow-hidden rounded-lg border border-slate-200 bg-white md:block">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
                 <th className="px-4 py-3 font-semibold">Plan</th>
-                <th className="px-3 py-3 font-semibold text-right">Monthly</th>
-                <th className="px-3 py-3 font-semibold text-right">Term</th>
                 <th className="px-3 py-3 font-semibold text-right">Min. invest</th>
-                <th className="px-3 py-3 font-semibold text-right">Total ROI</th>
+                <th className="px-3 py-3 font-semibold text-right">Program terms</th>
                 <th className="px-4 py-3 font-semibold text-center">Select</th>
               </tr>
             </thead>
@@ -71,17 +69,9 @@ export function InvestmentPlanPicker({ selectedPlanId, onSelect }: InvestmentPla
                   >
                     <td className="px-4 py-3 font-semibold text-slate-900">{plan.name}</td>
                     <td className="px-3 py-3 text-right font-bold text-teal-700 tabular-nums">
-                      {plan.monthlyRate.toFixed(2)}%
-                    </td>
-                    <td className="px-3 py-3 text-right text-slate-600 tabular-nums">
-                      {plan.termMonths} mo
-                    </td>
-                    <td className="px-3 py-3 text-right text-slate-900 tabular-nums">
                       {formatUsd(plan.minInvestment)}
                     </td>
-                    <td className="px-3 py-3 text-right font-medium text-slate-900">
-                      {plan.totalRoiPercent}%
-                    </td>
+                    <td className="px-3 py-3 text-right text-slate-600">Discuss with support</td>
                     <td className="px-4 py-3 text-center">
                       <span
                         className={cn(

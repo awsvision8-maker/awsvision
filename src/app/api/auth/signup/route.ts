@@ -8,10 +8,8 @@ import {
   logSignupAttempt,
   requestMeta,
 } from "@/lib/server/signup-log-service";
-import {
-  createSession,
-  setSessionCookie,
-} from "@/lib/server/session";
+import { createSession, setSessionCookie } from "@/lib/server/session";
+import { isFdPromoPlanId } from "@/lib/promotions";
 import type { SignupApplication } from "@/types";
 
 async function logFailed(
@@ -77,7 +75,9 @@ export async function POST(request: Request) {
 
     const accountLabel =
       data.accountType === "fixed_deposit"
-        ? "Fixed Deposit"
+        ? isFdPromoPlanId(data.investmentPlanId)
+          ? "July Wealth Accelerator FD (90% / 6 months)"
+          : "Fixed Deposit"
         : data.accountType === "investment"
           ? "Investment"
           : "Savings";

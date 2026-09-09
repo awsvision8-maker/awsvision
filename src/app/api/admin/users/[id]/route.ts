@@ -2,6 +2,7 @@ import {
   getUserDetail,
   adminUpdateUserProfile,
   adminUpdateNonprofitProfile,
+  adminAssignUserAmbassador,
   adminDeleteUser,
 } from "@/lib/server/admin-service";
 import { getAdminId } from "@/lib/server/admin-session";
@@ -28,6 +29,16 @@ function serializeUserDetail(user: NonNullable<Awaited<ReturnType<typeof getUser
       documentKey: r.documentKey,
       adminNote: r.adminNote,
     })) ?? [],
+    ambassador: user.ambassador
+      ? {
+          id: user.ambassador.id,
+          firstName: user.ambassador.firstName,
+          lastName: user.ambassador.lastName,
+          email: user.ambassador.email,
+          referralCode: user.ambassador.referralCode,
+          status: user.ambassador.status,
+        }
+      : null,
     nonprofit: user.nonprofitProfile,
     portfolioSummary: {
       totalBalance: snapshot.totalBalance,
@@ -51,6 +62,10 @@ function serializeUserDetail(user: NonNullable<Awaited<ReturnType<typeof getUser
       profitEligibleAt: a.profitEligibleAt?.toISOString() ?? null,
       profitRateAmended: a.profitRateAmended,
       amendmentNote: a.amendmentNote,
+      dailyCompoundActive: a.dailyCompoundActive,
+      dailyCompoundStartDate: a.dailyCompoundStartDate?.toISOString() ?? null,
+      dailyCompoundEndDate: a.dailyCompoundEndDate?.toISOString() ?? null,
+      dailyCompoundRatePercent: a.dailyCompoundRatePercent,
     })),
     transactions: user.transactions.map((t) => ({
       ...t,
@@ -107,7 +122,15 @@ export async function PATCH(
       email?: string;
       kycStatus?: string;
       nonprofit?: { fundCapital?: number; monthlyRate?: number };
+      referralCode?: string | null;
+      ambassadorId?: string | null;
+      clear?: boolean;
     };
+
+    const hasReferralAssign =
+      body.clear === true ||
+      body.referralCode !== undefined ||
+      body.ambassadorId !== undefined;
 
     if (body.nonprofit) {
       await adminUpdateNonprofitProfile(id, body.nonprofit);
@@ -126,7 +149,15 @@ export async function PATCH(
       await adminUpdateUserProfile(id, profileFields);
     }
 
-    if (!hasProfile && !body.nonprofit) {
+    if (hasReferralAssign) {
+      await adminAssignUserAmbassador(id, {
+        referralCode: body.referralCode,
+        ambassadorId: body.ambassadorId,
+        clear: body.clear === true,
+      });
+    }
+
+    if (!hasProfile && !body.nonprofit && !hasReferralAssign) {
       return jsonError("No fields to update", 400);
     }
 

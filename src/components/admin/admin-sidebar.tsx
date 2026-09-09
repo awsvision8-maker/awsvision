@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   LogOut,
   Mail,
+  Megaphone,
   MessageSquare,
   ScrollText,
   Shield,
@@ -18,7 +19,6 @@ import {
   TrendingUp,
   Users,
   UserPlus,
-  Wallet,
 } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { useAdmin } from "@/lib/admin-context";
@@ -44,6 +44,7 @@ const NAV_SECTIONS = [
       { href: "/admin/users", label: "Users", icon: Users },
       { href: "/admin/signup-logs", label: "Signup Logs", icon: ScrollText },
       { href: "/admin/notifications", label: "Notifications", icon: Bell },
+      { href: "/admin/promo", label: "FD Promotion", icon: Megaphone },
     ],
   },
   {

@@ -11,7 +11,12 @@ import type {
 } from "@/types";
 import { getInvestmentPlan, INVESTMENT_PLANS } from "@/lib/investment-plans";
 import { getAnnualizedReturn, RETURN_TIERS } from "@/lib/mock-data";
-import { FD_PROMO_TERMS } from "@/lib/promotions";
+import { FD_PROMO_PLAN_ID, FD_PROMO_TERMS, getFdPromoPlan, isFdPromoPlanId } from "@/lib/promotions";
+import {
+  computePromoDailyCompound,
+  type PromoDailyCompoundResult,
+} from "@/lib/promo-daily-compound";
+import { buildUsHoldingsForPortfolio } from "@/lib/us-growth-holdings";
 
 const MONTH_LABELS = [
   "Jan",
@@ -28,65 +33,17 @@ const MONTH_LABELS = [
   "Dec",
 ] as const;
 
-const SECTOR_ALLOCATION = [
-  { name: "Technology", value: 22, color: "#0ea5e9" },
-  { name: "Equities", value: 20, color: "#8b5cf6" },
-  { name: "Energy", value: 18, color: "#10b981" },
-  { name: "Real Estate", value: 15, color: "#f59e0b" },
-  { name: "Healthcare", value: 13, color: "#ef4444" },
-  { name: "Fixed Income", value: 12, color: "#6366f1" },
+const FALLBACK_SECTOR_ALLOCATION = [
+  { name: "Technology", value: 28, color: "#0ea5e9" },
+  { name: "Financials", value: 16, color: "#6366f1" },
+  { name: "Healthcare", value: 14, color: "#ef4444" },
+  { name: "Real Estate", value: 14, color: "#f59e0b" },
+  { name: "Fixed Income", value: 12, color: "#8b5cf6" },
+  { name: "Yield", value: 10, color: "#84cc16" },
+  { name: "Consumer", value: 6, color: "#ea580c" },
 ];
 
-const HOLDING_TEMPLATES: Omit<InvestmentHolding, "value" | "monthlyReturn" | "ytdReturn">[] = [
-  {
-    id: "h1",
-    name: "Global Tech Growth Fund",
-    sector: "Technology",
-    region: "North America",
-    symbol: "GTGF",
-    allocation: 22,
-  },
-  {
-    id: "h2",
-    name: "European Green Energy ETF",
-    sector: "Energy",
-    region: "Europe",
-    symbol: "EGEE",
-    allocation: 18,
-  },
-  {
-    id: "h3",
-    name: "Asia Pacific Real Estate Trust",
-    sector: "Real Estate",
-    region: "Asia Pacific",
-    symbol: "APRT",
-    allocation: 15,
-  },
-  {
-    id: "h4",
-    name: "Emerging Markets Equity Fund",
-    sector: "Equities",
-    region: "Emerging Markets",
-    symbol: "EMEF",
-    allocation: 20,
-  },
-  {
-    id: "h5",
-    name: "US Treasury & Bond Portfolio",
-    sector: "Fixed Income",
-    region: "North America",
-    symbol: "USTB",
-    allocation: 12,
-  },
-  {
-    id: "h6",
-    name: "Healthcare Innovation Fund",
-    sector: "Healthcare",
-    region: "Global",
-    symbol: "HCIF",
-    allocation: 13,
-  },
-];
+export const US_REGION_ALLOCATION = [{ name: "United States", value: 100 }];
 
 export const PROFIT_HOLD_DAYS = 30;
 
@@ -117,6 +74,9 @@ export function resolvePlanTierFromPrincipal(
   principal: number
 ) {
   if (account.type !== "investment" && account.type !== "fixed_deposit") return null;
+  if (isFdPromoPlanId(account.investmentPlanId)) {
+    return getFdPromoPlan();
+  }
   const sorted = [...INVESTMENT_PLANS].sort((a, b) => b.minInvestment - a.minInvestment);
   return sorted.find((p) => principal >= p.minInvestment) ?? INVESTMENT_PLANS[0];
 }
@@ -129,6 +89,11 @@ export function resolveMonthlyRate(
   balanceForTier: number
 ): number {
   if (account.type === "nonprofit_fund") return account.monthlyRatePercent;
+  // Promo FD: use rate snapshotted on the account at enrollment (admin program changes don't rewrite live clients)
+  if (isFdPromoPlanId(account.investmentPlanId)) {
+    if (account.monthlyRatePercent > 0) return account.monthlyRatePercent;
+    return getFdPromoPlan().monthlyRate;
+  }
   if (account.type === "investment" || account.type === "fixed_deposit") {
     if (account.profitRateAmended) return account.monthlyRatePercent;
     const plan = resolvePlanTierFromPrincipal(account, balanceForTier);
@@ -432,6 +397,7 @@ export interface AccountGrowthResult {
   monthlyProfit: number;
   annualReturnPercent: number;
   profitHistory: { month: string; profit: number; balance: number; date: Date }[];
+  dailyCompound?: PromoDailyCompoundResult | null;
 }
 
 /** Balance = admin-approved deposits (+ profit after 30-day hold). Tier rate changes apply next calendar month. */
@@ -441,16 +407,60 @@ export function computeAccountGrowth(
   asOf = new Date()
 ): AccountGrowthResult {
   const principal = getApprovedPrincipal(account, transactions, asOf);
+  const isPromoFd = isFdPromoPlanId(account.investmentPlanId);
+
+  // July promo $50k sheet: admin-started daily 0.5% compounding (next day after start)
+  if (
+    isPromoFd &&
+    account.dailyCompoundActive &&
+    account.dailyCompoundStartDate &&
+    principal > 0
+  ) {
+    const daily = computePromoDailyCompound({
+      principal,
+      startDate: account.dailyCompoundStartDate,
+      endDate: account.dailyCompoundEndDate,
+      active: true,
+      dailyRatePercent: account.dailyCompoundRatePercent ?? 0.5,
+      asOf,
+    });
+    const profitHistory = daily.history.map((h) => ({
+      month: `Day ${h.day}`,
+      profit: h.profit,
+      balance: h.endBalance,
+      date: new Date(h.date),
+    }));
+    return {
+      balance: daily.balance,
+      monthlyProfit: daily.latestDayProfit,
+      annualReturnPercent: Math.round(daily.dailyRatePercent * 365 * 100) / 100,
+      profitHistory,
+      dailyCompound: daily,
+    };
+  }
+
   const profitEligibleAt = account.profitEligibleAt ? new Date(account.profitEligibleAt) : null;
   const profitActive = isProfitAccrualActive(account, asOf);
+  const promoPlan = isPromoFd ? getFdPromoPlan() : null;
 
   let balance = principal;
   const profitHistory: AccountGrowthResult["profitHistory"] = [];
 
   if (principal > 0 && profitEligibleAt && profitActive) {
-    const accrualMonths = Math.max(0, monthsElapsed(profitEligibleAt, asOf));
+    let accrualMonths = Math.max(0, monthsElapsed(profitEligibleAt, asOf));
+    if (isPromoFd) {
+      accrualMonths = Math.min(accrualMonths, promoPlan!.termMonths);
+      if (account.maturityDate) {
+        const maturity = new Date(account.maturityDate);
+        if (asOf > maturity) {
+          accrualMonths = Math.min(accrualMonths, promoPlan!.termMonths);
+        }
+      }
+    }
+
     const plan = resolvePlanTierFromPrincipal(account, principal);
-    const compound = plan?.compoundInterest ?? account.type !== "savings";
+    const compound = isPromoFd ? false : (plan?.compoundInterest ?? account.type !== "savings");
+    const promoMonthlyRate = promoPlan?.monthlyRate ?? 0;
 
     let running = getAccountNetPrincipal(account.id, transactions, profitEligibleAt);
 
@@ -458,8 +468,9 @@ export function computeAccountGrowth(
       const periodStart = addMonths(profitEligibleAt, m);
       const tierMonth = startOfMonth(periodStart);
       const tierPrincipal = principalForTierAtMonth(account.id, transactions, tierMonth);
-      const rate = resolveMonthlyRate(account, tierPrincipal);
-      const profit = (running * rate) / 100;
+      const rate = isPromoFd ? promoMonthlyRate : resolveMonthlyRate(account, tierPrincipal);
+      const profitBase = isPromoFd ? principal : running;
+      const profit = (profitBase * rate) / 100;
 
       if (compound) {
         running += profit;
@@ -480,6 +491,15 @@ export function computeAccountGrowth(
     balance = compound
       ? running
       : principal + profitHistory.reduce((s, h) => s + h.profit, 0);
+
+    if (isPromoFd) {
+      const totalRoi =
+        account.monthlyRatePercent > 0
+          ? account.monthlyRatePercent * (promoPlan?.termMonths ?? FD_PROMO_TERMS.termMonths)
+          : FD_PROMO_TERMS.returnPercent;
+      const maxBalance = principal * (1 + totalRoi / 100);
+      balance = Math.min(balance, Math.round(maxBalance * 100) / 100);
+    }
   }
 
   const nextMonthTierPrincipal = principalForTierAtMonth(
@@ -488,33 +508,62 @@ export function computeAccountGrowth(
     startOfNextMonth(asOf)
   );
   const nextMonthRate = resolveMonthlyRate(account, nextMonthTierPrincipal);
+  const monthsAlready =
+    profitEligibleAt && profitActive
+      ? Math.min(
+          Math.max(0, monthsElapsed(profitEligibleAt, asOf)),
+          isPromoFd ? FD_PROMO_TERMS.termMonths : Number.POSITIVE_INFINITY
+        )
+      : 0;
+  const promoFullyAccrued = isPromoFd && monthsAlready >= FD_PROMO_TERMS.termMonths;
   const monthlyProfit =
-    principal > 0
-      ? Math.round(((balance * nextMonthRate) / 100) * 100) / 100
+    principal > 0 && !promoFullyAccrued
+      ? Math.round(((isPromoFd ? principal : balance) * nextMonthRate) / 100 * 100) / 100
       : 0;
 
   const annualReturnPercent =
     account.type === "savings"
       ? getAnnualizedReturn(principal)
-      : Math.round(nextMonthRate * 12 * 100) / 100;
+      : isPromoFd
+        ? FD_PROMO_TERMS.returnPercent * (12 / FD_PROMO_TERMS.termMonths)
+        : Math.round(nextMonthRate * 12 * 100) / 100;
 
   return {
     balance: Math.round(balance * 100) / 100,
     monthlyProfit: profitActive ? monthlyProfit : 0,
-    annualReturnPercent,
+    annualReturnPercent: Math.round(annualReturnPercent * 100) / 100,
     profitHistory,
+    dailyCompound: null,
   };
 }
 
-export function createAccountFromSignup(data: SignupApplication, createdAt = new Date()): {
+export function createAccountFromSignup(
+  data: SignupApplication,
+  createdAt = new Date(),
+  promoTerms?: {
+    returnPercent: number;
+    termMonths: number;
+    planId?: string;
+  }
+): {
   account: PortfolioAccount;
 } {
   const plan = getInvestmentPlan(data.investmentPlanId);
+  const isPromoFd =
+    data.accountType === "fixed_deposit" &&
+    (isFdPromoPlanId(data.investmentPlanId) || !plan);
+
+  const promoReturn = promoTerms?.returnPercent ?? FD_PROMO_TERMS.returnPercent;
+  const promoTermMonths = promoTerms?.termMonths ?? FD_PROMO_TERMS.termMonths;
+  const promoPlanId = promoTerms?.planId ?? FD_PROMO_PLAN_ID;
+
   const planId =
     data.accountType === "investment"
       ? plan?.id ?? "silver"
       : data.accountType === "fixed_deposit"
-        ? plan?.id ?? "gold"
+        ? isPromoFd
+          ? promoPlanId
+          : plan?.id ?? promoPlanId
         : undefined;
 
   const selectedPlan = plan ?? getInvestmentPlan(planId);
@@ -526,12 +575,15 @@ export function createAccountFromSignup(data: SignupApplication, createdAt = new
     monthlyRatePercent = selectedPlan.monthlyRate;
     maturityDate = addMonths(createdAt, selectedPlan.termMonths).toISOString();
   } else if (data.accountType === "fixed_deposit") {
-    if (selectedPlan) {
+    if (isPromoFd || isFdPromoPlanId(planId)) {
+      monthlyRatePercent = promoReturn / promoTermMonths;
+      maturityDate = addMonths(createdAt, promoTermMonths).toISOString();
+    } else if (selectedPlan) {
       monthlyRatePercent = selectedPlan.monthlyRate;
       maturityDate = addMonths(createdAt, selectedPlan.termMonths).toISOString();
     } else {
-      monthlyRatePercent = FD_PROMO_TERMS.returnPercent / FD_PROMO_TERMS.termMonths;
-      maturityDate = addMonths(createdAt, FD_PROMO_TERMS.termMonths).toISOString();
+      monthlyRatePercent = promoReturn / promoTermMonths;
+      maturityDate = addMonths(createdAt, promoTermMonths).toISOString();
     }
   } else {
     monthlyRatePercent = getAnnualizedReturn(0) / 12;
@@ -672,7 +724,11 @@ export function portfolioAccountToDisplay(
   const plan = resolvePlanTierFromPrincipal(account, principal);
   const monthlyRate = resolveMonthlyRate(account, principal);
   const annualRate =
-    account.type === "savings" ? growth.annualReturnPercent : monthlyRate * 12;
+    account.type === "savings"
+      ? growth.annualReturnPercent
+      : isFdPromoPlanId(account.investmentPlanId)
+        ? FD_PROMO_TERMS.returnPercent * (12 / FD_PROMO_TERMS.termMonths)
+        : monthlyRate * 12;
 
   return {
     id: account.id,
@@ -680,10 +736,13 @@ export function portfolioAccountToDisplay(
     type: account.type,
     balance: growth.balance,
     interestRate: Math.round(annualRate * 100) / 100,
-    investmentPlanId: plan?.id ?? account.investmentPlanId,
+    investmentPlanId: isFdPromoPlanId(account.investmentPlanId)
+      ? FD_PROMO_PLAN_ID
+      : plan?.id ?? account.investmentPlanId,
     maturityDate: account.maturityDate,
     status: account.status,
     createdAt: account.createdAt,
+    dailyCompound: growth.dailyCompound ?? null,
   };
 }
 
@@ -697,7 +756,9 @@ export interface PortfolioSnapshot {
   ytdGrowthPercent: number;
   monthlyProfitChart: MonthlyProfitChartPoint[];
   portfolioGrowthChart: PortfolioGrowthChartPoint[];
-  sectorAllocation: typeof SECTOR_ALLOCATION;
+  sectorAllocation: { name: string; value: number; color: string }[];
+  regionAllocation: { name: string; value: number }[];
+  assetClassAllocation: { name: string; value: number; color: string }[];
   holdings: InvestmentHolding[];
   statements: MonthlyStatement[];
   primaryPlanId?: string;
@@ -752,6 +813,7 @@ export function buildPortfolioSnapshot(
           maturityDate: account.maturityDate,
           status: account.status,
           createdAt: account.createdAt,
+          dailyCompound: null,
         }));
 
   const totalBalance =
@@ -784,10 +846,6 @@ export function buildPortfolioSnapshot(
   const investmentAccount = accountResults.find(
     (r) => r.account.type === "investment" || r.account.type === "fixed_deposit"
   );
-  const investmentBalance =
-    approvedDepositTotal > 0
-      ? investmentAccount?.growth.balance ?? totalBalance
-      : 0;
 
   const currentMonthStart = startOfMonth(asOf);
   const nextMonthStart = startOfNextMonth(asOf);
@@ -847,20 +905,44 @@ export function buildPortfolioSnapshot(
     ? resolveMonthlyRate(investmentAccount.account, nextMonthTierPrincipal)
     : 4;
 
-  const holdings: InvestmentHolding[] =
+  const usAllocation =
     approvedDepositTotal > 0
-      ? HOLDING_TEMPLATES.map((h) => ({
-          ...h,
-          value: Math.round((investmentBalance * h.allocation) / 100),
-          monthlyReturn: planRate * (h.allocation / 100) * 0.15,
-          ytdReturn: ytdGrowthPercent * (h.allocation / 100),
-        }))
-      : HOLDING_TEMPLATES.map((h) => ({
-          ...h,
-          value: 0,
-          monthlyReturn: 0,
-          ytdReturn: 0,
-        }));
+      ? buildUsHoldingsForPortfolio({
+          // Every funded account (savings, investment, FD, nonprofit) — not promo-only
+          accounts: accountResults
+            .filter((r) => r.growth.balance > 0 || r.principal > 0)
+            .map((r) => ({
+              id: r.account.id,
+              label: getAccountLabel({
+                type: r.account.type,
+                investmentPlanId: r.account.investmentPlanId,
+                monthlyRatePercent: r.account.monthlyRatePercent,
+              }),
+              balance: Math.max(r.growth.balance, r.principal),
+              annualReturnPercent:
+                r.growth.annualReturnPercent || weightedAnnual || planRate * 12,
+            })),
+          asOf,
+        })
+      : {
+          holdings: [] as InvestmentHolding[],
+          sectorAllocation: FALLBACK_SECTOR_ALLOCATION,
+          regionAllocation: US_REGION_ALLOCATION,
+          assetClassAllocation: [
+            { name: "Equity", value: 55, color: "#0ea5e9" },
+            { name: "Bond", value: 15, color: "#6366f1" },
+            { name: "Yield", value: 12, color: "#84cc16" },
+            { name: "Real Estate", value: 18, color: "#f59e0b" },
+          ],
+        };
+
+  const holdings = usAllocation.holdings;
+  const sectorAllocation =
+    usAllocation.sectorAllocation.length > 0
+      ? usAllocation.sectorAllocation
+      : FALLBACK_SECTOR_ALLOCATION;
+  const regionAllocation = usAllocation.regionAllocation;
+  const assetClassAllocation = usAllocation.assetClassAllocation;
 
   const statementMonths = monthlyProfitChart.filter((p) => !p.projected);
   const statements: MonthlyStatement[] = statementMonths
@@ -918,7 +1000,9 @@ export function buildPortfolioSnapshot(
     ytdGrowthPercent,
     monthlyProfitChart,
     portfolioGrowthChart,
-    sectorAllocation: SECTOR_ALLOCATION,
+    sectorAllocation,
+    regionAllocation,
+    assetClassAllocation,
     holdings,
     statements,
     primaryPlanId,
@@ -941,11 +1025,18 @@ export function accountRatesForPrincipal(
   >,
   principal: number
 ): { investmentPlanId?: string; monthlyRatePercent: number } {
+  if (isFdPromoPlanId(account.investmentPlanId)) {
+    const promo = getFdPromoPlan();
+    return {
+      investmentPlanId: promo.id,
+      monthlyRatePercent: promo.monthlyRate,
+    };
+  }
   if (account.type === "investment" || account.type === "fixed_deposit") {
     const plan = resolvePlanTierFromPrincipal(account, principal)!;
     if (account.profitRateAmended) {
       return {
-        investmentPlanId: plan.id,
+        investmentPlanId: account.investmentPlanId ?? plan.id,
         monthlyRatePercent: account.monthlyRatePercent,
       };
     }
@@ -984,8 +1075,16 @@ export function recordDepositOnPortfolio(
 }
 
 export function getAccountLabel(
-  account: Pick<Account, "type" | "investmentPlanId">
+  account: Pick<Account, "type" | "investmentPlanId"> & { monthlyRatePercent?: number }
 ) {
+  if (account.type === "fixed_deposit" && isFdPromoPlanId(account.investmentPlanId)) {
+    const promoPlan = getFdPromoPlan();
+    const totalRoi =
+      account.monthlyRatePercent && account.monthlyRatePercent > 0
+        ? Math.round(account.monthlyRatePercent * promoPlan.termMonths)
+        : promoPlan.totalRoiPercent;
+    return `${promoPlan.name} · ${totalRoi}% / ${promoPlan.termMonths} mo`;
+  }
   const plan = account.investmentPlanId ? getInvestmentPlan(account.investmentPlanId) : undefined;
   const typeLabel =
     account.type === "savings"
@@ -995,6 +1094,6 @@ export function getAccountLabel(
         : account.type === "nonprofit_fund"
           ? "Non-Profit Fund"
           : "Investment";
-  const planSuffix = plan ? ` · ${plan.name} (${plan.monthlyRate}%/mo)` : "";
+  const planSuffix = plan ? ` · ${plan.name}` : "";
   return `${typeLabel}${planSuffix}`;
 }

@@ -27,7 +27,17 @@ export async function GET(request: Request) {
         reviewNote: a.reviewNote,
         reviewedAt: a.reviewedAt?.toISOString() ?? null,
         createdAt: a.createdAt.toISOString(),
-        ambassador: a.ambassador,
+        ambassador: a.ambassador
+          ? {
+              id: a.ambassador.id,
+              username: a.ambassador.username,
+              referralCode: a.ambassador.referralCode,
+              status: a.ambassador.status,
+              approvedAt: a.ambassador.approvedAt.toISOString(),
+              referralCount: a.ambassador._count.referrals,
+              commissionRatePercent: a.ambassador.commissionRatePercent,
+            }
+          : null,
       })),
     });
   } catch (err) {

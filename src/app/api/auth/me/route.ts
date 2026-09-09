@@ -1,9 +1,12 @@
 import { fetchUserById } from "@/lib/server/auth-service";
 import { jsonError, jsonOk } from "@/lib/server/api";
-import { getSessionUserId } from "@/lib/server/session";
+import {
+  getAdminUserPreview,
+  getPortalUserId,
+} from "@/lib/server/admin-preview-session";
 
 export async function GET() {
-  const userId = await getSessionUserId();
+  const userId = await getPortalUserId();
   if (!userId) {
     return jsonError("Not authenticated", 401);
   }
@@ -13,5 +16,11 @@ export async function GET() {
     return jsonError("User not found", 404);
   }
 
-  return jsonOk({ user });
+  const preview = await getAdminUserPreview();
+
+  return jsonOk({
+    user,
+    viewOnly: Boolean(preview),
+    adminPreview: Boolean(preview),
+  });
 }

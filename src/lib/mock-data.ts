@@ -214,11 +214,7 @@ export const SECTOR_ALLOCATION = [
 ];
 
 export const REGION_ALLOCATION = [
-  { name: "North America", value: 34 },
-  { name: "Europe", value: 18 },
-  { name: "Asia Pacific", value: 15 },
-  { name: "Emerging Markets", value: 20 },
-  { name: "Global", value: 13 },
+  { name: "United States", value: 100 },
 ];
 
 export const DEMO_STATEMENTS: MonthlyStatement[] = [

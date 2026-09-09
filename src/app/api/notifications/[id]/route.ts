@@ -1,12 +1,18 @@
 import { markNotificationRead } from "@/lib/server/notification-service";
 import { jsonError, jsonOk } from "@/lib/server/api";
-import { getSessionUserId } from "@/lib/server/session";
+import {
+  getPortalUserId,
+  rejectIfAdminPreview,
+} from "@/lib/server/admin-preview-session";
 
 export async function PATCH(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const userId = await getSessionUserId();
+  const blocked = await rejectIfAdminPreview();
+  if (blocked) return blocked;
+
+  const userId = await getPortalUserId();
   if (!userId) return jsonError("Not authenticated", 401);
 
   try {

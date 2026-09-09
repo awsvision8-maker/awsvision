@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import type { InvestmentAgreement } from "@/types";
+import { isFdPromoPlanId } from "@/lib/promotions";
 import { formatCurrency, formatDate } from "./utils";
 
 const TEAL: [number, number, number] = [13, 148, 136];
@@ -227,16 +228,29 @@ export async function generateInvestmentAgreementPDF(agreement: InvestmentAgreem
 
   const boxY = y + 8;
   const col = contentWidth / 3;
+  const isJulyPromo = isFdPromoPlanId(agreement.planId);
   const highlights: [string, string][] = [
     ["Program Tier", agreement.planName],
     ["Approved Deposit", formatCurrency(agreement.depositAmount)],
     ["Total Capital", formatCurrency(agreement.totalPrincipal)],
-    ["Monthly Profit Rate", `${agreement.monthlyRatePercent}% on capital`],
+    [
+      isJulyPromo ? "Monthly Accrual Rate" : "Monthly Profit Rate",
+      `${agreement.monthlyRatePercent}% on capital${isJulyPromo ? " (simple)" : ""}`,
+    ],
     ["Program Tenure", `${agreement.termMonths} months`],
     ["Maturity Date", formatDate(agreement.maturityDate)],
-    ["Total Program Return", `${agreement.totalRoiPercent}% (${agreement.termMonths} mo)`],
-    ["Est. Monthly Profit", formatCurrency((agreement.totalPrincipal * agreement.monthlyRatePercent) / 100)],
-    ["Profit Eligibility", "30 days after deposit approval"],
+    [
+      "Total Program Return",
+      `${agreement.totalRoiPercent}% (${agreement.termMonths} mo)`,
+    ],
+    [
+      isJulyPromo ? "Est. Monthly Accrual" : "Est. Monthly Profit",
+      formatCurrency((agreement.totalPrincipal * agreement.monthlyRatePercent) / 100),
+    ],
+    [
+      isJulyPromo ? "Withdrawal" : "Profit Eligibility",
+      isJulyPromo ? "Only after maturity (6 mo)" : "30 days after deposit approval",
+    ],
   ];
 
   highlights.forEach(([label, value], i) => {
@@ -289,13 +303,21 @@ export async function generateInvestmentAgreementPDF(agreement: InvestmentAgreem
 
   y = sectionTitle(doc, "3. Terms of Enrollment", y);
 
-  const terms = [
-    `Capital Tier Assignment: Based on your approved deposit of ${formatCurrency(agreement.depositAmount)} and total enrolled capital of ${formatCurrency(agreement.totalPrincipal)}, your account is enrolled in the ${agreement.planName} program at ${agreement.monthlyRatePercent}% monthly profit on capital for a ${agreement.termMonths}-month program term ending ${formatDate(agreement.maturityDate)}.`,
-    `Monthly Profit Distribution: Program profit is calculated on enrolled capital at the stated monthly rate and credited to your account each calendar month, subject to the 30-day profit eligibility period from deposit approval.`,
-    `Capital Commitment: Enrolled capital remains allocated to the ${agreement.planName} structured portfolio for the full program tenure unless early withdrawal terms apply per your program schedule.`,
-    `Program Return: Total modeled program return is ${agreement.totalRoiPercent}% over ${agreement.termMonths} months (${agreement.planName} tier), inclusive of monthly profit distributions and capital appreciation per published program terms at awsvision.com/rates.`,
-    `Account Opening: This document serves as official confirmation that AWS Vision has received, verified, and approved your deposit and activated your investment account under the selected program tier.`,
-  ];
+  const terms = isJulyPromo
+    ? [
+        `July Wealth Accelerator Enrollment: Based on your approved deposit of ${formatCurrency(agreement.depositAmount)} and total enrolled capital of ${formatCurrency(agreement.totalPrincipal)}, your account is enrolled in the ${agreement.planName} promotional Fixed Deposit at ${agreement.monthlyRatePercent}% monthly simple profit on capital (modeled ${agreement.totalRoiPercent}% total return) for a fixed ${agreement.termMonths}-month term ending ${formatDate(agreement.maturityDate)}.`,
+        `Promotional Return: Total program return is ${agreement.totalRoiPercent}% over ${agreement.termMonths} months on enrolled capital (example: $50,000 capital models to $45,000 profit / $95,000 at maturity). Profit accrues monthly on principal on a non-compound basis for this promotional package only.`,
+        `Withdrawal Lock: Capital and accrued profit under the July Wealth Accelerator FD may be withdrawn only on or after the maturity date of ${formatDate(agreement.maturityDate)}. Early withdrawal is not available on this promotional package.`,
+        `Profit Eligibility: Accrual begins after the standard 30-day profit eligibility period from deposit approval, and continues for up to ${agreement.termMonths} months or until maturity, whichever applies under program administration.`,
+        `Account Opening: This document confirms AWS Vision has approved your deposit and activated your Fixed Deposit under the July Wealth Accelerator promotional terms, which apply only to this enrollment and do not alter other client program tiers.`,
+      ]
+    : [
+        `Capital Tier Assignment: Based on your approved deposit of ${formatCurrency(agreement.depositAmount)} and total enrolled capital of ${formatCurrency(agreement.totalPrincipal)}, your account is enrolled in the ${agreement.planName} program at ${agreement.monthlyRatePercent}% monthly profit on capital for a ${agreement.termMonths}-month program term ending ${formatDate(agreement.maturityDate)}.`,
+        `Monthly Profit Distribution: Program profit is calculated on enrolled capital at the stated monthly rate and credited to your account each calendar month, subject to the 30-day profit eligibility period from deposit approval.`,
+        `Capital Commitment: Enrolled capital remains allocated to the ${agreement.planName} structured portfolio for the full program tenure unless early withdrawal terms apply per your program schedule.`,
+        `Program Return: Total modeled program return is ${agreement.totalRoiPercent}% over ${agreement.termMonths} months (${agreement.planName} tier), inclusive of monthly profit distributions and capital appreciation per published program terms at awsvision.com/rates.`,
+        `Account Opening: This document serves as official confirmation that AWS Vision has received, verified, and approved your deposit and activated your investment account under the selected program tier.`,
+      ];
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);

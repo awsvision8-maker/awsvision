@@ -12,11 +12,12 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  getActiveFdPromo,
+  type ActiveFdPromo,
   formatPromoUsd,
   promoMaturityValue,
   promoProfitAmount,
 } from "@/lib/promotions";
+import { useActiveFdPromo } from "@/lib/use-active-fd-promo";
 import { cn } from "@/lib/utils";
 
 type WealthPromoVariant = "hero" | "compact" | "strip";
@@ -24,10 +25,17 @@ type WealthPromoVariant = "hero" | "compact" | "strip";
 interface WealthPromoBannerProps {
   variant?: WealthPromoVariant;
   className?: string;
+  /** Optional server-provided promo; otherwise fetched from /api/promo */
+  promo?: ActiveFdPromo | null;
 }
 
-function WealthGrowthVisual({ compact = false }: { compact?: boolean }) {
-  const promo = getActiveFdPromo();
+function WealthGrowthVisual({
+  promo,
+  compact = false,
+}: {
+  promo: ActiveFdPromo;
+  compact?: boolean;
+}) {
   const start = promo.minDeposit;
   const end = promoMaturityValue(start, promo);
   const bars = [28, 42, 58, 72, 88, 100];
@@ -100,9 +108,15 @@ function WealthGrowthVisual({ compact = false }: { compact?: boolean }) {
   );
 }
 
-/** Premium wealth-growth promotional banner — AWS Vision teal & gold theme */
-export function WealthPromoBanner({ variant = "hero", className }: WealthPromoBannerProps) {
-  const promo = getActiveFdPromo();
+function WealthPromoBannerContent({
+  promo,
+  variant,
+  className,
+}: {
+  promo: ActiveFdPromo;
+  variant: WealthPromoVariant;
+  className?: string;
+}) {
   const {
     badge,
     headline,
@@ -214,7 +228,7 @@ export function WealthPromoBanner({ variant = "hero", className }: WealthPromoBa
               </div>
             </div>
             <div className="w-full max-w-xs mx-auto lg:mx-0">
-              <WealthGrowthVisual compact />
+              <WealthGrowthVisual promo={promo} compact />
             </div>
           </div>
         </div>
@@ -222,7 +236,6 @@ export function WealthPromoBanner({ variant = "hero", className }: WealthPromoBa
     );
   }
 
-  // hero — full homepage treatment
   return (
     <section
       className={cn(
@@ -320,10 +333,25 @@ export function WealthPromoBanner({ variant = "hero", className }: WealthPromoBa
           </div>
 
           <div className="mx-auto w-full max-w-md lg:max-w-lg">
-            <WealthGrowthVisual />
+            <WealthGrowthVisual promo={promo} />
           </div>
         </div>
       </div>
     </section>
   );
+}
+
+/** Premium wealth-growth promotional banner — AWS Vision teal & gold theme */
+export function WealthPromoBanner({
+  variant = "hero",
+  className,
+  promo: promoProp,
+}: WealthPromoBannerProps) {
+  const { promo: fetched, loading } = useActiveFdPromo();
+  const promo = promoProp !== undefined ? promoProp : fetched;
+
+  if (promoProp === undefined && loading) return null;
+  if (!promo) return null;
+
+  return <WealthPromoBannerContent promo={promo} variant={variant} className={className} />;
 }

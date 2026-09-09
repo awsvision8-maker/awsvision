@@ -500,14 +500,14 @@ export function RegionAllocationChart({
 
   if (!invested) {
     return (
-      <ChartCard title="Geographic Distribution" description="Regional exposure of holdings">
+      <ChartCard title="Geographic Distribution" description="US-only market exposure">
         <ChartEmptyState message="Regional breakdown appears with approved balance" />
       </ChartCard>
     );
   }
 
   return (
-    <ChartCard title="Geographic Distribution" description="Regional exposure of holdings">
+    <ChartCard title="Geographic Distribution" description="US-only market exposure">
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={data} layout="vertical" margin={{ top: 4, right: 16, left: 4, bottom: 4 }}>

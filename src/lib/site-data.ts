@@ -10,7 +10,6 @@ import {
   TrendingUp,
   Wallet,
 } from "lucide-react";
-import { getFdPromoSummary } from "@/lib/promotions";
 
 export { SITE, OFFICES, BRANCHES, US_HEADQUARTERS, MARYLAND_HEADQUARTERS, REGISTERED_OFFICE, SITE_PHONES, formatUsHeadquarters, formatSitePhones, formatSitePhonesMultiline } from "./site-config";
 
@@ -211,7 +210,7 @@ export const HOME_PROMOS = [
   },
   {
     title: "Open a Fixed Deposit — Plan-Aligned Rates",
-    desc: `FD tiers from Silver through Executive mirror our investment plan returns — 2% to 7% monthly gratuity and up to 420% total return. ${getFdPromoSummary()}.`,
+    desc: "FD Wealth Accelerator promo package — admin-managed monthly enrollment with fixed program return. See today's rates for current terms.",
     cta: "Open FD Account",
     href: "/signup",
     accent: "from-slate-800 to-slate-950",

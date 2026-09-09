@@ -35,6 +35,7 @@ const TYPE_STYLES: Record<string, string> = {
   success: "border-emerald-200 bg-emerald-50",
   warning: "border-amber-200 bg-amber-50",
   action: "border-violet-200 bg-violet-50",
+  alert: "border-red-400 bg-red-50 ring-1 ring-red-200",
 };
 
 export default function NotificationsPage() {
@@ -125,18 +126,41 @@ export default function NotificationsPage() {
                     className={cn(
                       "w-full rounded-xl border p-4 text-left transition-shadow",
                       TYPE_STYLES[n.type] ?? "border-slate-200 bg-white",
-                      unread && "ring-2 ring-teal-500/30 shadow-sm cursor-pointer",
+                      unread &&
+                        n.type === "alert" &&
+                        "ring-2 ring-red-500/40 shadow-sm cursor-pointer",
+                      unread &&
+                        n.type !== "alert" &&
+                        "ring-2 ring-teal-500/30 shadow-sm cursor-pointer",
                       !unread && "opacity-80"
                     )}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <p className={cn("font-semibold text-slate-900", unread && "text-teal-900")}>
+                      <p
+                        className={cn(
+                          "font-semibold text-slate-900",
+                          unread && n.type === "alert" && "text-red-950",
+                          unread && n.type !== "alert" && "text-teal-900"
+                        )}
+                      >
                         {n.title}
                         {unread && (
-                          <span className="ml-2 inline-block h-2 w-2 rounded-full bg-teal-500 align-middle" />
+                          <span
+                            className={cn(
+                              "ml-2 inline-block h-2 w-2 rounded-full align-middle",
+                              n.type === "alert" ? "bg-red-600" : "bg-teal-500"
+                            )}
+                          />
                         )}
                       </p>
-                      <span className="shrink-0 text-xs capitalize text-slate-500">{n.type}</span>
+                      <span
+                        className={cn(
+                          "shrink-0 text-xs capitalize",
+                          n.type === "alert" ? "font-semibold text-red-700" : "text-slate-500"
+                        )}
+                      >
+                        {n.type === "alert" ? "Red alert" : n.type}
+                      </span>
                     </div>
                     <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700">{n.message}</p>
                     <p className="mt-2 text-xs text-slate-500">

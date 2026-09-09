@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { SITE } from "@/lib/site-config";
 import { buildFdProducts } from "@/lib/fd-rates";
-import { getCdsPromoHero, getActiveFdPromo } from "@/lib/promotions";
 
 export const SERVICE_PAGES = {
   checking: {
@@ -125,24 +124,24 @@ export const SERVICE_PAGES = {
 
   cds: {
     title: "AWS Vision Fixed Deposit (FD) Accounts",
-    subtitle: "Fixed term with monthly and yearly gratuity — available now",
-    hero: "Lock your capital in a Fixed Deposit for a chosen term. FD tiers follow the same monthly gratuity and total return schedule as our Silver through Executive investment plans — plus a limited monthly featured promo at 90% total return over 6 months on $50,000+.",
+    subtitle: "Limited-time July Promo FD — available now",
+    hero: "Lock your capital in our July Promo Fixed Deposit. Minimum $50,000. Earn 90% return after 6 months — open in July 2026 only.",
     icon: Banknote,
     features: [
-      { title: "Monthly Gratuity on FD", desc: "Receive a monthly gratuity credit on your fixed deposit balance throughout the term of your account." },
-      { title: "Yearly Gratuity Bonus", desc: "Qualifying fixed deposits earn an additional yearly gratuity payment — rewarding long-term commitment." },
-      { title: "Fixed Terms", desc: "Choose terms from 3 months to 5 years. Your principal and agreed returns are defined at opening." },
-      { title: "Investment-Linked FD", desc: "Higher-tier fixed deposits link directly to AWS Vision's global investment portfolio for enhanced returns and monthly profit options." },
-      { title: "Maturity Options", desc: "At maturity, renew your FD, transfer to savings, or move capital into an Investment account." },
+      { title: "90% Return After 6 Months", desc: "Deposit $50,000 or more in the July Promo FD and earn 90% total return at the end of the 6-month term." },
+      { title: "Monthly & Yearly Gratuity", desc: "Qualifying fixed deposits are eligible for monthly and yearly gratuity benefits throughout the program." },
+      { title: "Limited-Time July Enrollment", desc: "This package is open in July 2026 only. Speak with your relationship manager to enroll while the offer lasts." },
+      { title: "Relationship Manager Support", desc: "A dedicated relationship manager guides enrollment, funding, and maturity options for your Fixed Deposit." },
+      { title: "Maturity Options", desc: "At maturity, renew your FD, transfer to savings, or move capital into an Investment account with your representative." },
       { title: "Portal Statements", desc: "Track gratuity payments, maturity dates, and full account history in your client portal with downloadable PDF statements." },
     ],
     products: buildFdProducts(),
     faqs: [
-      { q: "What is gratuity on a fixed deposit?", a: "Gratuity is an additional benefit AWS Vision pays on top of your fixed deposit returns — monthly throughout the term and yearly for qualifying accounts." },
-      { q: "Savings vs FD — which should I choose?", a: "Savings offers flexible access with monthly and yearly gratuity. FD locks your capital for a set term with typically higher gratuity and returns. Choose FD when you can commit funds for the full term." },
+      { q: "What is the July Promo FD?", a: "A limited-time Fixed Deposit package: minimum $50,000, 90% return after 6 months, open in July 2026 only. Monthly and yearly gratuity eligible, with relationship manager support." },
+      { q: "What is gratuity on a fixed deposit?", a: "Gratuity is an additional benefit AWS Vision pays on your fixed deposit — monthly throughout the term and yearly for qualifying accounts." },
       { q: "Can I withdraw my FD early?", a: "Fixed deposits are held until maturity. If you need funds before then, contact your relationship manager — they will initiate an early withdrawal on your behalf." },
     ],
-    cta: { label: "Open an FD Account", href: "/signup" },
+    cta: { label: "Register for July Promo FD", href: "/signup?account=fixed_deposit&promo=july-promo-fd" },
   },
 
   "credit-cards": {
@@ -414,12 +413,16 @@ export const SERVICE_PAGES = {
   },
 } as const;
 
-/** CDS page data with current-month promo labels (call at render time) */
-export function getCdsServicePage() {
-  const promo = getActiveFdPromo();
+/** CDS page data with admin-managed promo labels */
+export async function getCdsServicePage() {
+  const { resolveActiveFdPromo } = await import("@/lib/server/fd-promo-config");
+  const { buildActiveFdPromo, defaultFdPromoRuntimeConfig, getCdsPromoHero } = await import(
+    "@/lib/promotions"
+  );
+  const promo = (await resolveActiveFdPromo()) ?? buildActiveFdPromo(defaultFdPromoRuntimeConfig());
   return {
     ...SERVICE_PAGES.cds,
-    hero: getCdsPromoHero(),
+    hero: getCdsPromoHero(promo),
     products: buildFdProducts(promo),
   };
 }

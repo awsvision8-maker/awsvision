@@ -13,6 +13,7 @@ import { AppStoreBadges } from "@/components/marketing/app-store-badges";
 import { HabitsMarquee } from "@/components/marketing/habits-marquee";
 import { FdJunePromoBanner } from "@/components/marketing/fd-june-promo-banner";
 import { ConnectWithUsSection } from "@/components/marketing/connect-with-us-section";
+import { MarketNewsSection } from "@/components/marketing/market-news-section";
 import {
   PRODUCT_TABS,
   NEWS_ITEMS,
@@ -158,6 +159,8 @@ export function HomePage() {
       </section>
 
       <FdJunePromoBanner />
+
+      <MarketNewsSection />
 
       {/* News and information — BoA section */}
       <section className="py-12 bg-slate-50 sm:py-16">

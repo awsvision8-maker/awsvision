@@ -410,6 +410,35 @@ export function kycReuploadRequestEmail(
   };
 }
 
+export function depositShortfallAlertEmail(
+  user: { firstName: string; lastName: string },
+  amountDue: number,
+  adminNote?: string | null
+) {
+  const name = user.firstName;
+  const amount = formatCurrency(amountDue);
+  const body = [
+    p(`Hello ${name},`),
+    p(
+      `<strong style="color:#b91c1c;">Important:</strong> Our records show you have not deposited the full amount you committed for your AWS Vision account.`
+    ),
+    p(
+      `Please deposit the remaining balance of <strong style="color:#b91c1c;font-size:18px;">${amount}</strong> as soon as possible to keep your enrollment in good standing.`
+    ),
+    adminNote ? p(`<strong>Note from your account team:</strong> ${adminNote}`) : "",
+    p("Sign in to your client portal and submit a deposit. Funds appear in your balance after admin approval."),
+    btn(`${SITE.url}/portal/deposit`, "Deposit Now"),
+    p(`If you have questions, contact us at ${SITE.email} or ${formatSitePhones(" / ")}.`),
+  ]
+    .filter(Boolean)
+    .join("");
+  return {
+    subject: `Action required: Deposit ${amount} outstanding — AWS Vision`,
+    html: layout("Deposit Required", body),
+    text: `Please deposit the remaining ${amount} to complete your committed funding. Sign in at ${SITE.url}/portal/deposit`,
+  };
+}
+
 export const WAITLIST_LABELS: Record<string, string> = {
   newsletter: "Newsletter",
   products: "Products Opening Soon",

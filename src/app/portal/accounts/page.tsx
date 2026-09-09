@@ -2,6 +2,8 @@
 
 import { Plus } from "lucide-react";
 import { PortalHeader } from "@/components/portal/sidebar";
+import { PromoDailyCompoundPanel } from "@/components/portal/promo-daily-compound-panel";
+import { LiveUsHoldingsPanel } from "@/components/portal/live-us-holdings-panel";
 import { Badge } from "@/components/ui/badge";
 import { MobileDataCard } from "@/components/ui/mobile-data-card";
 import { Button } from "@/components/ui/button";
@@ -14,14 +16,34 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 
 export default function AccountsPage() {
   const portfolio = usePortfolio();
+  const dailyCompoundAccounts = portfolio.accounts.filter((a) => a.dailyCompound?.active);
+  const liveAccounts = portfolio.accounts.map((a) => {
+    const ledger = portfolio.portfolioAccounts.find((p) => p.id === a.id);
+    return {
+      id: a.id,
+      label: getAccountLabel(a),
+      balance: Math.max(a.balance, ledger?.principal ?? 0),
+      annualReturnPercent: a.interestRate || portfolio.annualReturn || 12,
+    };
+  });
 
   return (
     <>
       <PortalHeader
         title="My Accounts"
-        subtitle="Balances grow monthly based on your plan rate and deposits"
+        subtitle="Your account balances and program details"
       />
       <div className="space-y-6 p-4 sm:p-6 lg:p-8">
+        {dailyCompoundAccounts.map((acc) =>
+          acc.dailyCompound ? (
+            <PromoDailyCompoundPanel
+              key={`daily-${acc.id}`}
+              seed={acc.dailyCompound}
+              accountLabel={getAccountLabel(acc)}
+            />
+          ) : null
+        )}
+
         <div className="flex flex-wrap items-center justify-between gap-4">
           <p className="text-sm text-slate-500">
             {portfolio.accounts.length} active account
@@ -41,16 +63,25 @@ export default function AccountsPage() {
               : undefined;
             const monthlyRatePercent =
               acc.type === "savings" ? acc.interestRate / 12 : acc.interestRate / 12;
+            const daily = acc.dailyCompound;
+            const accountHoldings = portfolio.holdings.filter((h) => h.accountId === acc.id);
+            const classCounts = accountHoldings.reduce<Record<string, number>>((map, h) => {
+              const key = h.assetClass ?? "Equity";
+              map[key] = (map[key] ?? 0) + 1;
+              return map;
+            }, {});
 
             return (
               <Card key={acc.id} className="overflow-hidden">
                 <div
                   className={`h-2 ${
-                    acc.type === "savings"
-                      ? "bg-gradient-to-r from-teal-500 to-teal-600"
-                      : acc.type === "nonprofit_fund"
-                        ? "bg-gradient-to-r from-violet-500 to-violet-600"
-                        : "bg-gradient-to-r from-amber-500 to-amber-600"
+                    daily?.active
+                      ? "bg-gradient-to-r from-amber-400 to-teal-500"
+                      : acc.type === "savings"
+                        ? "bg-gradient-to-r from-teal-500 to-teal-600"
+                        : acc.type === "nonprofit_fund"
+                          ? "bg-gradient-to-r from-violet-500 to-violet-600"
+                          : "bg-gradient-to-r from-amber-500 to-amber-600"
                   }`}
                 />
                 <CardHeader>
@@ -74,27 +105,57 @@ export default function AccountsPage() {
                         {formatCurrency(acc.balance)}
                       </p>
                       <p className="mt-1 text-xs text-emerald-600">
-                        +{formatCurrency((acc.balance * monthlyRatePercent) / 100)}{" "}
-                        est. next monthly profit
+                        {daily?.active
+                          ? daily.started
+                            ? `+${formatCurrency(daily.latestDayProfit)} latest day · ${daily.dailyRatePercent}% daily compound`
+                            : `0.5% daily starts ${formatDate(daily.firstProfitDate)}`
+                          : `+${formatCurrency((acc.balance * monthlyRatePercent) / 100)} est. next monthly profit`}
                       </p>
                     </div>
+                    {accountHoldings.length > 0 && (
+                      <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                          Holdings · {accountHoldings.length} positions
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          {[
+                            classCounts.Equity ? `${classCounts.Equity} equities` : null,
+                            classCounts.Bond ? `${classCounts.Bond} bonds` : null,
+                            classCounts.Yield ? `${classCounts.Yield} yields` : null,
+                            classCounts["Real Estate"]
+                              ? `${classCounts["Real Estate"]} real estate`
+                              : null,
+                          ]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </p>
+                      </div>
+                    )}
                     <div className="grid grid-cols-2 gap-4 rounded-lg bg-slate-50 p-4">
                       <div>
                         <p className="text-xs text-slate-400">Program Rate</p>
                         <p className="text-lg font-semibold text-teal-600">
-                          {acc.type === "savings"
-                            ? `${acc.interestRate}% p.a.`
-                            : `${monthlyRatePercent.toFixed(2)}%/mo`}
+                          {daily?.active
+                            ? `${daily.dailyRatePercent}% / day`
+                            : acc.type === "savings"
+                              ? `${acc.interestRate}% p.a.`
+                              : `${monthlyRatePercent.toFixed(2)}%/mo`}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-slate-400">
-                          {acc.maturityDate ? "Maturity Date" : "Opened On"}
+                          {daily?.endDate
+                            ? "Program end"
+                            : acc.maturityDate
+                              ? "Maturity Date"
+                              : "Opened On"}
                         </p>
                         <p className="text-sm font-medium text-slate-700">
-                          {acc.maturityDate
-                            ? formatDate(acc.maturityDate)
-                            : formatDate(acc.createdAt)}
+                          {daily?.endDate
+                            ? formatDate(daily.endDate)
+                            : acc.maturityDate
+                              ? formatDate(acc.maturityDate)
+                              : formatDate(acc.createdAt)}
                         </p>
                       </div>
                     </div>
@@ -116,6 +177,13 @@ export default function AccountsPage() {
             );
           })}
         </div>
+
+        {portfolio.approvedDepositTotal > 0 && (
+          <LiveUsHoldingsPanel
+            accounts={liveAccounts}
+            invested={portfolio.approvedDepositTotal > 0}
+          />
+        )}
 
         <Card>
           <CardHeader>

@@ -128,43 +128,96 @@ export function ServicePageLayout({ data, status = "available" }: ServicePageLay
                 ? "Preview our upcoming lineup — applications open soon"
                 : "Compare our offerings and choose what fits your needs"}
             </p>
-            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {data.products.map((product) => (
-                <div
-                  key={product.name}
-                  className="flex flex-col rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
-                >
-                  {isComingSoon && (
-                    <span className="mb-2 w-fit rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
-                      Opening Soon
-                    </span>
-                  )}
-                  <p className="text-2xl font-bold text-teal-700">{product.rate}</p>
-                  <h3 className="mt-2 text-lg font-semibold text-slate-900">{product.name}</h3>
-                  <p className="mt-1 text-sm text-slate-500">{product.desc}</p>
-                  <ul className="mt-4 flex-1 space-y-2">
-                    {product.features.map((feat) => (
-                      <li key={feat} className="flex items-start gap-2 text-sm text-slate-600">
-                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-teal-600" />
-                        {feat}
-                      </li>
-                    ))}
-                  </ul>
-                  {isComingSoon ? (
-                    <Link href={WAITLIST_HREF} className="mt-6">
-                      <Button className="w-full" variant="outline">
-                        Notify Me at Launch
-                      </Button>
-                    </Link>
-                  ) : (
-                    <Link href="/signup" className="mt-6">
-                      <Button className="w-full" variant="outline">
-                        Open Account
-                      </Button>
-                    </Link>
-                  )}
-                </div>
-              ))}
+            <div
+              className={
+                data.products.length === 1
+                  ? "mt-10 flex justify-center"
+                  : "mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+              }
+            >
+              {data.products.map((product) => {
+                const isFeatured = "featured" in product && Boolean(product.featured);
+                const alone = data.products.length === 1;
+
+                return (
+                  <div
+                    key={product.name}
+                    className={
+                      isFeatured
+                        ? alone
+                          ? "relative flex w-full max-w-lg flex-col overflow-hidden rounded-2xl border-2 border-amber-400 bg-gradient-to-br from-amber-50 via-white to-teal-50 p-8 shadow-xl shadow-amber-900/10 ring-4 ring-amber-200/60"
+                          : "relative flex flex-col overflow-hidden rounded-2xl border-2 border-amber-400 bg-gradient-to-br from-amber-50 via-white to-teal-50 p-6 shadow-lg shadow-amber-900/10 sm:col-span-2 lg:col-span-1 lg:scale-105"
+                        : "flex flex-col rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+                    }
+                  >
+                    {isFeatured && (
+                      <span className="mb-3 w-fit rounded-full bg-gradient-to-r from-amber-500 to-amber-400 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-950 shadow-sm">
+                        Featured package
+                      </span>
+                    )}
+                    {isComingSoon && (
+                      <span className="mb-2 w-fit rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
+                        Opening Soon
+                      </span>
+                    )}
+                    <p
+                      className={
+                        isFeatured
+                          ? "text-3xl font-black text-teal-700 sm:text-4xl"
+                          : "text-2xl font-bold text-teal-700"
+                      }
+                    >
+                      {product.rate}
+                    </p>
+                    <h3
+                      className={
+                        isFeatured
+                          ? "mt-3 text-xl font-bold text-slate-900 sm:text-2xl"
+                          : "mt-2 text-lg font-semibold text-slate-900"
+                      }
+                    >
+                      {product.name}
+                    </h3>
+                    <p className="mt-2 text-sm text-slate-600">{product.desc}</p>
+                    <ul className="mt-5 flex-1 space-y-2.5">
+                      {product.features.map((feat) => (
+                        <li key={feat} className="flex items-start gap-2 text-sm text-slate-700">
+                          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-teal-600" />
+                          {feat}
+                        </li>
+                      ))}
+                    </ul>
+                    {isComingSoon ? (
+                      <Link href={WAITLIST_HREF} className="mt-8">
+                        <Button className="w-full" variant="outline">
+                          Notify Me at Launch
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Link
+                        href={
+                          isFeatured
+                            ? "/signup?account=fixed_deposit&promo=july-promo-fd"
+                            : data.cta.href
+                        }
+                        className="mt-8"
+                      >
+                        <Button
+                          className={
+                            isFeatured
+                              ? "w-full bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-bold shadow-lg shadow-amber-900/20 hover:from-amber-400 hover:to-amber-300"
+                              : "w-full"
+                          }
+                          variant={isFeatured ? "primary" : "outline"}
+                        >
+                          {isFeatured ? "Register for This Package" : "Open Account"}
+                          {isFeatured && <ArrowRight className="h-4 w-4" />}
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>

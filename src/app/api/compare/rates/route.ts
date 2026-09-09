@@ -1,5 +1,6 @@
-import { buildComparisonReport, COMPARISON_SOURCES, COMPETITOR_BANKS } from "@/lib/bank-comparison";
+﻿import { buildComparisonReport, COMPARISON_SOURCES, COMPETITOR_BANKS } from "@/lib/bank-comparison";
 import { jsonError, jsonOk } from "@/lib/server/api";
+import { resolveActiveFdPromo } from "@/lib/server/fd-promo-config";
 
 export const revalidate = 86400;
 
@@ -13,7 +14,8 @@ export async function GET(request: Request) {
       return jsonError("Principal must be between $1,000 and $10,000,000", 400);
     }
 
-    const report = buildComparisonReport(principal);
+    const promo = await resolveActiveFdPromo();
+    const report = buildComparisonReport(principal, promo);
 
     return jsonOk({
       report,

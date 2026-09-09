@@ -9,12 +9,12 @@ import { Logo } from "@/components/ui/logo";
 import { DeveloperCredit } from "@/components/marketing/developer-credit";
 import { WealthPromoBanner } from "@/components/marketing/wealth-promo-banner";
 import { useAuth } from "@/lib/auth-context";
-import { getActiveFdPromo } from "@/lib/promotions";
+import { useActiveFdPromo } from "@/lib/use-active-fd-promo";
 
 export default function LoginPage() {
   const router = useRouter();
   const { login, user } = useAuth();
-  const promo = getActiveFdPromo();
+  const { promo } = useActiveFdPromo();
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -67,9 +67,9 @@ export default function LoginPage() {
             Grow your wealth with AWS Vision
           </h2>
           <p className="mt-4 text-slate-400 leading-relaxed">
-            {promo.monthLong} Fixed Deposit clients can earn up to {promo.returnPercent}% returns in{" "}
-            {promo.termMonths} months on qualifying deposits. Sign in to track portfolio growth,
-            monthly profit, and your path to financial freedom.
+            {promo
+              ? `${promo.monthLong} Fixed Deposit clients can earn up to ${promo.returnPercent}% returns in ${promo.termMonths} months on qualifying deposits. Sign in to track portfolio growth, monthly profit, and your path to financial freedom.`
+              : "Sign in to track portfolio growth, monthly profit, and your path to financial freedom with AWS Vision."}
           </p>
         </div>
         <p className="text-sm text-slate-500">© awsvision.com</p>

@@ -70,6 +70,11 @@ model PortfolioAccount {
   profitRateAmended  Boolean   @default(false)
   amendmentNote      String?
   createdAt          DateTime  @default(now())
+  /** July promo $50k sheet: admin-started daily 0.5% compounding */
+  dailyCompoundActive    Boolean   @default(false)
+  dailyCompoundStartDate DateTime?
+  dailyCompoundEndDate   DateTime?
+  dailyCompoundRatePercent Float   @default(0.5)
 
   transactions Transaction[]
 
@@ -188,11 +193,14 @@ model NotificationBroadcast {
   durationHours    Int                @default(0)
   expiresAt        DateTime
   adminId          String?
+  /** Set when a brand ambassador sends to their referred clients */
+  ambassadorId     String?
   createdAt        DateTime           @default(now())
   notifications    UserNotification[]
 
   @@index([createdAt])
   @@index([expiresAt])
+  @@index([ambassadorId])
 }
 
 model UserNotification {
@@ -379,6 +387,8 @@ model BrandAmbassador {
   lastName      String
   phone         String
   referralCode  String                      @unique
+  /** Admin-assigned commission % of each referred client's first approved deposit */
+  commissionRatePercent Float               @default(3)
   status        String                      @default("active")
   approvedAt    DateTime                    @default(now())
   createdAt     DateTime                    @default(now())
@@ -400,4 +410,25 @@ model ManagerSession {
 
   @@index([ambassadorId])
   @@index([token])
+}
+
+/** Singleton site-wide Wealth Accelerator FD promotion (admin-managed) */
+model FdPromoConfig {
+  id               String   @id @default("default")
+  isActive         Boolean  @default(true)
+  /** Display calendar month 1–12 (drives “July / August …” labels) */
+  displayMonth     Int
+  displayYear      Int
+  /** Enrollment cutoff — admin can extend past calendar month end */
+  endsAt           DateTime
+  minDeposit       Float    @default(50000)
+  returnPercent    Float    @default(90)
+  termMonths       Int      @default(6)
+  planId           String   @default("july-promo-fd")
+  packageName      String?
+  headline         String?
+  subheadline      String?
+  updatedByAdminId String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }

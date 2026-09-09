@@ -13,9 +13,13 @@ import {
 } from "@/lib/server/presence-service";
 import { getClientGeo } from "@/lib/request-geo";
 import { getSessionUserId } from "@/lib/server/session";
+import { rejectIfAdminPreview } from "@/lib/server/admin-preview-session";
 import { jsonError, jsonOk } from "@/lib/server/api";
 
 export async function POST(request: Request) {
+  const blocked = await rejectIfAdminPreview();
+  if (blocked) return blocked;
+
   try {
     const body = (await request.json()) as {
       visitorName?: string;

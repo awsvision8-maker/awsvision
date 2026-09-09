@@ -1,9 +1,13 @@
 import { updateUserKyc } from "@/lib/server/auth-service";
 import { jsonError, jsonOk } from "@/lib/server/api";
+import { rejectIfAdminPreview } from "@/lib/server/admin-preview-session";
 import { getSessionUserId } from "@/lib/server/session";
 import type { KYCData } from "@/types";
 
 export async function POST(request: Request) {
+  const blocked = await rejectIfAdminPreview();
+  if (blocked) return blocked;
+
   const userId = await getSessionUserId();
   if (!userId) {
     return jsonError("Not authenticated", 401);

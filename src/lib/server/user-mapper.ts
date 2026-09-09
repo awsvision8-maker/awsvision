@@ -28,6 +28,10 @@ export function mapPortfolioAccount(row: DbAccount): PortfolioAccount {
     profitEligibleAt: row.profitEligibleAt?.toISOString(),
     profitRateAmended: row.profitRateAmended,
     amendmentNote: row.amendmentNote ?? undefined,
+    dailyCompoundActive: row.dailyCompoundActive,
+    dailyCompoundStartDate: row.dailyCompoundStartDate?.toISOString(),
+    dailyCompoundEndDate: row.dailyCompoundEndDate?.toISOString(),
+    dailyCompoundRatePercent: row.dailyCompoundRatePercent,
   };
 }
 

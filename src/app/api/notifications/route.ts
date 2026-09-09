@@ -4,10 +4,13 @@ import {
   markAllNotificationsRead,
 } from "@/lib/server/notification-service";
 import { jsonError, jsonOk } from "@/lib/server/api";
-import { getSessionUserId } from "@/lib/server/session";
+import {
+  getPortalUserId,
+  rejectIfAdminPreview,
+} from "@/lib/server/admin-preview-session";
 
 export async function GET() {
-  const userId = await getSessionUserId();
+  const userId = await getPortalUserId();
   if (!userId) return jsonError("Not authenticated", 401);
 
   try {
@@ -23,7 +26,10 @@ export async function GET() {
 }
 
 export async function PATCH() {
-  const userId = await getSessionUserId();
+  const blocked = await rejectIfAdminPreview();
+  if (blocked) return blocked;
+
+  const userId = await getPortalUserId();
   if (!userId) return jsonError("Not authenticated", 401);
 
   try {

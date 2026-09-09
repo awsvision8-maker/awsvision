@@ -6,6 +6,7 @@ import {
   ArrowRight,
   Building2,
   Loader2,
+  MessageCircle,
   Sparkles,
   TrendingUp,
   Trophy,
@@ -14,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
+  AWS_COMPARE_MAX_MONTHLY_RATE,
   AWS_VISION_COMPARE_TIERS,
   COMPARISON_LAST_UPDATED,
   COMPARISON_SCENARIOS,
@@ -25,7 +27,6 @@ import {
   formatComparePercent,
   formatCompareUsd,
   formatInvestmentPlanRateLabel,
-  monthlyProgramEarnings,
   multiplierLabel,
 } from "@/lib/bank-comparison";
 import { NONPROFIT_CAPITAL_TIERS } from "@/lib/nonprofit-program";
@@ -56,7 +57,6 @@ export function BankComparisonPageContent() {
     loadReport(principal);
   }, [principal, loadReport]);
 
-  const tier = report?.aws.investmentTier;
   const savingsRows = report?.savings.filter((r) => !r.isAws) ?? [];
   const cdStandardRows = report?.cds.filter((r) => !r.isPromo) ?? [];
   const cdPromoRows = report?.cds.filter((r) => r.isPromo) ?? [];
@@ -81,9 +81,9 @@ export function BankComparisonPageContent() {
               See How AWS Vision Stacks Up Against the Big Banks
             </h1>
             <p className="mt-5 text-lg text-slate-300 leading-relaxed">
-              We compared bank annual APY (savings & CDs) against AWS Vision&apos;s monthly savings
-              gratuity and investment program returns — calculated from published bank rates and our
-              official program terms.
+              We compared bank annual APY (savings & CDs) against AWS Vision program earnings —
+              illustrated at up to {AWS_COMPARE_MAX_MONTHLY_RATE}% monthly. Your exact profit rate
+              depends on enrolled capital — talk to our team for your personalized terms.
             </p>
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
               {loading ? (
@@ -99,18 +99,14 @@ export function BankComparisonPageContent() {
                     sub: `on ${formatCompareUsd(principal)}`,
                   },
                   {
-                    stat: tier ? formatComparePercent(tier.monthlyRate, 1) : "—",
-                    label: "Your AWS Vision tier",
-                    sub: tier
-                      ? `${tier.name} · ${tier.monthlyRate}% monthly`
-                      : "Select deposit size below",
+                    stat: `Up to ${AWS_COMPARE_MAX_MONTHLY_RATE}%`,
+                    label: "AWS Vision illustration",
+                    sub: "Rates vary by capital · Talk to Support",
                   },
                   {
                     stat: formatCompareUsd(awsInvestmentYear),
                     label: "Est. 12-mo program profit",
-                    sub: tier
-                      ? `${tier.monthlyRate}% monthly × 12 months (simple)`
-                      : "Select deposit size below",
+                    sub: `Illustrated at up to ${AWS_COMPARE_MAX_MONTHLY_RATE}%/mo × 12`,
                   },
                 ].map((item) => (
                   <div
@@ -130,18 +126,19 @@ export function BankComparisonPageContent() {
               </p>
             )}
             <div className="mt-8 flex flex-wrap gap-4">
-              <Link href="/signup">
+              <Link href="/contact">
                 <Button size="lg">
-                  Open AWS Vision Account
-                  <ArrowRight className="h-4 w-4" />
+                  Talk to Support
+                  <MessageCircle className="h-4 w-4" />
                 </Button>
               </Link>
-              <Link href="/rates">
+              <Link href="/signup">
                 <Button
                   size="lg"
                   className="border border-white/30 bg-transparent text-white hover:bg-white/10"
                 >
-                  View Our Rates
+                  Open AWS Vision Account
+                  <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
             </div>
@@ -171,14 +168,14 @@ export function BankComparisonPageContent() {
             ))}
           </div>
           <p className="mt-3 text-xs text-slate-500">
-            Showing projections for <strong>{formatCompareUsd(principal)}</strong>
-            {tier && (
-              <>
-                {" "}
-                — AWS Vision <strong>{tier.name}</strong> plan at {tier.monthlyRate}% monthly (
-                {formatCompareUsd(awsSavingsYear)} est. over 12 months)
-              </>
-            )}
+            Showing projections for <strong>{formatCompareUsd(principal)}</strong> using AWS Vision
+            at <strong>up to {AWS_COMPARE_MAX_MONTHLY_RATE}% monthly</strong> (
+            {formatCompareUsd(awsSavingsYear)} est. over 12 months). Profit percentages vary by
+            capital —{" "}
+            <Link href="/contact" className="font-semibold text-teal-700 hover:underline">
+              talk to an agent
+            </Link>{" "}
+            for your rate.
           </p>
         </div>
       </section>
@@ -188,11 +185,10 @@ export function BankComparisonPageContent() {
         <div className="page-container">
           <h2 className="text-2xl font-bold text-slate-900">Deposit Yields vs AWS Vision Programs</h2>
           <p className="mt-2 max-w-2xl text-slate-600">
-            Banks show best published annual APY (savings or promotional CD). AWS Vision investment
-            plans pay <strong>monthly profit on capital</strong> by tier — Silver 2%/mo from $5K,
-            Gold 3%/mo from $10K, Diamond 4%/mo from $30K, Platinum 5%/mo from $50K, Premium Diamond
-            6%/mo from $70K, Executive 7%/mo from $100K. Earnings below use your matched plan rate ×
-            12 months (simple annual).
+            Banks show best published annual APY (savings or promotional CD). AWS Vision earnings
+            below are illustrated at <strong>up to {AWS_COMPARE_MAX_MONTHLY_RATE}% monthly</strong>{" "}
+            — our highest program rate. Your actual profit percentage depends on enrolled capital and
+            is confirmed with support.
           </p>
 
           <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -216,7 +212,10 @@ export function BankComparisonPageContent() {
                     </span>
                   </td>
                   <td className="px-4 py-4 font-bold text-teal-700 sm:px-6">
-                    {tier ? formatInvestmentPlanRateLabel(tier) : "—"}
+                    {formatInvestmentPlanRateLabel({
+                      monthlyRate: AWS_COMPARE_MAX_MONTHLY_RATE,
+                      name: "AWS Vision",
+                    })}
                   </td>
                   <td className="px-4 py-4 font-bold text-teal-700 sm:px-6">
                     {formatCompareUsd(awsSavingsYear)}
@@ -253,16 +252,11 @@ export function BankComparisonPageContent() {
             </table>
           </div>
           <p className="mt-3 text-xs text-slate-500">
-            Bank earnings: principal × (annual APY ÷ 100). AWS Vision: monthly plan rate × 12 months
-            on principal. At {formatCompareUsd(principal)}
-            {tier ? (
-              <>
-                , <strong>{tier.name}</strong> at {tier.monthlyRate}%/mo earns{" "}
-                {formatCompareUsd(awsSavingsYear)}/yr
-              </>
-            ) : null}{" "}
-            vs a 4.5% bank APY earning about{" "}
-            {formatCompareUsd(apyOneYearEarnings(principal, 4.5))}/yr.
+            Bank earnings: principal × (annual APY ÷ 100). AWS Vision: illustrated at up to{" "}
+            {AWS_COMPARE_MAX_MONTHLY_RATE}%/mo × 12 on principal (
+            {formatCompareUsd(awsSavingsYear)}/yr at {formatCompareUsd(principal)}) vs a 4.5% bank
+            APY earning about {formatCompareUsd(apyOneYearEarnings(principal, 4.5))}/yr. Actual AWS
+            Vision rates vary by capital.
           </p>
         </div>
       </section>
@@ -274,9 +268,9 @@ export function BankComparisonPageContent() {
             CD vs Investment & Fixed Deposit Programs
           </h2>
           <p className="mt-2 max-w-2xl text-slate-600">
-            Bank CDs use APY (annual percentage yield). AWS Vision investment programs use monthly
-            profit on capital — shown here as estimated 12-month program earnings using{" "}
-            {tier?.compoundInterest ? "compound" : "simple"} monthly accrual at your matched tier.
+            Bank CDs use APY. AWS Vision program earnings here use an illustration of{" "}
+            <strong>up to {AWS_COMPARE_MAX_MONTHLY_RATE}% monthly</strong>. Your personalized rate
+            depends on capital — talk to support or an agent for enrollment terms.
           </p>
 
           <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
@@ -284,28 +278,29 @@ export function BankComparisonPageContent() {
               <thead>
                 <tr className="bg-slate-950 text-white">
                   <th className="px-4 py-3 text-left sm:px-6">Institution</th>
-                  <th className="px-4 py-3 text-left sm:px-6">12-Mo CD (standard)</th>
-                  <th className="px-4 py-3 text-left sm:px-6">1-Year CD Earnings</th>
-                  <th className="px-4 py-3 text-left sm:px-6">vs AWS Vision Program</th>
+                  <th className="px-4 py-3 text-left sm:px-6">Program / CD</th>
+                  <th className="px-4 py-3 text-left sm:px-6">1-Year Earnings</th>
+                  <th className="px-4 py-3 text-left sm:px-6">Next step</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-b border-amber-100 bg-gradient-to-r from-amber-50 to-teal-50">
                   <td className="px-4 py-4 font-bold text-slate-900 sm:px-6">
-                    AWS Vision — {tier?.name ?? "—"} ({tier?.monthlyRate ?? "—"}%/mo)
+                    AWS Vision — up to {AWS_COMPARE_MAX_MONTHLY_RATE}%/mo
                   </td>
                   <td className="px-4 py-4 text-slate-700 sm:px-6">
-                    {tier
-                      ? `${tier.totalRoiPercent}% total over ${tier.termMonths} mo program`
-                      : "—"}
+                    Rates vary by capital · Talk to Support
                   </td>
                   <td className="px-4 py-4 font-bold text-teal-700 sm:px-6">
                     {formatCompareUsd(awsInvestmentYear)} / yr
                   </td>
-                  <td className="px-4 py-4 text-xs text-slate-600 sm:px-6">
-                    {report?.aws.fdPromo
-                      ? `FD promo: ${report.aws.fdPromo.returnPercent}% in ${report.aws.fdPromo.termMonths} mo on $${(report.aws.fdPromo.minDeposit / 1000).toFixed(0)}K+`
-                      : "Enroll at /rates for current FD promo"}
+                  <td className="px-4 py-4 sm:px-6">
+                    <Link
+                      href="/contact"
+                      className="text-sm font-semibold text-teal-700 hover:underline"
+                    >
+                      Talk to an agent →
+                    </Link>
                   </td>
                 </tr>
                 {cdStandardRows.map((row) => (
@@ -330,8 +325,8 @@ export function BankComparisonPageContent() {
             <div className="mt-8">
               <h3 className="text-lg font-semibold text-slate-900">Promotional CD rates (banks)</h3>
               <p className="mt-1 text-sm text-slate-600">
-                Short-term promotional CDs — often require new money, relationship tiers, or specific
-                terms. Still compared against AWS Vision program earnings at your tier.
+                Short-term promotional CDs — often require new money or specific terms. Compared
+                against AWS Vision illustrated at up to {AWS_COMPARE_MAX_MONTHLY_RATE}% monthly.
               </p>
               <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
                 <table className="w-full min-w-[720px] text-sm">
@@ -370,52 +365,41 @@ export function BankComparisonPageContent() {
         </div>
       </section>
 
-      {/* Investment tier cards */}
+      {/* Investment tiers — min capital only, no public % */}
       <section className="py-14 bg-slate-950 text-white">
         <div className="page-container">
           <h2 className="text-2xl font-bold">AWS Vision Investment Tiers vs Traditional Banking</h2>
           <p className="mt-2 max-w-2xl text-slate-400">
-            At {formatCompareUsd(principal)}, your matched tier is{" "}
-            <strong className="text-teal-300">{tier?.name ?? "—"}</strong> — estimated{" "}
-            {formatCompareUsd(investment?.awsAnnualCompound ?? 0)} in 12-month program profit vs.{" "}
-            {formatCompareUsd(chaseCdYear)} from Chase&apos;s standard 12-month CD (
-            {formatComparePercent(
-              COMPETITOR_BANKS.find((b) => b.id === "chase")?.cd12MonthApy ?? 0
-            )}{" "}
-            APY).
+            At {formatCompareUsd(principal)}, illustrated AWS Vision earnings are{" "}
+            <strong className="text-teal-300">
+              {formatCompareUsd(investment?.awsAnnualCompound ?? 0)}
+            </strong>{" "}
+            over 12 months (up to {AWS_COMPARE_MAX_MONTHLY_RATE}%/mo) vs.{" "}
+            {formatCompareUsd(chaseCdYear)} from Chase&apos;s standard 12-month CD. Exact profit
+            percentages vary by capital — talk to support for your plan.
           </p>
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {AWS_VISION_COMPARE_TIERS.map((t) => (
               <div
                 key={t.id}
-                className={cn(
-                  "rounded-xl border p-5",
-                  tier?.id === t.id
-                    ? "border-teal-400 bg-teal-950/50 ring-2 ring-teal-500/30"
-                    : "border-white/10 bg-white/5"
-                )}
+                className="rounded-xl border border-white/10 bg-white/5 p-5"
               >
-                {tier?.id === t.id && (
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-teal-300">
-                    Your tier
-                  </span>
-                )}
                 <p className="text-lg font-bold">{t.name}</p>
-                <p className="mt-2 text-3xl font-black text-amber-300">{t.monthlyRate}%</p>
-                <p className="text-xs text-slate-400">monthly profit on capital</p>
-                <p className="mt-4 text-sm text-slate-300">
-                  Min {formatCompareUsd(t.min)} · {t.totalReturn}% total / {t.termMonths} mo
+                <p className="mt-2 text-sm text-slate-300">
+                  Minimum investment {formatCompareUsd(t.min)}
                 </p>
-                <p className="mt-2 text-sm font-semibold text-emerald-400">
-                  {formatCompareUsd(
-                    monthlyProgramEarnings(
-                      principal >= t.min ? principal : t.min,
-                      t.monthlyRate,
-                      12
-                    )
-                  )}
-                  /yr est. (simple)
+                <p className="mt-3 text-sm font-semibold text-amber-300">
+                  Returns discussed with support
                 </p>
+                <Link href="/contact" className="mt-4 inline-block">
+                  <Button
+                    size="sm"
+                    className="bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 hover:from-amber-400 hover:to-amber-300"
+                  >
+                    Talk to Support
+                    <MessageCircle className="h-3.5 w-3.5" />
+                  </Button>
+                </Link>
               </div>
             ))}
           </div>
@@ -433,15 +417,16 @@ export function BankComparisonPageContent() {
               {COMPARISON_LAST_UPDATED}).
             </p>
             <p>
-              <strong>AWS Vision investment plans:</strong> Earnings = capital × (monthly rate ÷ 100)
-              × 12 months (simple annual). Your matched tier is chosen by minimum capital — e.g.
-              $10,000 → Gold at 3%/mo = $3,600 over 12 months; $50,000 → Platinum at 5%/mo = $30,000;
-              $100,000 → Executive at 7%/mo = $84,000.
+              <strong>AWS Vision (illustration):</strong> Earnings = capital × (up to{" "}
+              {AWS_COMPARE_MAX_MONTHLY_RATE}% ÷ 100) × 12 months. This uses our highest published
+              program ceiling so you can see maximum modeled advantage vs big banks.{" "}
+              <strong>Profit percentages vary depending on capital</strong> — your enrolled rate is
+              confirmed with support or a relationship agent.
             </p>
             <p>
-              <strong>AWS Vision investment / FD programs (compound):</strong> When compound interest
-              is enabled on your plan, 12-month profit uses capital × ((1 + monthly rate ÷ 100)
-              <sup>12</sup> − 1). Shown in the CD comparison section where applicable.
+              <strong>Personalized terms:</strong> Plan selection and monthly profit rate are set
+              with your representative based on deposit size and program fit — not listed as fixed
+              public tier percentages on this page.
             </p>
           </div>
 
@@ -451,17 +436,17 @@ export function BankComparisonPageContent() {
               {
                 icon: Zap,
                 title: "Higher yields than branch savings",
-                desc: "Even megabank promotional CDs top out around 4–4.5% APY. AWS Vision investment programs distribute monthly profit from 2% to 7% on enrolled capital — a different product structure with higher modeled returns.",
+                desc: `Even megabank promotional CDs top out around 4–4.5% APY. AWS Vision programs can illustrate up to ${AWS_COMPARE_MAX_MONTHLY_RATE}% monthly on enrolled capital — a different product structure. Your rate depends on capital.`,
               },
               {
                 icon: TrendingUp,
                 title: "Structured wealth programs",
-                desc: "Traditional CDs lock in low single-digit APY. AWS Vision FD and investment tiers align with global sector portfolios — Silver through Executive — with up to 420% total program return.",
+                desc: "Traditional CDs lock in low single-digit APY. AWS Vision investment and FD packages are structured wealth programs — terms are finalized with support based on your capital.",
               },
               {
                 icon: Building2,
                 title: "Non-profit fund option",
-                desc: "No megabank offers 8%–10% monthly returns on organization fund capital. AWS Vision's non-profit program serves $100K–$1M enrolled capital with a dedicated portal.",
+                desc: "AWS Vision's non-profit program serves organization capital with a dedicated portal. Returns are confirmed on a call with your representative.",
               },
             ].map((item) => (
               <div key={item.title} className="rounded-xl border border-slate-200 p-6">
@@ -472,41 +457,46 @@ export function BankComparisonPageContent() {
             ))}
           </div>
 
-          {/* Non-profit quick compare */}
           <div className="mt-12 rounded-xl border border-violet-200 bg-violet-50/50 p-6 sm:p-8">
             <h3 className="text-lg font-bold text-slate-900">Non-Profit Organizations</h3>
             <p className="mt-2 text-sm text-slate-600">
-              Traditional banks do not offer comparable monthly returns on endowed or reserve fund
-              capital. AWS Vision non-profit tiers:
+              Traditional banks do not offer a comparable dedicated non-profit fund package. AWS
+              Vision capital tiers — returns finalized with your representative:
             </p>
             <div className="mt-4 overflow-x-auto">
-              <table className="w-full min-w-[480px] text-sm">
+              <table className="w-full min-w-[400px] text-sm">
                 <thead>
                   <tr className="border-b border-violet-200 text-left text-slate-500">
+                    <th className="py-2 pr-4">Tier</th>
                     <th className="py-2 pr-4">Enrolled capital</th>
-                    <th className="py-2 pr-4">Monthly rate</th>
-                    <th className="py-2">Est. monthly profit</th>
+                    <th className="py-2">Monthly rate</th>
                   </tr>
                 </thead>
                 <tbody>
                   {NONPROFIT_CAPITAL_TIERS.map((t) => (
                     <tr key={t.capital} className="border-b border-violet-100">
+                      <td className="py-3 font-medium text-slate-900">{t.label}</td>
                       <td className="py-3 font-medium">{formatCompareUsd(t.capital)}</td>
-                      <td className="py-3 text-violet-700 font-semibold">{t.monthlyRate}%</td>
-                      <td className="py-3 font-bold text-emerald-700">
-                        {formatCompareUsd((t.capital * t.monthlyRate) / 100)}
-                      </td>
+                      <td className="py-3 text-violet-700 font-semibold">Discuss on call</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <Link
-              href="/nonprofit"
-              className="mt-4 inline-block text-sm font-semibold text-violet-700 hover:underline"
-            >
-              Explore non-profit program →
-            </Link>
+            <div className="mt-4 flex flex-wrap gap-4">
+              <Link
+                href="/nonprofit"
+                className="text-sm font-semibold text-violet-700 hover:underline"
+              >
+                Explore non-profit package →
+              </Link>
+              <Link
+                href="/contact"
+                className="text-sm font-semibold text-violet-700 hover:underline"
+              >
+                Talk to representative →
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -557,21 +547,21 @@ export function BankComparisonPageContent() {
         <div className="page-container text-center">
           <h2 className="text-2xl font-bold text-white">Ready for a different kind of return?</h2>
           <p className="mt-2 text-teal-100 max-w-xl mx-auto">
-            Open savings, fixed deposit, or investment accounts online — or enroll your non-profit
-            organization from $100K.
+            Profit percentages vary by capital. Talk to support for your personalized rate, or open
+            an account online.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-4">
-            <Link href="/signup">
+            <Link href="/contact">
               <Button size="lg" className="bg-white text-teal-700 hover:bg-slate-100">
-                Open Account
+                Talk to Support / Agent
               </Button>
             </Link>
-            <Link href="/signup/nonprofit">
+            <Link href="/signup">
               <Button
                 size="lg"
                 className="border border-white bg-transparent text-white hover:bg-white/10"
               >
-                Non-Profit Enrollment
+                Open Account
               </Button>
             </Link>
           </div>
@@ -585,9 +575,10 @@ export function BankComparisonPageContent() {
             <strong>Important disclosures:</strong> AWS Vision investment, fixed deposit, and
             non-profit fund programs are structured wealth products — not FDIC-insured bank deposits.
             Competitor savings and CD rates shown are illustrative benchmarks from publicly available
-            sources as of {COMPARISON_LAST_UPDATED} and may change without notice. Relationship rates,
-            promotional CDs, and ZIP-specific pricing may differ. AWS Vision earnings illustrations
-            use program terms at enrollment and do not guarantee future performance.
+            sources as of {COMPARISON_LAST_UPDATED} and may change without notice. AWS Vision
+            earnings on this page are illustrated at up to {AWS_COMPARE_MAX_MONTHLY_RATE}% monthly;
+            actual profit percentages vary depending on capital and are confirmed at enrollment with
+            support. Illustrations do not guarantee future performance.
           </p>
           <p>
             <strong>Sources reviewed:</strong>{" "}

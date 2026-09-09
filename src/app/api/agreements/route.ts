@@ -1,9 +1,9 @@
 import { listAgreementsForUser } from "@/lib/server/agreement-service";
 import { jsonError, jsonOk } from "@/lib/server/api";
-import { getSessionUserId } from "@/lib/server/session";
+import { getPortalUserId } from "@/lib/server/admin-preview-session";
 
 export async function GET() {
-  const userId = await getSessionUserId();
+  const userId = await getPortalUserId();
   if (!userId) return jsonError("Not authenticated", 401);
 
   try {

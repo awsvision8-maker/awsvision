@@ -5,6 +5,7 @@ import {
   sendVisitorMessage,
 } from "@/lib/server/chat-service";
 import { touchConversationPresence } from "@/lib/server/presence-service";
+import { rejectIfAdminPreview } from "@/lib/server/admin-preview-session";
 import { jsonError, jsonOk } from "@/lib/server/api";
 
 export async function GET(request: Request) {
@@ -54,6 +55,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const blocked = await rejectIfAdminPreview();
+  if (blocked) return blocked;
+
   try {
     const { conversationId, body, visitorName } = (await request.json()) as {
       conversationId?: string;

@@ -1,10 +1,14 @@
 import { recordDeposit } from "@/lib/server/auth-service";
 import { jsonError, jsonOk } from "@/lib/server/api";
+import { rejectIfAdminPreview } from "@/lib/server/admin-preview-session";
 import { requireVerifiedKyc } from "@/lib/server/kyc-guard";
 import { notifyDeposit } from "@/lib/server/notifications";
 import { getSessionUserId } from "@/lib/server/session";
 
 export async function POST(request: Request) {
+  const blocked = await rejectIfAdminPreview();
+  if (blocked) return blocked;
+
   const userId = await getSessionUserId();
   if (!userId) {
     return jsonError("Not authenticated", 401);

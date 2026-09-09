@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ExternalLink } from "lucide-react";
 import { AdminLoading, AdminPageHeader, AdminStatusBadge } from "@/components/admin/admin-ui";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatDate } from "@/lib/utils";
 
 interface AdminUserRow {
   id: string;
@@ -16,9 +16,25 @@ interface AdminUserRow {
   kycStatus: string;
   profileType: string;
   createdAt: string;
-  accounts: { id: string; type: string; principal: number; status: string }[];
+  accounts: {
+    id: string;
+    type: string;
+    principal: number;
+    balance: number;
+    profit: number;
+    sent: number;
+    status: string;
+    investmentPlanId?: string | null;
+    agreementIssuedAt?: string | null;
+    profitSource?: "promo" | "agreement" | "none";
+    monthlyRatePercent?: number;
+  }[];
   transactionCount: number;
   withdrawalCount: number;
+  ambassador: {
+    name: string;
+    referralCode: string;
+  } | null;
   nonprofit: {
     organizationLegalName: string;
     ein: string;
@@ -76,6 +92,11 @@ export default function AdminUsersPage() {
                 <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium capitalize">
                   {u.profileType}
                 </span>
+                {u.ambassador && (
+                  <span className="rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-medium text-violet-800">
+                    Ref {u.ambassador.referralCode} · {u.ambassador.name}
+                  </span>
+                )}
                 <AdminStatusBadge status={u.kycStatus} />
                 <Link
                   href={`/admin/users/${u.id}`}
@@ -108,13 +129,53 @@ export default function AdminUsersPage() {
             {u.accounts.length > 0 && (
               <div className="mt-4">
                 <p className="text-xs font-semibold uppercase text-slate-500">Accounts</p>
-                <ul className="mt-2 space-y-1">
+                <ul className="mt-2 space-y-2">
                   {u.accounts.map((a) => (
-                    <li key={a.id} className="text-sm text-slate-700">
-                      <span className="capitalize">{a.type.replace(/_/g, " ")}</span>
-                      {" — "}
-                      {formatCurrency(a.principal)}
-                      <span className="text-slate-400"> ({a.status})</span>
+                    <li
+                      key={a.id}
+                      className="rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-2.5 text-sm text-slate-700"
+                    >
+                      <div className="flex flex-wrap items-baseline justify-between gap-2">
+                        <span className="font-medium capitalize">
+                          {a.type.replace(/_/g, " ")}
+                          <span className="ml-1.5 font-normal text-slate-400">({a.status})</span>
+                        </span>
+                        <span className="font-semibold tabular-nums text-slate-900">
+                          Balance {formatCurrency(a.balance)}
+                        </span>
+                      </div>
+                      <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">
+                        <span>
+                          Principal{" "}
+                          <strong className="font-semibold text-slate-800">
+                            {formatCurrency(a.principal)}
+                          </strong>
+                        </span>
+                        <span>
+                          Profit{" "}
+                          <strong className="font-semibold text-emerald-700">
+                            +{formatCurrency(a.profit)}
+                          </strong>
+                          {a.profitSource === "agreement" && a.agreementIssuedAt ? (
+                            <span className="text-slate-400">
+                              {" "}
+                              · from agreement {formatDate(a.agreementIssuedAt)}
+                              {a.monthlyRatePercent
+                                ? ` · ${a.monthlyRatePercent}%/mo`
+                                : ""}
+                            </span>
+                          ) : null}
+                          {a.profitSource === "promo" ? (
+                            <span className="text-slate-400"> · promo / daily</span>
+                          ) : null}
+                        </span>
+                        <span>
+                          Sent{" "}
+                          <strong className="font-semibold text-slate-800">
+                            {formatCurrency(a.sent)}
+                          </strong>
+                        </span>
+                      </div>
                     </li>
                   ))}
                 </ul>
