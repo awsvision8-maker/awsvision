@@ -16,23 +16,25 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
     isAuthenticated,
     isViewOnly,
     adminPreview,
+    managerPreview,
     logout,
-    exitAdminPreview,
+    exitPortalPreview,
   } = useAuth();
   const router = useRouter();
+  const inPreview = adminPreview || managerPreview;
 
-  useInactivityLogout(logout, isAuthenticated && !isLoading && !adminPreview);
+  useInactivityLogout(logout, isAuthenticated && !isLoading && !inPreview);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.replace("/login");
       return;
     }
-    // Admin preview can open dashboard even if KYC is incomplete (view-only)
-    if (!isLoading && user && user.kycStatus !== "verified" && !adminPreview) {
+    // Preview can open dashboard even if KYC is incomplete (view-only)
+    if (!isLoading && user && user.kycStatus !== "verified" && !inPreview) {
       router.replace("/kyc");
     }
-  }, [isLoading, isAuthenticated, user, router, adminPreview]);
+  }, [isLoading, isAuthenticated, user, router, inPreview]);
 
   if (isLoading) {
     return (
@@ -43,16 +45,22 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) return null;
-  if (user.kycStatus !== "verified" && !adminPreview) return null;
+  if (user.kycStatus !== "verified" && !inPreview) return null;
 
   const exitPreview = async () => {
-    const userId = await exitAdminPreview();
-    if (userId) {
-      window.location.href = `/admin/users/${userId}`;
+    const result = await exitPortalPreview();
+    if (result.mode === "manager") {
+      window.location.href = "/manager/clients";
+      return;
+    }
+    if (result.userId) {
+      window.location.href = `/admin/users/${result.userId}`;
       return;
     }
     window.location.href = "/admin/users";
   };
+
+  const previewLabel = managerPreview ? "Ambassador view-only" : "Admin view-only";
 
   return (
     <div className="flex min-h-screen overflow-x-hidden bg-slate-50">
@@ -63,7 +71,7 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-2 text-sm font-medium">
               <Eye className="h-4 w-4 shrink-0" />
               <span>
-                Admin view-only · Viewing{" "}
+                {previewLabel} · Viewing{" "}
                 <strong>
                   {user.firstName} {user.lastName}
                 </strong>

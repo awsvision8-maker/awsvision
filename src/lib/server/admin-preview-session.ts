@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 import { getAdminId, getAdminSession } from "@/lib/server/admin-session";
+import { getManagerUserPreview } from "@/lib/server/manager-preview-session";
 import { getSessionUserId } from "@/lib/server/session";
 import { jsonError } from "@/lib/server/api";
 
@@ -114,18 +115,23 @@ export async function isAdminPreviewMode(): Promise<boolean> {
 }
 
 /**
- * Portal identity: preview target user when admin is viewing, else real session.
+ * Portal identity: admin preview → BA preview → real user session.
  */
 export async function getPortalUserId(): Promise<string | null> {
-  const preview = await getAdminUserPreview();
-  if (preview) return preview.userId;
+  const adminPreview = await getAdminUserPreview();
+  if (adminPreview) return adminPreview.userId;
+  const managerPreview = await getManagerUserPreview();
+  if (managerPreview) return managerPreview.userId;
   return getSessionUserId();
 }
 
-/** Block deposits/withdrawals/chat/etc. during admin view-only preview. */
+/** Block deposits/withdrawals/chat/etc. during any view-only portal preview. */
 export async function rejectIfAdminPreview() {
   if (await isAdminPreviewMode()) {
     return jsonError("View-only admin preview — actions are disabled", 403);
+  }
+  if (await getManagerUserPreview()) {
+    return jsonError("View-only ambassador preview — actions are disabled", 403);
   }
   return null;
 }

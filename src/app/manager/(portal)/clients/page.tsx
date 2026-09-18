@@ -1,6 +1,6 @@
 "use client";
 
-import { Link2, TrendingUp } from "lucide-react";
+import { Eye, Link2, TrendingUp } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import {
   commissionStatusLabel,
@@ -24,7 +24,8 @@ export default function ManagerClientsPage() {
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Client book</h1>
         <p className="mt-1 text-sm text-slate-600">
-          Clients enrolled with your referral code, deposit status, and commission.
+          Clients enrolled with your referral code, deposit status, and commission. Open any
+          client&apos;s portal in view-only mode.
         </p>
       </div>
 
@@ -63,6 +64,7 @@ export default function ManagerClientsPage() {
                   </th>
                   <th className="px-5 py-3 font-semibold">Monthly target</th>
                   <th className="px-5 py-3 font-semibold">Joined</th>
+                  <th className="px-5 py-3 font-semibold">Portal</th>
                 </tr>
               </thead>
               <tbody>
@@ -106,6 +108,17 @@ export default function ManagerClientsPage() {
                     </td>
                     <td className="px-5 py-3.5 text-slate-500">
                       {new Date(r.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <a
+                        href={`/api/manager/clients/${r.id}/preview`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-2.5 py-1.5 text-xs font-semibold text-teal-800 hover:bg-teal-100"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                        View dashboard
+                      </a>
                     </td>
                   </tr>
                 ))}

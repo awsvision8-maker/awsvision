@@ -13,14 +13,21 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  /** Admin viewing this portal as the user — no writes allowed */
+  /** Admin or BA viewing this portal as the user — no writes allowed */
   isViewOnly: boolean;
   adminPreview: boolean;
+  managerPreview: boolean;
   login: (identifier: string, password: string) => Promise<boolean>;
   signup: (data: SignupApplication) => Promise<void>;
   signupNonprofit: (data: NonprofitSignupApplication) => Promise<void>;
   recordDeposit: (accountId: string, amount: number, description: string) => Promise<boolean>;
   logout: () => Promise<void>;
+  /** Exit admin or BA preview; returns target userId when known */
+  exitPortalPreview: () => Promise<{
+    userId: string | null;
+    mode: "admin" | "manager" | null;
+  }>;
+  /** @deprecated prefer exitPortalPreview */
   exitAdminPreview: () => Promise<string | null>;
   updateKYC: (data: KYCData) => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -34,24 +41,39 @@ async function parseResponse<T>(res: Response): Promise<T | null> {
   return data as T;
 }
 
+type MeResponse = {
+  user: User;
+  viewOnly?: boolean;
+  adminPreview?: boolean;
+  managerPreview?: boolean;
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isViewOnly, setIsViewOnly] = useState(false);
   const [adminPreview, setAdminPreview] = useState(false);
+  const [managerPreview, setManagerPreview] = useState(false);
+
+  const applyMe = (data: MeResponse | null) => {
+    if (!data?.user) return;
+    setUser(data.user);
+    setIsViewOnly(Boolean(data.viewOnly));
+    setAdminPreview(Boolean(data.adminPreview));
+    setManagerPreview(Boolean(data.managerPreview));
+  };
+
+  const clearAuthFlags = () => {
+    setUser(null);
+    setIsViewOnly(false);
+    setAdminPreview(false);
+    setManagerPreview(false);
+  };
 
   useEffect(() => {
     fetch("/api/auth/me")
-      .then((res) =>
-        parseResponse<{ user: User; viewOnly?: boolean; adminPreview?: boolean }>(res)
-      )
-      .then((data) => {
-        if (data?.user) {
-          setUser(data.user);
-          setIsViewOnly(Boolean(data.viewOnly));
-          setAdminPreview(Boolean(data.adminPreview));
-        }
-      })
+      .then((res) => parseResponse<MeResponse>(res))
+      .then((data) => applyMe(data))
       .finally(() => setIsLoading(false));
   }, []);
 
@@ -66,6 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(data.user);
       setIsViewOnly(false);
       setAdminPreview(false);
+      setManagerPreview(false);
       return true;
     }
     return false;
@@ -85,6 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(result.user);
       setIsViewOnly(false);
       setAdminPreview(false);
+      setManagerPreview(false);
       return;
     }
     throw new Error("Application submission failed. Please try again.");
@@ -104,6 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(result.user);
       setIsViewOnly(false);
       setAdminPreview(false);
+      setManagerPreview(false);
       return;
     }
     throw new Error("Application submission failed. Please try again.");
@@ -124,24 +149,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return false;
   };
 
+  const exitPortalPreview = async () => {
+    if (managerPreview) {
+      const res = await fetch("/api/manager/preview/exit", { method: "POST" });
+      const data = await parseResponse<{ userId?: string | null }>(res);
+      clearAuthFlags();
+      return { userId: data?.userId ?? null, mode: "manager" as const };
+    }
+    if (adminPreview) {
+      const res = await fetch("/api/admin/preview/exit", { method: "POST" });
+      const data = await parseResponse<{ userId?: string | null }>(res);
+      clearAuthFlags();
+      return { userId: data?.userId ?? null, mode: "admin" as const };
+    }
+    clearAuthFlags();
+    return { userId: null, mode: null };
+  };
+
   const exitAdminPreview = async () => {
-    const res = await fetch("/api/admin/preview/exit", { method: "POST" });
-    const data = await parseResponse<{ userId?: string | null }>(res);
-    setUser(null);
-    setIsViewOnly(false);
-    setAdminPreview(false);
-    return data?.userId ?? null;
+    const result = await exitPortalPreview();
+    return result.userId;
   };
 
   const logout = async () => {
-    if (adminPreview) {
-      await exitAdminPreview();
+    if (adminPreview || managerPreview) {
+      await exitPortalPreview();
       return;
     }
     await fetch("/api/auth/logout", { method: "POST" });
-    setUser(null);
-    setIsViewOnly(false);
-    setAdminPreview(false);
+    clearAuthFlags();
   };
 
   const updateKYC = async (data: KYCData) => {
@@ -156,16 +192,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const refreshUser = async () => {
-    const data = await parseResponse<{
-      user: User;
-      viewOnly?: boolean;
-      adminPreview?: boolean;
-    }>(await fetch("/api/auth/me"));
-    if (data?.user) {
-      setUser(data.user);
-      setIsViewOnly(Boolean(data.viewOnly));
-      setAdminPreview(Boolean(data.adminPreview));
-    }
+    const data = await parseResponse<MeResponse>(await fetch("/api/auth/me"));
+    applyMe(data);
   };
 
   return (
@@ -176,11 +204,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading,
         isViewOnly,
         adminPreview,
+        managerPreview,
         login,
         signup,
         signupNonprofit,
         recordDeposit,
         logout,
+        exitPortalPreview,
         exitAdminPreview,
         updateKYC,
         refreshUser,

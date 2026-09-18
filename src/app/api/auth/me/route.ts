@@ -4,6 +4,7 @@ import {
   getAdminUserPreview,
   getPortalUserId,
 } from "@/lib/server/admin-preview-session";
+import { getManagerUserPreview } from "@/lib/server/manager-preview-session";
 
 export async function GET() {
   const userId = await getPortalUserId();
@@ -16,11 +17,13 @@ export async function GET() {
     return jsonError("User not found", 404);
   }
 
-  const preview = await getAdminUserPreview();
+  const adminPreview = await getAdminUserPreview();
+  const managerPreview = adminPreview ? null : await getManagerUserPreview();
 
   return jsonOk({
     user,
-    viewOnly: Boolean(preview),
-    adminPreview: Boolean(preview),
+    viewOnly: Boolean(adminPreview || managerPreview),
+    adminPreview: Boolean(adminPreview),
+    managerPreview: Boolean(managerPreview),
   });
 }

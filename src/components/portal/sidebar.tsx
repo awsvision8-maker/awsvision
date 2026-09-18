@@ -42,9 +42,17 @@ const navItems = [
 
 export function PortalSidebar() {
   const pathname = usePathname();
-  const { user, logout, isViewOnly, adminPreview, exitAdminPreview } = useAuth();
+  const {
+    user,
+    logout,
+    isViewOnly,
+    adminPreview,
+    managerPreview,
+    exitPortalPreview,
+  } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const inPreview = adminPreview || managerPreview;
 
   const loadUnread = useCallback(() => {
     fetch("/api/notifications")
@@ -101,7 +109,7 @@ export function PortalSidebar() {
         <div className="mb-3 rounded-lg bg-slate-900 px-3 py-2">
           {isViewOnly && (
             <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
-              Admin view-only
+              {managerPreview ? "Ambassador view-only" : "Admin view-only"}
             </p>
           )}
           {user?.profileType === "nonprofit" && user.nonprofitProfile ? (
@@ -125,10 +133,14 @@ export function PortalSidebar() {
         </div>
         <button
           onClick={() => {
-            if (adminPreview) {
-              void exitAdminPreview().then((userId) => {
-                window.location.href = userId
-                  ? `/admin/users/${userId}`
+            if (inPreview) {
+              void exitPortalPreview().then((result) => {
+                if (result.mode === "manager") {
+                  window.location.href = "/manager/clients";
+                  return;
+                }
+                window.location.href = result.userId
+                  ? `/admin/users/${result.userId}`
                   : "/admin/users";
               });
               return;
@@ -138,7 +150,7 @@ export function PortalSidebar() {
           className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-slate-800 hover:text-white cursor-pointer"
         >
           <LogOut className="h-4 w-4" />
-          {adminPreview ? "Exit preview" : "Sign Out"}
+          {inPreview ? "Exit preview" : "Sign Out"}
         </button>
         <DeveloperCredit className="mt-4 px-1 text-slate-600" />
       </div>
