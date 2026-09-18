@@ -31,6 +31,8 @@ interface ReferralRow {
   email: string;
   kycStatus: string;
   createdAt: string;
+  currentCapital?: number;
+  currentBalance?: number;
   firstDepositAmount: number;
   firstDepositStatus: string;
   commissionAmount: number;
@@ -450,7 +452,20 @@ export default function AdminAmbassadorProfilePage() {
                   </Link>
                 </div>
 
-                <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-5">
+                  <div>
+                    <p className="text-xs text-slate-500">Current capital</p>
+                    <p className="font-medium text-slate-900">
+                      {(r.currentCapital ?? 0) > 0
+                        ? formatCurrency(r.currentCapital!)
+                        : "—"}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      {(r.currentBalance ?? 0) > 0
+                        ? `Balance ${formatCurrency(r.currentBalance!)}`
+                        : depositStatusLabel(r.firstDepositStatus)}
+                    </p>
+                  </div>
                   <div>
                     <p className="text-xs text-slate-500">First deposit</p>
                     <p className="font-medium text-slate-900">

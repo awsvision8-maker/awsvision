@@ -58,7 +58,7 @@ export default function ManagerClientsPage() {
                 <tr className="border-b border-slate-100 bg-slate-50/50 text-left text-[11px] uppercase tracking-wide text-slate-500">
                   <th className="px-5 py-3 font-semibold">Client</th>
                   <th className="px-5 py-3 font-semibold">KYC</th>
-                  <th className="px-5 py-3 font-semibold">First deposit</th>
+                  <th className="px-5 py-3 font-semibold">Current capital</th>
                   <th className="px-5 py-3 font-semibold">
                     Commission ({data.ambassador.commissionRatePercent}%)
                   </th>
@@ -76,11 +76,13 @@ export default function ManagerClientsPage() {
                     </td>
                     <td className="px-5 py-3.5 capitalize text-slate-700">{r.kycStatus}</td>
                     <td className="px-5 py-3.5">
-                      <p className="font-medium tabular-nums">
-                        {r.firstDepositAmount > 0 ? formatCurrency(r.firstDepositAmount) : "—"}
+                      <p className="font-medium tabular-nums text-slate-900">
+                        {r.currentCapital > 0 ? formatCurrency(r.currentCapital) : "—"}
                       </p>
                       <p className="text-xs text-slate-500">
-                        {depositStatusLabel(r.firstDepositStatus)}
+                        {r.currentBalance > 0
+                          ? `Balance ${formatCurrency(r.currentBalance)}`
+                          : depositStatusLabel(r.firstDepositStatus)}
                       </p>
                     </td>
                     <td className="px-5 py-3.5">

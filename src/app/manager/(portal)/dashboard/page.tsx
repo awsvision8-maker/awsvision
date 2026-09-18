@@ -55,9 +55,9 @@ export default function ManagerDashboardPage() {
       accent: "from-teal-600 to-teal-800",
     },
     {
-      label: "Opening deposits",
-      value: formatCurrency(data.stats.totalFirstDeposits),
-      hint: "Total first deposits approved",
+      label: "Current capital",
+      value: formatCurrency(data.stats.totalCurrentCapital ?? data.stats.totalFirstDeposits),
+      hint: `Book capital across ${data.stats.activeClients} active clients`,
       icon: Wallet,
       accent: "from-slate-700 to-slate-900",
     },

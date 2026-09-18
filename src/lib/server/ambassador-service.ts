@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { hashPassword, verifyPassword } from "@/lib/server/auth-service";
 import { SITE } from "@/lib/site-config";
+import { buildPortfolioSnapshot } from "@/lib/portfolio-engine";
+import { mapPortfolioAccount, mapTransaction } from "@/lib/server/user-mapper";
+import type { User } from "@/types";
 
 const REFERRAL_PREFIX = "AV";
 /** Default commission % when a new ambassador is approved (admin can change per ambassador). */
@@ -356,10 +359,41 @@ export async function getAmbassadorDashboard(ambassadorId: string) {
           lastName: true,
           email: true,
           kycStatus: true,
+          profileType: true,
           createdAt: true,
+          accounts: {
+            select: {
+              id: true,
+              userId: true,
+              accountNumber: true,
+              type: true,
+              principal: true,
+              monthlyRatePercent: true,
+              investmentPlanId: true,
+              maturityDate: true,
+              status: true,
+              profitEligibleAt: true,
+              profitRateAmended: true,
+              amendmentNote: true,
+              createdAt: true,
+              dailyCompoundActive: true,
+              dailyCompoundStartDate: true,
+              dailyCompoundEndDate: true,
+              dailyCompoundRatePercent: true,
+            },
+          },
           transactions: {
             orderBy: { date: "asc" },
-            select: { type: true, amount: true, date: true, status: true },
+            select: {
+              id: true,
+              userId: true,
+              accountId: true,
+              type: true,
+              amount: true,
+              description: true,
+              date: true,
+              status: true,
+            },
           },
         },
       },
@@ -367,13 +401,39 @@ export async function getAmbassadorDashboard(ambassadorId: string) {
   });
   if (!ambassador) return null;
 
+  const asOf = new Date();
+
   const referralLedgers = ambassador.referrals.map((user) => {
     const deposits = user.transactions.filter((t) => t.type === "deposit");
     const approved = firstCompletedDeposit(deposits);
+    const currentCapital = Math.round(
+      user.accounts.reduce((sum, a) => sum + (a.principal || 0), 0) * 100
+    ) / 100;
+
+    const snapshotUser = {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      phone: "",
+      kycStatus: user.kycStatus as User["kycStatus"],
+      profileType: (user.profileType as User["profileType"]) || "individual",
+      createdAt: user.createdAt.toISOString(),
+      portfolio: {
+        accounts: user.accounts.map(mapPortfolioAccount),
+        transactions: user.transactions.map(mapTransaction),
+      },
+    } satisfies User;
+
+    const snapshot = buildPortfolioSnapshot(snapshotUser, asOf);
+    const currentBalance = Math.round((snapshot.totalBalance || currentCapital) * 100) / 100;
+
     return {
       user,
       deposits,
       approved,
+      currentCapital,
+      currentBalance,
       ledger: user.transactions.map((t) => ({
         type: t.type,
         amount: t.amount,
@@ -383,8 +443,8 @@ export async function getAmbassadorDashboard(ambassadorId: string) {
     };
   });
 
-  const referrals = referralLedgers.map(({ user, deposits, approved, ledger }) => {
-
+  const referrals = referralLedgers.map(
+    ({ user, deposits, approved, ledger, currentCapital, currentBalance }) => {
     const pending = pendingFirstDeposit(deposits);
     const firstDepositApprovedAt = approved?.date ?? null;
     const now = new Date();
@@ -404,6 +464,8 @@ export async function getAmbassadorDashboard(ambassadorId: string) {
       email: user.email,
       kycStatus: user.kycStatus,
       createdAt: user.createdAt,
+      currentCapital,
+      currentBalance,
       firstDepositAmount: 0,
       firstDepositStatus: "awaiting_deposit" as const,
       commissionAmount: 0,
@@ -452,6 +514,8 @@ export async function getAmbassadorDashboard(ambassadorId: string) {
   const totalFirstDeposits = referrals
     .filter((r) => r.firstDepositStatus === "approved")
     .reduce((s, r) => s + r.firstDepositAmount, 0);
+  const totalCurrentCapital = referrals.reduce((s, r) => s + r.currentCapital, 0);
+  const totalCurrentBalance = referrals.reduce((s, r) => s + r.currentBalance, 0);
   const totalCommissionEarned = referrals.reduce((s, r) => s + r.commissionEarned, 0);
   const totalCommissionPending = referrals.reduce((s, r) => s + r.commissionPending, 0);
   const activeClients = referrals.filter((r) => r.isActiveInvestor).length;
@@ -503,6 +567,8 @@ export async function getAmbassadorDashboard(ambassadorId: string) {
       totalReferrals: referrals.length,
       activeClients,
       totalFirstDeposits,
+      totalCurrentCapital,
+      totalCurrentBalance,
       totalCommissionEarned,
       totalCommissionPending,
       totalCommission: totalCommissionEarned + totalCommissionPending,

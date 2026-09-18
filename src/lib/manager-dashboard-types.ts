@@ -42,6 +42,8 @@ export interface ManagerDashboardData {
     totalReferrals: number;
     activeClients: number;
     totalFirstDeposits: number;
+    totalCurrentCapital: number;
+    totalCurrentBalance: number;
     totalCommissionEarned: number;
     totalCommissionPending: number;
     totalCommission: number;
@@ -52,6 +54,8 @@ export interface ManagerDashboardData {
     email: string;
     kycStatus: string;
     createdAt: string;
+    currentCapital: number;
+    currentBalance: number;
     firstDepositAmount: number;
     firstDepositStatus: string;
     commissionAmount: number;
