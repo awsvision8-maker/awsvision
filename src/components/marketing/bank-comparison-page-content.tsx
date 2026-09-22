@@ -33,14 +33,26 @@ import {
 } from "@/lib/bank-comparison";
 import { NONPROFIT_CAPITAL_TIERS } from "@/lib/nonprofit-program";
 
-export function BankComparisonPageContent() {
-  const [principal, setPrincipal] = useState(50_000);
-  const [report, setReport] = useState<ComparisonReport | null>(null);
-  const [loading, setLoading] = useState(true);
+interface BankComparisonPageContentProps {
+  /** Server-rendered report so first HTML includes real numbers (SEO / no blank tables) */
+  initialReport?: ComparisonReport | null;
+  initialPrincipal?: number;
+}
+
+export function BankComparisonPageContent({
+  initialReport = null,
+  initialPrincipal = 50_000,
+}: BankComparisonPageContentProps = {}) {
+  const [principal, setPrincipal] = useState(initialPrincipal);
+  const [report, setReport] = useState<ComparisonReport | null>(initialReport);
+  const [loading, setLoading] = useState(!initialReport);
   const [error, setError] = useState<string | null>(null);
 
   const loadReport = useCallback(async (amount: number) => {
-    setLoading(true);
+    // Keep SSR seed visible while refetching a different principal
+    if (!initialReport || amount !== initialPrincipal) {
+      setLoading(true);
+    }
     setError(null);
     try {
       const res = await fetch(`/api/compare/rates?principal=${amount}`);
@@ -49,15 +61,19 @@ export function BankComparisonPageContent() {
       setReport(json.report);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load comparison");
-      setReport(null);
+      if (!initialReport || amount !== initialPrincipal) {
+        setReport(null);
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [initialReport, initialPrincipal]);
 
   useEffect(() => {
+    // Skip first client fetch when SSR already seeded default principal
+    if (initialReport && principal === initialPrincipal) return;
     loadReport(principal);
-  }, [principal, loadReport]);
+  }, [principal, loadReport, initialReport, initialPrincipal]);
 
   const savingsRows = report?.savings.filter((r) => !r.isAws) ?? [];
   const cdStandardRows = report?.cds.filter((r) => !r.isPromo) ?? [];
