@@ -50,12 +50,13 @@ export default function ServingTexasPage() {
             Service area · Texas
           </p>
           <h1 className="mt-3 max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">
-            Investment accounts for Texas residents
+            Investment firm Texas — management, wealth &amp; financial services
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-slate-300">
-            AWS Vision Financial is an online, service-based firm. Texas clients open savings, fixed
-            deposit, and wealth accounts remotely — with secure KYC, phone support, and portfolio
-            tracking. No local branch visit required.
+            AWS Vision Financial is an online investment company serving Texas clients with
+            investment management, wealth management, portfolio tracking, savings, and fixed
+            deposits. Dallas, Houston, Austin, Fort Worth, San Antonio, and statewide — remote KYC,
+            phone support, no retail branch required.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/signup" className={btnPrimary}>

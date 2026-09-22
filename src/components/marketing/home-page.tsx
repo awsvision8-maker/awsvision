@@ -36,12 +36,12 @@ export function HomePage() {
             <div>
               <Logo size="lg" href="/" priority className="mb-8" />
               <h1 className="text-4xl font-bold text-white sm:text-5xl lg:text-6xl leading-tight">
-                Investment Firm — Savings, Fixed Deposits &amp; Wealth Management
+                Investment Firm Texas — Wealth Management &amp; Financial Services
               </h1>
               <p className="mt-6 text-lg text-slate-200 leading-relaxed max-w-lg">
-                AWS Vision is an investment firm offering Savings and Fixed Deposit accounts with
-                monthly and yearly gratuity — plus global sector investing with monthly profit to
-                your account. We do not offer checking accounts.
+                AWS Vision is an online investment firm for Texas and U.S. clients — savings, fixed
+                deposits, investment management, and wealth plans with monthly profit distribution.
+                We do not offer checking accounts.
               </p>
               <p className="mt-3 text-sm text-slate-300">
                 Serving{" "}
@@ -170,6 +170,9 @@ export function HomePage() {
             <HabitsMarquee />
           </div>
           <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2">
+            <Link href="/investment-management" className="inline-flex items-center gap-2 text-teal-700 font-semibold hover:underline">
+              Investment management <ArrowRight className="h-4 w-4" />
+            </Link>
             <Link href="/financial-education" className="inline-flex items-center gap-2 text-teal-700 font-semibold hover:underline">
               Visit Better Money Habits® <ArrowRight className="h-4 w-4" />
             </Link>

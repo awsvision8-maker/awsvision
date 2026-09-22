@@ -174,10 +174,14 @@ export const FOOTER_LINKS = {
     { label: "Rates & Returns", href: "/rates" },
   ],
   investing: [
+    { label: "Investment Management", href: "/investment-management" },
     { label: "Wealth Management", href: "/wealth-management" },
+    { label: "Portfolio Management", href: "/portfolio-management" },
+    { label: "Investment Advisory", href: "/investment-advisory" },
+    { label: "Financial Planning", href: "/financial-planning" },
     { label: "Compare vs Big Banks", href: "/compare" },
+    { label: "Investment Guides", href: "/guides" },
     { label: "Investment Portal", href: "/login" },
-    { label: "Retirement", href: "/wealth-management#retirement" },
     { label: "Rates & Returns", href: "/rates" },
   ],
   support: [
@@ -196,6 +200,7 @@ export const FOOTER_LINKS = {
     { label: "About AWS Vision", href: "/about" },
     { label: "Serving Texas", href: "/serving-texas" },
     { label: "Dallas", href: "/serving-texas/dallas" },
+    { label: "Fort Worth", href: "/serving-texas/fort-worth" },
     { label: "Houston", href: "/serving-texas/houston" },
     { label: "Austin", href: "/serving-texas/austin" },
     { label: "San Antonio", href: "/serving-texas/san-antonio" },

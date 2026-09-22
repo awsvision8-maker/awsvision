@@ -1,4 +1,8 @@
 /** Central SEO copy for public marketing routes */
+import { SEO_GUIDES } from "@/lib/seo-guides";
+import { TEMPLATE_SERVICE_HUB_SLUGS, getServiceHub } from "@/lib/service-hubs";
+import { TEXAS_CITIES } from "@/lib/texas-cities";
+
 export interface PageSeo {
   title: string;
   description: string;
@@ -15,35 +19,43 @@ export const DEFAULT_KEYWORDS = [
   "AWS Vision",
   "awsvision",
   "AWS Vision Financial",
-  "financial services firm USA",
+  "Investment Firm Texas",
+  "Investment Company Texas",
+  "Investment Management Firm Texas",
+  "Investment Management Texas",
+  "Investment Advisor Texas",
+  "Investment Advisory Firm Texas",
+  "Financial Firm Texas",
+  "Financial Services Texas",
+  "Financial Advisor Texas",
+  "Financial Planning Texas",
+  "Wealth Management Texas",
+  "Wealth Management Firm Texas",
+  "Asset Management Texas",
+  "Portfolio Management Texas",
   "online investment firm",
-  "wealth management company United States",
-  "asset management firm",
   "fintech investment platform",
   "online investment account",
   "fixed deposit account USA",
-  "high yield savings account",
-  "monthly investment returns",
-  "portfolio management",
-  "Texas investment firm",
-  "online financial services Texas",
   "licensed investment company",
 ] as const;
 
 export const PAGE_SEO: Record<string, PageSeo> = {
   "/": {
     path: "/",
-    title: "AWS Vision Financial | Online Investment Firm — Savings, FD & Wealth (Texas & USA)",
+    title:
+      "Investment Firm Texas | Wealth Management & Financial Services | AWS Vision",
     description:
-      "AWS Vision is a licensed U.S. financial services firm serving clients across Texas and nationwide. Open savings, fixed deposit (FD), and wealth management accounts online with monthly profit distribution and 24/7 portfolio tracking.",
+      "AWS Vision is an online investment firm serving Texas and the U.S. — investment management, wealth management, portfolio tracking, savings, and fixed deposits. Dallas, Houston, Austin, Fort Worth, San Antonio & statewide.",
     keywords: [
       ...DEFAULT_KEYWORDS,
-      "open investment account online USA",
-      "best fixed deposit rates Texas",
-      "wealth management firm Texas",
-      "online investment account United States",
-      "monthly profit investment",
-      "FD account opening USA",
+      "Best Investment Firm in Texas",
+      "Investment Firm Near Me",
+      "Wealth Management Near Me",
+      "Financial Advisor Near Me",
+      "Investment Advisor Near Me",
+      "Private Wealth Management Texas",
+      "Portfolio Management Services Texas",
     ],
     priority: 1,
     changeFrequency: "daily",
@@ -65,170 +77,50 @@ export const PAGE_SEO: Record<string, PageSeo> = {
   },
   "/serving-texas": {
     path: "/serving-texas",
-    title: "Investment Accounts for Texas Residents | AWS Vision Financial",
+    title: "Investment Firm Texas | Investment Management & Wealth Management",
     description:
-      "Online savings, fixed deposits, and wealth management for Texas clients — Dallas, Houston, Austin, San Antonio, and statewide. Open an account remotely with AWS Vision Financial. No branch visit required.",
+      "Online investment firm for Texas — investment management, wealth management, portfolio services, savings & FD. Serving Dallas, Houston, Austin, Fort Worth, San Antonio and statewide. No retail branch required.",
     keywords: [
-      "Texas investment firm",
-      "investment account Texas",
-      "Dallas wealth management online",
-      "Houston fixed deposit account",
-      "Austin investment platform",
-      "San Antonio savings account",
-      "online banking Texas residents",
-      "Texas FD rates",
+      "Investment Firm Texas",
+      "Investment Company Texas",
+      "Investment Management Texas",
+      "Investment Advisor Texas",
+      "Financial Advisor Texas",
+      "Wealth Management Texas",
+      "Portfolio Management Texas",
+      "Financial Services Texas",
+      "Best Investment Firm in Texas",
+      "Local Investment Advisor",
     ],
     priority: 0.95,
     changeFrequency: "weekly",
   },
-  "/serving-texas/dallas": {
-    path: "/serving-texas/dallas",
-    title: "Dallas Investment Accounts Online | AWS Vision Financial",
-    description:
-      "Open savings, fixed deposit, and wealth accounts online from Dallas–Fort Worth. AWS Vision serves DFW clients remotely with KYC, phone support, and portfolio tracking.",
-    keywords: [
-      "Dallas investment firm online",
-      "Dallas wealth management",
-      "open investment account Dallas TX",
-      "Dallas fixed deposit account",
-      "DFW online investing",
-    ],
-    priority: 0.85,
-    changeFrequency: "weekly",
-  },
-  "/serving-texas/houston": {
-    path: "/serving-texas/houston",
-    title: "Houston Investment Accounts Online | AWS Vision Financial",
-    description:
-      "Houston residents can open AWS Vision savings, FD, and wealth accounts online. Remote KYC, statewide Texas coverage, and U.S. licensed financial services.",
-    keywords: [
-      "Houston investment account",
-      "Houston wealth management online",
-      "Houston fixed deposit rates",
-      "open FD account Houston TX",
-    ],
-    priority: 0.85,
-    changeFrequency: "weekly",
-  },
-  "/serving-texas/austin": {
-    path: "/serving-texas/austin",
-    title: "Austin Online Wealth & Savings | AWS Vision Financial",
-    description:
-      "Austin investors open AWS Vision savings, fixed deposits, and wealth plans online — transparent rates, monthly profit distribution, and digital onboarding.",
-    keywords: [
-      "Austin investment platform",
-      "Austin wealth management online",
-      "Austin high yield savings",
-      "fintech investing Austin TX",
-    ],
-    priority: 0.85,
-    changeFrequency: "weekly",
-  },
-  "/serving-texas/san-antonio": {
-    path: "/serving-texas/san-antonio",
-    title: "San Antonio Online Investment Accounts | AWS Vision",
-    description:
-      "San Antonio clients open savings and fixed deposit accounts or wealth plans with AWS Vision — fully online across Texas with phone and portal support.",
-    keywords: [
-      "San Antonio investment account",
-      "San Antonio fixed deposit",
-      "online investing San Antonio TX",
-    ],
-    priority: 0.85,
-    changeFrequency: "weekly",
-  },
   "/guides": {
     path: "/guides",
-    title: "Investment Guides — Open Accounts, FD vs Savings & Wealth | AWS Vision",
+    title: "Investment & Wealth Guides for Texas | AWS Vision Insights",
     description:
-      "Free investment guides for Texas and U.S. clients: how to open an account online, fixed deposit vs savings, Texas wealth management, and monthly profit investing.",
+      "Authority guides: choosing an investment advisor in Texas, wealth vs investment management, portfolio management, retirement planning, and more — with links to Dallas, Houston, Austin, Fort Worth & San Antonio.",
     keywords: [
-      "investment guides",
-      "how to open investment account online",
-      "fixed deposit vs savings",
-      "Texas wealth management guide",
+      "investment guides Texas",
+      "how to choose investment advisor Texas",
+      "wealth management vs investment management",
+      "financial advisor cost Texas",
     ],
-    priority: 0.8,
-    changeFrequency: "weekly",
-  },
-  "/guides/open-investment-account-online-usa": {
-    path: "/guides/open-investment-account-online-usa",
-    title: "How to Open an Investment Account Online in the USA | AWS Vision",
-    description:
-      "Step-by-step: choose a product, complete online KYC, fund your account, and track balances in the AWS Vision portal — for Texas and nationwide U.S. clients.",
-    keywords: [
-      "open investment account online USA",
-      "online KYC investment account",
-      "how to open FD account online",
-    ],
-    priority: 0.75,
-    changeFrequency: "monthly",
-  },
-  "/guides/fixed-deposit-vs-savings": {
-    path: "/guides/fixed-deposit-vs-savings",
-    title: "Fixed Deposit vs Savings Account: Which to Choose | AWS Vision",
-    description:
-      "Compare AWS Vision fixed deposits and savings — liquidity, program rates, and when each product fits Texas and U.S. investors.",
-    keywords: [
-      "fixed deposit vs savings",
-      "FD vs high yield savings",
-      "best CD vs savings account USA",
-    ],
-    priority: 0.75,
-    changeFrequency: "monthly",
-  },
-  "/guides/texas-online-wealth-management": {
-    path: "/guides/texas-online-wealth-management",
-    title: "Online Wealth Management for Texas Residents | AWS Vision",
-    description:
-      "How Texas clients use AWS Vision wealth plans online — Silver to Executive tiers, monthly profit distribution, and remote onboarding from Dallas, Houston, Austin, and beyond.",
-    keywords: [
-      "Texas wealth management online",
-      "Dallas Houston Austin investing",
-      "online wealth management Texas",
-    ],
-    priority: 0.75,
-    changeFrequency: "monthly",
-  },
-  "/guides/how-monthly-profit-investing-works": {
-    path: "/guides/how-monthly-profit-investing-works",
-    title: "How Monthly Profit Investing Works | AWS Vision Financial",
-    description:
-      "Plain-language overview of monthly profit distribution on AWS Vision wealth accounts — program rates, statements, and what to review each month.",
-    keywords: [
-      "monthly profit investment",
-      "monthly return investment account",
-      "how investment profit distribution works",
-    ],
-    priority: 0.75,
-    changeFrequency: "monthly",
-  },
-  "/serving-united-states": {
-    path: "/serving-united-states",
-    title: "Online Financial Services Across the United States | AWS Vision",
-    description:
-      "AWS Vision Financial serves clients nationwide across the United States with online account opening, KYC verification, savings and FD products, and wealth management — licensed U.S. financial services without needing a local branch.",
-    keywords: [
-      "nationwide investment firm USA",
-      "online financial services United States",
-      "open investment account any state",
-      "US fintech wealth management",
-      "remote KYC investment account",
-    ],
-    priority: 0.9,
+    priority: 0.85,
     changeFrequency: "weekly",
   },
   "/wealth-management": {
     path: "/wealth-management",
-    title: "Wealth Management & Investment Plans | AWS Vision Financial",
+    title: "Wealth Management Texas | Online Wealth Management Firm | AWS Vision",
     description:
-      "Professional wealth management for Texas and U.S. clients — Silver to Executive plans with 2%–7% monthly program rates, global sector portfolios, real-time analytics, and profit statements. Open an investment account online.",
+      "Wealth management for Texas and U.S. clients — Silver to Executive plans with monthly program rates, global sector portfolios, real-time analytics, and statements. Open an account online.",
     keywords: [
-      "wealth management firm Texas",
-      "investment management services USA",
+      "Wealth Management Texas",
+      "Wealth Management Firm Texas",
+      "Wealth Advisor Texas",
+      "Private Wealth Management Texas",
+      "Wealth Management Near Me",
       "monthly profit investment plan",
-      "global portfolio management",
-      "high return investment account",
       "professional asset management online",
     ],
     priority: 0.95,
@@ -489,6 +381,61 @@ export const PAGE_SEO: Record<string, PageSeo> = {
     priority: 0.6,
     changeFrequency: "weekly",
   },
+  "/serving-united-states": {
+    path: "/serving-united-states",
+    title: "Online Financial Services Across the United States | AWS Vision",
+    description:
+      "AWS Vision Financial serves clients nationwide across the United States with online account opening, KYC verification, savings and FD products, and wealth management — licensed U.S. financial services without needing a local branch.",
+    keywords: [
+      "nationwide investment firm USA",
+      "online financial services United States",
+      "open investment account any state",
+      "US fintech wealth management",
+      "remote KYC investment account",
+    ],
+    priority: 0.9,
+    changeFrequency: "weekly",
+  },
 };
+
+/** Sync city landing pages from TEXAS_CITIES */
+for (const city of TEXAS_CITIES) {
+  const path = `/serving-texas/${city.slug}`;
+  PAGE_SEO[path] = {
+    path,
+    title: `${city.name} Investment Firm & Wealth Management | AWS Vision`,
+    description: city.intro.slice(0, 158),
+    keywords: city.keywords,
+    priority: 0.88,
+    changeFrequency: "weekly",
+  };
+}
+
+/** Sync authority guides from SEO_GUIDES */
+for (const guide of SEO_GUIDES) {
+  const path = `/guides/${guide.slug}`;
+  PAGE_SEO[path] = {
+    path,
+    title: `${guide.title} | AWS Vision`,
+    description: guide.description,
+    keywords: guide.keywords,
+    priority: 0.72,
+    changeFrequency: "monthly",
+  };
+}
+
+/** Sync service hubs (investment management, portfolio, planning, advisory) */
+for (const slug of TEMPLATE_SERVICE_HUB_SLUGS) {
+  const hub = getServiceHub(slug);
+  if (!hub) continue;
+  PAGE_SEO[hub.path] = {
+    path: hub.path,
+    title: `${hub.h1} | AWS Vision Financial`,
+    description: hub.intro,
+    keywords: hub.keywords,
+    priority: 0.93,
+    changeFrequency: "weekly",
+  };
+}
 
 export const SITEMAP_PATHS = Object.keys(PAGE_SEO);

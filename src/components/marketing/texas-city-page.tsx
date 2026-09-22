@@ -52,9 +52,42 @@ export function TexasCityPageContent({ city }: { city: TexasCity }) {
         </div>
       </section>
 
+      <section className="border-b border-slate-200 py-12">
+        <div className="mx-auto max-w-7xl px-6">
+          <h2 className="text-xl font-bold text-slate-900">Who we help in {city.name}</h2>
+          <ul className="mt-4 grid gap-3 md:grid-cols-3">
+            {city.localFocus.map((item) => (
+              <li key={item} className="rounded-xl border border-slate-200 bg-slate-50/80 p-4 text-sm leading-relaxed text-slate-600">
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
       <section className="py-14">
-        <div className="mx-auto grid max-w-7xl gap-6 px-6 md:grid-cols-3">
+        <div className="mx-auto grid max-w-7xl gap-6 px-6 sm:grid-cols-2 lg:grid-cols-3">
           {[
+            {
+              title: "Investment management",
+              href: "/investment-management",
+              text: `Online investment management for ${city.name} clients.`,
+            },
+            {
+              title: "Wealth management",
+              href: "/wealth-management",
+              text: "Monthly profit distribution with portal statements.",
+            },
+            {
+              title: "Portfolio management",
+              href: "/portfolio-management",
+              text: "Track balances, statements, and plan activity online.",
+            },
+            {
+              title: "Financial planning",
+              href: "/financial-planning",
+              text: "Guides and account options for long-term goals.",
+            },
             {
               title: "Savings",
               href: "/personal/savings",
@@ -64,11 +97,6 @@ export function TexasCityPageContent({ city }: { city: TexasCity }) {
               title: "Fixed deposits",
               href: "/personal/cds",
               text: "Locked program rates with clear maturity terms.",
-            },
-            {
-              title: "Wealth plans",
-              href: "/wealth-management",
-              text: "Monthly profit distribution with portal statements.",
             },
           ].map((s) => (
             <Link
