@@ -94,6 +94,123 @@ export interface LiveYieldQuote {
   source: string;
 }
 
+/** Automated desk trade — buy/sell on bank investment sleeves */
+export interface AutomatedTrade {
+  id: string;
+  /** Unix ms when this fill “printed” */
+  at: number;
+  side: "buy" | "sell";
+  sleeveId: BankSleeveId;
+  sleeveLabel: string;
+  symbol: string;
+  instrument: string;
+  /** Fill price (index pts or bond/yield price) */
+  price: number;
+  /** Live reference rate / yield at fill (%) when applicable */
+  liveRate: number | null;
+  quantity: number;
+  notional: number;
+  /** Mark P&L impact of this fill on the book */
+  pnlImpact: number;
+  status: "filled";
+  note: string;
+}
+
+export interface TradeInstrument {
+  symbol: string;
+  name: string;
+  sleeveId: BankSleeveId;
+  /** Base mid price for UI */
+  basePrice: number;
+  /** Typical yield % shown next to the fill (null for pure equity index) */
+  baseYield: number | null;
+  overlayKey: string;
+}
+
+/** Instruments the automation desk rotates through */
+export const AUTOMATED_TRADE_INSTRUMENTS: TradeInstrument[] = [
+  {
+    symbol: "SHV",
+    name: "Short Treasury / MM ETF",
+    sleeveId: "yields",
+    basePrice: 110.2,
+    baseYield: 4.05,
+    overlayKey: "SHV",
+  },
+  {
+    symbol: "BIL",
+    name: "1-3 Month T-Bill",
+    sleeveId: "yields",
+    basePrice: 91.45,
+    baseYield: 4.12,
+    overlayKey: "SHV",
+  },
+  {
+    symbol: "IEF",
+    name: "7-10Y Treasury",
+    sleeveId: "gov_securities",
+    basePrice: 94.8,
+    baseYield: 4.18,
+    overlayKey: "^TNX",
+  },
+  {
+    symbol: "GOVT",
+    name: "US Treasury Bond ETF",
+    sleeveId: "gov_securities",
+    basePrice: 22.9,
+    baseYield: 4.05,
+    overlayKey: "^TNX",
+  },
+  {
+    symbol: "LQD",
+    name: "Investment-grade Corp Bond",
+    sleeveId: "bonds",
+    basePrice: 108.4,
+    baseYield: 4.55,
+    overlayKey: "TLT",
+  },
+  {
+    symbol: "AGG",
+    name: "US Aggregate Bond",
+    sleeveId: "bonds",
+    basePrice: 98.6,
+    baseYield: 4.35,
+    overlayKey: "TLT",
+  },
+  {
+    symbol: "SPY",
+    name: "S&P 500 Index",
+    sleeveId: "indices",
+    basePrice: 520,
+    baseYield: null,
+    overlayKey: "SPY",
+  },
+  {
+    symbol: "QQQ",
+    name: "Nasdaq-100 Index",
+    sleeveId: "indices",
+    basePrice: 445,
+    baseYield: null,
+    overlayKey: "QQQ",
+  },
+  {
+    symbol: "VNQ",
+    name: "US Real Estate REIT",
+    sleeveId: "real_estate",
+    basePrice: 88.5,
+    baseYield: 3.85,
+    overlayKey: "VNQ",
+  },
+  {
+    symbol: "IYR",
+    name: "Real Estate Select",
+    sleeveId: "real_estate",
+    basePrice: 92.1,
+    baseYield: 3.7,
+    overlayKey: "VNQ",
+  },
+];
+
 export interface BankSleeveLive {
   id: BankSleeveId;
   name: string;
@@ -107,6 +224,10 @@ export interface BankSleeveLive {
   /** Second change */
   secondDelta: number;
   changePercent: number;
+  /** Buys vs sells in the recent automation window */
+  buyCount: number;
+  sellCount: number;
+  lastSide: "buy" | "sell" | null;
 }
 
 export interface MarketDayPoint {
@@ -140,6 +261,10 @@ export interface PromoBankMarketLiveResult {
   sleeves: BankSleeveLive[];
   economics: EconomicIndicator[];
   yields: LiveYieldQuote[];
+  /** Latest automated buy/sell fills (newest first) */
+  trades: AutomatedTrade[];
+  /** Net P&L from fills in the visible blotter window */
+  tradeWindowPnl: number;
   history: MarketDayPoint[];
   programReturnPercent: number;
   termMonths: number;
@@ -221,6 +346,123 @@ function dayNoiseFactor(day: number, seed: string): number {
   return wave(`day:${seed}:${day}`, day * 17.3);
 }
 
+function sleeveLabel(id: BankSleeveId) {
+  return BANK_INVESTMENT_SLEEVES.find((s) => s.id === id)?.shortName ?? id;
+}
+
+/**
+ * Continuous automation desk: deterministic “random” buys/sells every few seconds
+ * across yields / Treasuries / bonds / indices / RE, priced off live overlays.
+ */
+export function generateAutomatedTrades(params: {
+  asOf: Date;
+  principal: number;
+  convergence: number;
+  marketOverlays?: Record<string, number>;
+  /** How many recent fills to return */
+  limit?: number;
+  /** Look-back window in seconds */
+  windowSec?: number;
+}): { trades: AutomatedTrade[]; windowPnl: number; sleeveTradePnl: Record<BankSleeveId, number> } {
+  const asOf = params.asOf;
+  const nowMs = asOf.getTime();
+  const limit = params.limit ?? 16;
+  const windowSec = params.windowSec ?? 90;
+  const overlays = params.marketOverlays ?? {};
+  const amp = params.principal * 0.00035 * Math.max(0.15, params.convergence || 0.5);
+
+  const trades: AutomatedTrade[] = [];
+  // A fill prints every 2–4 seconds (bucketed)
+  for (let age = 0; age < windowSec && trades.length < limit; age++) {
+    const tMs = nowMs - age * 1000;
+    const tSec = Math.floor(tMs / 1000);
+    // Only some seconds fire a trade
+    const fire = hash01(`trade-fire:${tSec}`);
+    if (fire > 0.42) continue; // ~42% of seconds get a fill → frequent blotter
+
+    const inst =
+      AUTOMATED_TRADE_INSTRUMENTS[
+        Math.floor(hash01(`trade-inst:${tSec}`) * AUTOMATED_TRADE_INSTRUMENTS.length)
+      ]!;
+    const side: "buy" | "sell" =
+      hash01(`trade-side:${tSec}:${inst.symbol}`) > 0.5 ? "buy" : "sell";
+
+    const ov = overlays[inst.overlayKey] ?? 0;
+    const priceJitter =
+      wave(`px:${inst.symbol}`, tSec) * (inst.basePrice * 0.004) +
+      clamp(ov, -2.5, 2.5) * (inst.basePrice * 0.002);
+    const price = money(inst.basePrice + priceJitter);
+
+    const qtyBase =
+      inst.sleeveId === "indices" || inst.sleeveId === "real_estate" ? 8 : 25;
+    const quantity = Math.max(
+      1,
+      Math.round(qtyBase * (0.55 + hash01(`trade-qty:${tSec}`) * 1.1))
+    );
+    const notional = money(price * quantity);
+
+    // Buy into strength / sell into weakness slightly biased by overlay, still random
+    const edge =
+      (side === "buy" ? 1 : -1) *
+      (wave(`pnl:${inst.symbol}`, tSec) * amp * (0.6 + inst.basePrice / 400) +
+        clamp(ov, -2, 2) * amp * 0.35);
+    const pnlImpact = money(edge * (0.7 + hash01(`trade-edge:${tSec}`) * 0.8));
+
+    const liveRate =
+      inst.baseYield == null
+        ? null
+        : money(
+            inst.baseYield +
+              wave(`yld:${inst.symbol}`, tSec) * 0.06 +
+              clamp(ov, -1, 1) * 0.04
+          );
+
+    const note =
+      side === "buy"
+        ? `Auto-buy ${inst.symbol} · ${sleeveLabel(inst.sleeveId)} sleeve`
+        : `Auto-sell ${inst.symbol} · ${sleeveLabel(inst.sleeveId)} sleeve`;
+
+    trades.push({
+      id: `t-${tSec}-${inst.symbol}-${side}`,
+      at: tMs,
+      side,
+      sleeveId: inst.sleeveId,
+      sleeveLabel: sleeveLabel(inst.sleeveId),
+      symbol: inst.symbol,
+      instrument: inst.name,
+      price,
+      liveRate,
+      quantity,
+      notional,
+      pnlImpact,
+      status: "filled",
+      note,
+    });
+  }
+
+  // Newest first
+  trades.sort((a, b) => b.at - a.at);
+
+  const sleeveTradePnl: Record<BankSleeveId, number> = {
+    yields: 0,
+    gov_securities: 0,
+    bonds: 0,
+    indices: 0,
+    real_estate: 0,
+  };
+  let windowPnl = 0;
+  for (const t of trades) {
+    windowPnl += t.pnlImpact;
+    sleeveTradePnl[t.sleeveId] = money(sleeveTradePnl[t.sleeveId] + t.pnlImpact);
+  }
+
+  return {
+    trades: trades.slice(0, limit),
+    windowPnl: money(windowPnl),
+    sleeveTradePnl,
+  };
+}
+
 export function computePromoBankMarketLive(params: {
   principal: number;
   startDate: string | Date;
@@ -298,7 +540,16 @@ export function computePromoBankMarketLive(params: {
     if (!isLive) prevMark = markBalance;
   }
 
-  // Sleeve residuals — visible ±$ every second, but not casino-scale
+  // Sleeve residuals — mark moves + automation desk trade P&L
+  const { trades, windowPnl, sleeveTradePnl } = generateAutomatedTrades({
+    asOf,
+    principal,
+    convergence: conv,
+    marketOverlays: overlays,
+    limit: 18,
+    windowSec: 100,
+  });
+
   const sleeveResiduals = BANK_INVESTMENT_SLEEVES.map((s) => {
     const overlayKey =
       s.id === "indices"
@@ -315,9 +566,10 @@ export function computePromoBankMarketLive(params: {
     const mid = wave(s.id + ":mid", tSec / 3) * 0.3;
     const fast = wave(s.id + ":fast", tSec * 1.4) * 0.15;
     const w = slow + mid + fast + clamp(ov, -2, 2) * 0.1;
+    const tradePush = sleeveTradePnl[s.id] ?? 0;
     return {
       sleeve: s,
-      residual: w * s.vol * peakAmp * s.weight * 1.35,
+      residual: w * s.vol * peakAmp * s.weight * 1.35 + tradePush * 0.85,
     };
   });
   const totalResidual = sleeveResiduals.reduce((a, x) => a + x.residual, 0);
@@ -351,6 +603,8 @@ export function computePromoBankMarketLive(params: {
     const secondSleeveDelta = money(pnl - prevRes);
     const changePercent =
       targetShare > 0 ? money((pnl / targetShare) * 100) : 0;
+    const sleeveTrades = trades.filter((t) => t.sleeveId === sleeve.id);
+    const last = sleeveTrades[0] ?? null;
     return {
       id: sleeve.id,
       name: sleeve.name,
@@ -361,6 +615,9 @@ export function computePromoBankMarketLive(params: {
       pnl,
       secondDelta: secondSleeveDelta,
       changePercent,
+      buyCount: sleeveTrades.filter((t) => t.side === "buy").length,
+      sellCount: sleeveTrades.filter((t) => t.side === "sell").length,
+      lastSide: last?.side ?? null,
     };
   });
 
@@ -390,6 +647,8 @@ export function computePromoBankMarketLive(params: {
     sleeves,
     economics,
     yields,
+    trades,
+    tradeWindowPnl: windowPnl,
     history,
     programReturnPercent,
     termMonths,
@@ -402,9 +661,17 @@ function computePromoBankMarketLiveSecond(
   asOf: Date,
   peakAmp: number,
   overlays: Record<string, number>,
-  _conv: number
+  conv: number
 ): { displayBalance: number; sleeves: { id: BankSleeveId; pnl: number }[] } {
   const tSec = asOf.getTime() / 1000;
+  const { sleeveTradePnl } = generateAutomatedTrades({
+    asOf,
+    principal: program.principal,
+    convergence: conv,
+    marketOverlays: overlays,
+    limit: 18,
+    windowSec: 100,
+  });
   const sleeveResiduals = BANK_INVESTMENT_SLEEVES.map((s) => {
     const overlayKey =
       s.id === "indices"
@@ -421,9 +688,10 @@ function computePromoBankMarketLiveSecond(
     const mid = wave(s.id + ":mid", tSec / 3) * 0.3;
     const fast = wave(s.id + ":fast", tSec * 1.4) * 0.15;
     const w = slow + mid + fast + clamp(ov, -2, 2) * 0.1;
+    const tradePush = sleeveTradePnl[s.id] ?? 0;
     return {
       id: s.id,
-      residual: w * s.vol * peakAmp * s.weight * 1.35,
+      residual: w * s.vol * peakAmp * s.weight * 1.35 + tradePush * 0.85,
     };
   });
   const totalResidual = sleeveResiduals.reduce((a, x) => a + x.residual, 0);

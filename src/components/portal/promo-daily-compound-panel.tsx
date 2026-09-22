@@ -23,6 +23,7 @@ import {
   Minus,
   Sparkles,
   TrendingUp,
+  Bot,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
@@ -262,7 +263,7 @@ export function PromoDailyCompoundPanel({
                     live.program.totalProgramDays
                       ? ` of ${live.program.totalProgramDays}`
                       : ""
-                  } · Live +/− marks on bank investment sleeves · Program settles to ${live.programReturnPercent}% by term end`}
+                  } · Auto buy/sell on yields · Treasuries · bonds · indices · RE · settles to ${live.programReturnPercent}%`}
               {live.program.endDate ? ` · Ends ${formatDate(live.program.endDate)}` : ""}
             </p>
           </div>
@@ -455,8 +456,110 @@ export function PromoDailyCompoundPanel({
                 >
                   {signedCurrency(s.secondDelta)}/s · {signedCurrency(s.pnl)} vs target
                 </p>
+                <p className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-slate-500">
+                  <span className="rounded bg-emerald-500/15 px-1 py-0.5 text-emerald-300">
+                    {s.buyCount} buy
+                  </span>
+                  <span className="rounded bg-rose-500/15 px-1 py-0.5 text-rose-300">
+                    {s.sellCount} sell
+                  </span>
+                  {s.lastSide && (
+                    <span
+                      className={cn(
+                        "font-semibold uppercase",
+                        s.lastSide === "buy" ? "text-emerald-400" : "text-rose-400"
+                      )}
+                    >
+                      last {s.lastSide}
+                    </span>
+                  )}
+                </p>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Automated buy/sell blotter */}
+        <div>
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-100">
+              <Bot className="h-4 w-4 text-violet-300" />
+              Automation desk — live buy &amp; sell
+              <span className="relative ml-1 flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-violet-400 opacity-60" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-violet-400" />
+              </span>
+            </div>
+            <p
+              className={cn(
+                "text-xs font-semibold tabular-nums",
+                live.tradeWindowPnl >= 0 ? "text-emerald-400" : "text-rose-400"
+              )}
+            >
+              Window P&amp;L {signedCurrency(live.tradeWindowPnl)}
+            </p>
+          </div>
+          <p className="mb-3 text-xs text-slate-500">
+            Random automated purchases and sales across yields, Treasuries, bonds, indices, and
+            real estate — priced from live rates. Book mark rises/falls with each fill; program
+            path still settles to +{live.programReturnPercent}% by month {live.termMonths}.
+          </p>
+          <div className="overflow-hidden rounded-xl border border-violet-500/20 bg-black/30">
+            <div className="grid grid-cols-[52px_1fr_72px_88px_72px] gap-1 border-b border-white/10 px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500 sm:grid-cols-[56px_1fr_80px_100px_88px]">
+              <span>Side</span>
+              <span>Instrument</span>
+              <span className="text-right">Qty</span>
+              <span className="text-right">Price / yld</span>
+              <span className="text-right">P&amp;L</span>
+            </div>
+            <div className="max-h-64 overflow-y-auto">
+              {live.trades.length === 0 ? (
+                <p className="px-3 py-6 text-center text-xs text-slate-500">
+                  Waiting for next automated fill…
+                </p>
+              ) : (
+                live.trades.map((t, i) => (
+                  <div
+                    key={t.id}
+                    className={cn(
+                      "grid grid-cols-[52px_1fr_72px_88px_72px] gap-1 border-b border-white/5 px-3 py-2 text-xs sm:grid-cols-[56px_1fr_80px_100px_88px]",
+                      i === 0 && "bg-violet-500/10"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "font-bold uppercase",
+                        t.side === "buy" ? "text-emerald-400" : "text-rose-400"
+                      )}
+                    >
+                      {t.side}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-slate-100">
+                        {t.symbol}{" "}
+                        <span className="font-normal text-slate-500">· {t.sleeveLabel}</span>
+                      </p>
+                      <p className="truncate text-[10px] text-slate-500">{t.instrument}</p>
+                    </div>
+                    <span className="text-right tabular-nums text-slate-300">{t.quantity}</span>
+                    <div className="text-right tabular-nums">
+                      <p className="text-slate-200">{t.price.toFixed(2)}</p>
+                      <p className="text-[10px] text-amber-300/80">
+                        {t.liveRate != null ? `${t.liveRate.toFixed(2)}%` : "index"}
+                      </p>
+                    </div>
+                    <span
+                      className={cn(
+                        "text-right font-semibold tabular-nums",
+                        t.pnlImpact >= 0 ? "text-emerald-400" : "text-rose-400"
+                      )}
+                    >
+                      {signedCurrency(t.pnlImpact)}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
 
@@ -678,12 +781,11 @@ export function PromoDailyCompoundPanel({
         </div>
 
         <p className="text-[10px] leading-relaxed text-slate-500">
-          Illustrative bank-treasury mark-to-market overlay for Wealth Accelerator accounts.
-          Second-by-second +/− reflects yields, government securities, bonds, indices, and real
-          estate marks plus macro factors (Fed, CPI, PPI, unemployment). Program accounting still
-          compounds toward the contracted {live.programReturnPercent}% over {live.termMonths}{" "}
-          months — live marks converge to that target near term end. Not a brokerage statement;
-          not investment advice.
+          Illustrative bank-treasury automation for Wealth Accelerator accounts. Continuous
+          automated buys/sells across yields, government securities, bonds, equity indices, and
+          real estate move the live mark up and down with rates. Program accounting still compounds
+          toward the contracted {live.programReturnPercent}% over {live.termMonths} months — marks
+          converge near term end. Not a brokerage statement; not investment advice.
         </p>
       </CardContent>
     </Card>
