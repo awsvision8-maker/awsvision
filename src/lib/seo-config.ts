@@ -133,7 +133,6 @@ export const PAGE_SEO: Record<string, PageSeo> = {
     path: "/rates",
     title: "Investment Rates & FD Returns | AWS Vision Financial",
     description:
-    description:
       "AWS Vision savings and fixed deposit programs with capital-based tiers. Exact monthly rates are confirmed on a call — public pages use up-to framing only.",
     keywords: [
       "investment rates",
