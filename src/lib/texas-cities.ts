@@ -153,6 +153,23 @@ export const TEXAS_CITIES: TexasCity[] = [
       "Clients comparing wealth management firms online",
       "Investors who prefer digital KYC over a retail branch visit",
     ],
+    processSteps: [
+      {
+        title: "Apply from Austin metro",
+        body: "Signup and KYC online from Austin, Round Rock, Cedar Park, or anywhere in the metro — no downtown branch visit.",
+      },
+      {
+        title: "Select savings, FD, or wealth",
+        body: "Match products to your horizon; review published rates before you fund.",
+      },
+      {
+        title: "Track in the portal",
+        body: "Monitor balances and statements digitally with phone support when needed.",
+      },
+    ],
+    whyLocal: [
+      "Austin’s workforce often prefers fintech-style onboarding. We serve that preference without inventing a fake Congress Ave storefront.",
+    ],
     keywords: [
       "Investment Firm Austin",
       "Investment Firm Austin TX",
@@ -188,6 +205,23 @@ export const TEXAS_CITIES: TexasCity[] = [
       "Fort Worth households seeking online investment management",
       "DFW west-side clients who want wealth plans without a Fort Worth storefront",
       "Investors comparing financial services across North Texas",
+    ],
+    processSteps: [
+      {
+        title: "Enroll across Tarrant County",
+        body: "Fort Worth, Arlington, and nearby cities complete KYC online under the same DFW service model.",
+      },
+      {
+        title: "Choose your accounts",
+        body: "Savings, fixed deposits, or wealth tiers — compare on the rates page first.",
+      },
+      {
+        title: "Stay connected",
+        body: "Portal tracking plus phone support for North Texas clients.",
+      },
+    ],
+    whyLocal: [
+      "Fort Worth searches often overlap Dallas/DFW. We cover both sides of the metro honestly as one online Texas service area.",
     ],
     keywords: [
       "Investment Firm Fort Worth",
@@ -225,6 +259,23 @@ export const TEXAS_CITIES: TexasCity[] = [
       "San Antonio households comparing local vs online investment firms",
       "Clients seeking wealth management and portfolio tracking online",
       "Investors who want clear rates before opening an account",
+    ],
+    processSteps: [
+      {
+        title: "Open from San Antonio metro",
+        body: "Complete online KYC from San Antonio or nearby communities — no retail branch required.",
+      },
+      {
+        title: "Fund the right product",
+        body: "Savings, FD, or wealth plans based on your timeline; review rates first.",
+      },
+      {
+        title: "Use the portal",
+        body: "Track activity anytime; contact support by phone or email.",
+      },
+    ],
+    whyLocal: [
+      "San Antonio investors comparing “local firm” vs online options should prioritize honesty about offices and clear product pages — that is how we operate statewide.",
     ],
     keywords: [
       "Investment Firm San Antonio",

@@ -222,6 +222,48 @@ export const SERVICE_HUBS: ServiceHub[] = [
       { label: "Contact", href: "/contact" },
     ],
   },
+  {
+    slug: "asset-management",
+    path: "/asset-management",
+    eyebrow: "Asset management · Texas & USA",
+    h1: "Asset management company for Texas & U.S. clients",
+    intro:
+      "AWS Vision Financial provides online asset management style services — structured investment and wealth products, portfolio tracking, and transparent program rates for clients across Texas and nationwide.",
+    keywords: [
+      "Asset Management Texas",
+      "Asset Management Company Texas",
+      "asset management firm Texas",
+      "Asset Management USA",
+      "Investment Management Company Texas",
+    ],
+    sections: [
+      {
+        heading: "How we approach asset growth",
+        body: [
+          "Clients select savings, fixed deposit, or wealth plans, then monitor capital in the portal with downloadable statements.",
+          "Texas metros — Dallas, Houston, Austin, Fort Worth, San Antonio — enroll online with remote KYC.",
+        ],
+      },
+      {
+        heading: "Related hubs",
+        body: [
+          "See investment management and portfolio management for deeper product detail, and wealth management for tiered plans.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        q: "Is asset management available online in Texas?",
+        a: "Yes. AWS Vision serves Texas clients remotely with investment and wealth products — no retail branch visit required.",
+      },
+    ],
+    related: [
+      { label: "Investment management", href: "/investment-management" },
+      { label: "Portfolio management", href: "/portfolio-management" },
+      { label: "Asset management guide", href: "/guides/asset-management-texas" },
+      { label: "Wealth management", href: "/wealth-management" },
+    ],
+  },
 ];
 
 export function getServiceHub(slug: string) {
@@ -234,4 +276,5 @@ export const TEMPLATE_SERVICE_HUB_SLUGS = [
   "portfolio-management",
   "financial-planning",
   "investment-advisory",
+  "asset-management",
 ] as const;

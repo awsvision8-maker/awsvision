@@ -112,6 +112,369 @@ export const SEO_GUIDES: SeoGuide[] = [
     ],
   },
   {
+    slug: "best-investment-firm-texas",
+    title: "Best Investment Firm in Texas — Buyer’s Checklist",
+    description:
+      "How to evaluate the best investment firm in Texas: products, rates transparency, online service, and trust — plus how AWS Vision Financial compares as a remote option.",
+    keywords: [
+      "best investment firm in Texas",
+      "best investment company Texas",
+      "top investment firms in Texas",
+      "Investment Firm Texas",
+    ],
+    category: "Investing",
+    readTime: "8 min",
+    sections: [
+      {
+        heading: "Define what you need",
+        body: [
+          "Investment firms differ: some focus on brokerage, others on managed portfolios or structured savings/FD products. Match the firm to your goal before chasing “best” labels.",
+        ],
+      },
+      {
+        heading: "Texas online option",
+        body: [
+          "AWS Vision Financial serves Texas online with savings, fixed deposits, and wealth plans. Compare rates and Texas city pages, then enroll if the model fits.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Best financial firm Texas", href: "/guides/best-financial-firm-texas" },
+      { label: "Investment management", href: "/investment-management" },
+      { label: "Serving Texas", href: "/serving-texas" },
+    ],
+  },
+  {
+    slug: "best-wealth-management-firm-texas",
+    title: "Best Wealth Management Firm in Texas — What to Compare",
+    description:
+      "Comparing the best wealth management firm in Texas? Review plan tiers, statements, support, and online access — then see AWS Vision wealth plans.",
+    keywords: [
+      "best wealth management firm Texas",
+      "Wealth Management Firm Texas",
+      "Private Wealth Management Texas",
+      "Wealth Advisor Texas",
+    ],
+    category: "Wealth",
+    readTime: "7 min",
+    sections: [
+      {
+        heading: "Wealth vs generic investing",
+        body: [
+          "Wealth management usually means ongoing plan structure, statements, and longer-horizon portfolio growth — not only a single savings product.",
+        ],
+      },
+      {
+        heading: "AWS Vision wealth plans",
+        body: [
+          "Silver through Executive tiers with published monthly program rates and portal tracking for Texas and U.S. clients.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Wealth management", href: "/wealth-management" },
+      { label: "Texas wealth guide", href: "/guides/texas-online-wealth-management" },
+      { label: "Dallas", href: "/serving-texas/dallas" },
+    ],
+  },
+  {
+    slug: "financial-advisor-near-me-texas",
+    title: "Financial Advisor Near Me in Texas — Online vs Local",
+    description:
+      "Searching financial advisor near me in Texas? Learn when a local office matters vs an honest online firm like AWS Vision Financial serving statewide.",
+    keywords: [
+      "Financial Advisor Near Me",
+      "financial advisor near me Texas",
+      "Financial Advisor Texas",
+      "Independent Financial Advisor Near Me",
+    ],
+    category: "Financial Planning",
+    readTime: "7 min",
+    sections: [
+      {
+        heading: "Near me does not always mean a storefront",
+        body: [
+          "Many Texans search “near me” but enroll online. What matters is real support, clear products, and accurate location claims — not a fake pin on Maps.",
+        ],
+      },
+      {
+        heading: "Statewide remote service",
+        body: [
+          "AWS Vision serves Dallas, Houston, Austin, Fort Worth, San Antonio, and all of Texas online. Call +1 (469) 754-2201 for account questions.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Investment advisory", href: "/investment-advisory" },
+      { label: "Choose a financial advisor", href: "/guides/how-to-choose-financial-advisor-texas" },
+      { label: "Serving Texas", href: "/serving-texas" },
+    ],
+  },
+  {
+    slug: "investment-advisor-near-me-texas",
+    title: "Investment Advisor Near Me (Texas) — How to Vet Firms",
+    description:
+      "Investment advisor near me searches in Texas: checklist for online and local firms, plus AWS Vision Financial’s remote investment services.",
+    keywords: [
+      "Investment Advisor Near Me",
+      "Investment Advisor Texas",
+      "Local Investment Advisor",
+      "Personal Investment Advisor",
+    ],
+    category: "Investing",
+    readTime: "7 min",
+    sections: [
+      {
+        heading: "Vet the model",
+        body: [
+          "Ask how advice is delivered, what products exist, and whether any Texas address is a real public office. Online firms should state service-area coverage clearly.",
+        ],
+      },
+      {
+        heading: "Next step",
+        body: [
+          "Review investment management and advisory pages, then compare rates before signup.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Investment advisory", href: "/investment-advisory" },
+      { label: "Investment management", href: "/investment-management" },
+      { label: "Houston", href: "/serving-texas/houston" },
+    ],
+  },
+  {
+    slug: "private-wealth-management-texas",
+    title: "Private Wealth Management Texas — Online Options",
+    description:
+      "Private wealth management in Texas for individuals building larger balances — how online plans work at AWS Vision Financial without a retail branch.",
+    keywords: [
+      "Private Wealth Management Texas",
+      "private wealth management Dallas",
+      "High Net Worth Wealth Management Texas",
+      "Executive Wealth Management",
+    ],
+    category: "Wealth",
+    readTime: "7 min",
+    sections: [
+      {
+        heading: "What private wealth usually implies",
+        body: [
+          "Higher balances, clearer documentation, and closer attention to statements and agreements. Education here is not personalized advice.",
+        ],
+      },
+      {
+        heading: "Executive-style online plans",
+        body: [
+          "Explore wealth tiers and rates. Texas clients enroll remotely across major metros.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Wealth management", href: "/wealth-management" },
+      { label: "HNW strategies guide", href: "/guides/investment-strategies-high-net-worth" },
+      { label: "Rates", href: "/rates" },
+    ],
+  },
+  {
+    slug: "asset-management-texas",
+    title: "Asset Management Texas — Firm Overview for Investors",
+    description:
+      "Asset management in Texas explained for online investors — how AWS Vision Financial approaches capital growth, tracking, and statewide service.",
+    keywords: [
+      "Asset Management Texas",
+      "Asset Management Company Texas",
+      "asset management firm Texas",
+      "Investment Management Company Texas",
+    ],
+    category: "Investing",
+    readTime: "6 min",
+    sections: [
+      {
+        heading: "Asset management in plain terms",
+        body: [
+          "It means putting capital to work under defined products and monitoring results through statements and a portal.",
+        ],
+      },
+      {
+        heading: "Texas coverage",
+        body: [
+          "Same online model statewide. Start with investment management and portfolio pages.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Asset management hub", href: "/asset-management" },
+      { label: "Portfolio management", href: "/portfolio-management" },
+      { label: "Austin", href: "/serving-texas/austin" },
+    ],
+  },
+  {
+    slug: "best-investment-firm-dallas",
+    title: "Best Investment Firm in Dallas — Comparison Framework",
+    description:
+      "Searching for the best investment firm in Dallas? Use this framework for DFW investors, then compare AWS Vision Financial’s online Dallas coverage.",
+    keywords: [
+      "best investment firm in Dallas",
+      "best investment company Dallas",
+      "Investment Firm Dallas",
+      "top investment firms Dallas TX",
+    ],
+    category: "Investing",
+    readTime: "7 min",
+    sections: [
+      {
+        heading: "DFW search intent",
+        body: [
+          "Dallas investors often compare local advisors with online firms. Prioritize real operations, rates clarity, and portal access.",
+        ],
+      },
+      {
+        heading: "AWS Vision in Dallas",
+        body: [
+          "Remote service for Dallas–Fort Worth — see our Dallas page for FAQs and products.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Dallas coverage", href: "/serving-texas/dallas" },
+      { label: "Best firm Texas", href: "/guides/best-financial-firm-texas" },
+      { label: "Fort Worth", href: "/serving-texas/fort-worth" },
+    ],
+  },
+  {
+    slug: "best-financial-advisor-houston",
+    title: "Best Financial Advisor in Houston — How to Decide",
+    description:
+      "Best financial advisor in Houston searches: online vs local checklist for Greater Houston, and how AWS Vision serves Houston remotely.",
+    keywords: [
+      "best financial advisor in Houston",
+      "Financial Advisor Houston",
+      "Financial Advisor Houston TX",
+      "best investment advisor Houston",
+    ],
+    category: "Financial Planning",
+    readTime: "7 min",
+    sections: [
+      {
+        heading: "Houston considerations",
+        body: [
+          "Energy, healthcare, and professional households often want flexible digital access. Confirm whether you need in-person meetings or remote onboarding is enough.",
+        ],
+      },
+      {
+        heading: "Our Houston page",
+        body: [
+          "See Serving Houston for products and FAQs, then compare rates.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Houston", href: "/serving-texas/houston" },
+      { label: "Choose a financial advisor", href: "/guides/how-to-choose-financial-advisor-texas" },
+      { label: "Financial planning", href: "/financial-planning" },
+    ],
+  },
+  {
+    slug: "best-wealth-management-austin",
+    title: "Best Wealth Management in Austin — Online Checklist",
+    description:
+      "Best wealth management in Austin: what Austin investors should compare, and how AWS Vision Financial serves Austin online.",
+    keywords: [
+      "best wealth management Austin",
+      "Wealth Management Austin",
+      "Wealth Management Firm Austin",
+      "best investment firm Austin TX",
+    ],
+    category: "Wealth",
+    readTime: "6 min",
+    sections: [
+      {
+        heading: "Austin investor profile",
+        body: [
+          "Tech and professional households often prefer digital KYC and clear portal statements over branch visits.",
+        ],
+      },
+      {
+        heading: "Explore Austin coverage",
+        body: [
+          "Open the Austin service page and wealth management hub to compare tiers.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Austin", href: "/serving-texas/austin" },
+      { label: "Wealth management", href: "/wealth-management" },
+      { label: "Best wealth Texas", href: "/guides/best-wealth-management-firm-texas" },
+    ],
+  },
+  {
+    slug: "investment-firm-near-me",
+    title: "Investment Firm Near Me — Texas & U.S. Online Guide",
+    description:
+      "Investment firm near me: how to interpret the search in Texas and across the U.S., and when an online firm like AWS Vision Financial is the right fit.",
+    keywords: [
+      "Investment Firm Near Me",
+      "Investment Company Near Me",
+      "Investment Management Near Me",
+      "Wealth Management Near Me",
+    ],
+    category: "Investing",
+    readTime: "6 min",
+    sections: [
+      {
+        heading: "Near me + online firms",
+        body: [
+          "Maps results favor physical offices. Organic results can include legitimate online firms that serve your state remotely — read their service-area pages carefully.",
+        ],
+      },
+      {
+        heading: "Find AWS Vision",
+        body: [
+          "Use awsvision.com, Serving Texas, or Serving the United States — not Amazon AWS computer vision results.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Serving Texas", href: "/serving-texas" },
+      { label: "Serving the U.S.", href: "/serving-united-states" },
+      { label: "Brand clarification", href: "/guides/aws-vision-financial-vs-amazon-aws" },
+    ],
+  },
+  {
+    slug: "high-net-worth-financial-advisor-texas",
+    title: "High Net Worth Financial Advisor Texas — What to Ask",
+    description:
+      "High net worth financial advisor Texas: questions for larger balances, documentation, and online private-wealth style plans at AWS Vision Financial.",
+    keywords: [
+      "High Net Worth Financial Advisor Texas",
+      "High Net Worth Investment Advisor Texas",
+      "Wealth Management for High Net Worth Individuals",
+      "Private Wealth Advisor Texas",
+    ],
+    category: "Wealth",
+    readTime: "8 min",
+    sections: [
+      {
+        heading: "Questions that matter at higher balances",
+        body: [
+          "Ask for written terms, statement cadence, support contacts, and how products scale. Avoid vague performance promises.",
+        ],
+      },
+      {
+        heading: "Next reading",
+        body: [
+          "See private wealth and HNW strategy guides, then review wealth tiers and rates.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Private wealth Texas", href: "/guides/private-wealth-management-texas" },
+      { label: "HNW strategies", href: "/guides/investment-strategies-high-net-worth" },
+      { label: "Wealth management", href: "/wealth-management" },
+    ],
+  },
+  {
     slug: "aws-vision-financial-vs-amazon-aws",
     title: "AWS Vision Financial vs Amazon AWS — What’s the Difference?",
     description:

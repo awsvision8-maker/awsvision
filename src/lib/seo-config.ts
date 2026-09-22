@@ -403,8 +403,23 @@ export const PAGE_SEO: Record<string, PageSeo> = {
       "open investment account any state",
       "US fintech wealth management",
       "remote KYC investment account",
+      "best financial firm USA",
     ],
     priority: 0.9,
+    changeFrequency: "weekly",
+  },
+  "/locations": {
+    path: "/locations",
+    title: "Locations We Serve — Texas Cities & Nationwide U.S. | AWS Vision",
+    description:
+      "AWS Vision Financial service areas: Dallas, Houston, Austin, Fort Worth, San Antonio, statewide Texas, and nationwide U.S. online — no fake retail storefronts.",
+    keywords: [
+      "AWS Vision locations",
+      "Texas investment firm cities",
+      "Dallas Houston Austin investment",
+      "online financial firm service areas",
+    ],
+    priority: 0.88,
     changeFrequency: "weekly",
   },
 };

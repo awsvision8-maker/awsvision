@@ -175,6 +175,7 @@ export const FOOTER_LINKS = {
   ],
   investing: [
     { label: "Investment Management", href: "/investment-management" },
+    { label: "Asset Management", href: "/asset-management" },
     { label: "Wealth Management", href: "/wealth-management" },
     { label: "Portfolio Management", href: "/portfolio-management" },
     { label: "Investment Advisory", href: "/investment-advisory" },
@@ -198,6 +199,7 @@ export const FOOTER_LINKS = {
   ],
   company: [
     { label: "About AWS Vision", href: "/about" },
+    { label: "Locations", href: "/locations" },
     { label: "Serving Texas", href: "/serving-texas" },
     { label: "Dallas", href: "/serving-texas/dallas" },
     { label: "Fort Worth", href: "/serving-texas/fort-worth" },
