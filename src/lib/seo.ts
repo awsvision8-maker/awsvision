@@ -184,12 +184,19 @@ export function organizationJsonLd() {
     "@type": "FinancialService",
     "@id": `${url}/#organization`,
     name: BRAND_SUFFIX,
-    alternateName: ["AWS Vision", "awsvision.com"],
+    alternateName: [
+      "AWS Vision",
+      "AWS Vision Financial",
+      "awsvision",
+      "awsvision.com",
+    ],
     url,
     logo: absoluteUrl("/logo.png"),
     image: [absoluteUrl(OG_IMAGE_PATH), absoluteUrl("/logo.png")],
     description:
-      "AWS Vision Financial is a licensed financial services and investment management firm offering online savings accounts, fixed deposits, and wealth management with monthly profit distribution. We serve clients across Texas and the United States.",
+      "AWS Vision Financial (awsvision.com) is an independent licensed financial services and investment management firm — online savings, fixed deposits, and wealth management. Not affiliated with Amazon Web Services (AWS) or Amazon.com.",
+    disambiguatingDescription:
+      "Independent investment firm at awsvision.com. Not Amazon Web Services computer vision, Rekognition, or AWS Marketplace.",
     slogan: SITE.tagline,
     telephone: SITE.phone,
     email: SITE.email,

@@ -11,6 +11,50 @@ export type SeoGuide = {
 
 export const SEO_GUIDES: SeoGuide[] = [
   {
+    slug: "aws-vision-financial-vs-amazon-aws",
+    title: "AWS Vision Financial vs Amazon AWS — What’s the Difference?",
+    description:
+      "AWS Vision Financial (awsvision.com) is an independent investment firm. Amazon Web Services (AWS) is Amazon’s cloud platform. We are not affiliated — how to find the right AWS Vision.",
+    keywords: [
+      "AWS Vision Financial",
+      "AWS Vision vs Amazon AWS",
+      "awsvision.com",
+      "AWS Vision investment firm",
+      "not Amazon Web Services",
+    ],
+    category: "Company",
+    readTime: "5 min",
+    sections: [
+      {
+        heading: "Two different “AWS Vision” meanings",
+        body: [
+          "When people search “AWS Vision,” Google often shows Amazon Web Services computer-vision products first — Amazon’s brand is enormous for the letters “AWS.”",
+          "AWS Vision Financial is a separate company at awsvision.com: an online investment firm offering savings, fixed deposits, and wealth management for Texas and U.S. clients.",
+        ],
+      },
+      {
+        heading: "How to find us (not Amazon)",
+        body: [
+          "Search “AWS Vision Financial,” “awsvision.com,” or “AWS Vision investment firm.” Our homepage title and about pages identify us as a financial services firm.",
+          "We are not Amazon Web Services, not Amazon Rekognition, and not an AWS Marketplace listing for computer vision.",
+        ],
+      },
+      {
+        heading: "What we offer",
+        body: [
+          "Online account opening, KYC, savings and FD products, wealth management plans, and a secure client portal — with service across Texas and nationwide.",
+          "Contact: support@awsvision.com · +1 (469) 754-2201.",
+        ],
+      },
+    ],
+    related: [
+      { label: "About AWS Vision", href: "/about" },
+      { label: "Serving Texas", href: "/serving-texas" },
+      { label: "Open an account", href: "/signup" },
+      { label: "Wealth management", href: "/wealth-management" },
+    ],
+  },
+  {
     slug: "open-investment-account-online-usa",
     title: "How to Open an Investment Account Online in the USA",
     description:

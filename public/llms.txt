@@ -1,6 +1,12 @@
 # AWS Vision Financial — https://awsvision.com
 
-> Licensed financial services and investment management firm offering online savings accounts, fixed deposits (FD), and wealth management with monthly profit distribution. Service-based coverage across Texas and the United States. U.S. registered office in Lewes, Delaware; corporate headquarters in Germantown, Maryland.
+> Independent licensed financial services and investment management firm (awsvision.com). Online savings, fixed deposits (FD), and wealth management. Service-based coverage across Texas and the United States. **Not affiliated with Amazon Web Services (AWS), Amazon Rekognition, or Amazon.com.**
+
+## Brand disambiguation
+- Legal / marketing name: AWS Vision Financial
+- Domain: awsvision.com
+- Not: Amazon Web Services computer vision / AI cloud products
+- Guide: https://awsvision.com/guides/aws-vision-financial-vs-amazon-aws
 
 ## Primary services
 - High yield savings accounts with monthly gratuity tiers
@@ -10,12 +16,13 @@
 - Online banking and client investment portal
 
 ## Service areas
-- Texas (statewide, including Dallas, Houston, Austin, San Antonio) — online / phone service
+- Texas (statewide, including Dallas, Houston, Austin, San Antonio, Fort Worth) — online / phone service
 - United States — nationwide remote account opening
 - UAE — licensed operations
 
 ## Key pages
 - Home: https://awsvision.com/
+- Brand clarification: https://awsvision.com/guides/aws-vision-financial-vs-amazon-aws
 - Serving Texas: https://awsvision.com/serving-texas
 - Serving United States: https://awsvision.com/serving-united-states
 - Open account: https://awsvision.com/signup

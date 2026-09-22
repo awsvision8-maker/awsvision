@@ -46,15 +46,17 @@ export const PAGE_SEO: Record<string, PageSeo> = {
   "/": {
     path: "/",
     title:
-      "AWS Vision Financial | Online Investment & Wealth Management (Texas & USA)",
+      "AWS Vision Financial (awsvision.com) | Investment & Wealth — Not Amazon AWS",
     description:
-      "AWS Vision is a licensed online investment firm — savings, fixed deposits, wealth management, and portfolio tracking for Texas and nationwide U.S. clients. Open an account remotely.",
+      "AWS Vision Financial is an independent investment firm at awsvision.com — online savings, fixed deposits, and wealth management for Texas and the U.S. Not affiliated with Amazon Web Services (AWS).",
     keywords: [
       ...DEFAULT_KEYWORDS,
+      "AWS Vision Financial",
+      "awsvision.com",
+      "AWS Vision investment firm",
+      "AWS Vision not Amazon",
       "online investment firm USA",
       "wealth management online",
-      "Investment Firm Near Me",
-      "Wealth Management Near Me",
       "open investment account online",
     ],
     priority: 1,
@@ -62,17 +64,17 @@ export const PAGE_SEO: Record<string, PageSeo> = {
   },
   "/about": {
     path: "/about",
-    title: "About AWS Vision | Licensed Financial & Investment Firm (USA)",
+    title: "About AWS Vision Financial (awsvision.com) — Not Amazon AWS",
     description:
-      "AWS Vision Financial is a quantitative fintech-driven asset management company licensed in the United States and UAE. We serve clients online across Texas and the U.S. — learn our mission, leadership, and client-first approach.",
+      "AWS Vision Financial is an independent investment firm at awsvision.com — licensed in the U.S. and UAE. Not affiliated with Amazon Web Services. Learn our mission and how we serve Texas and U.S. clients online.",
     keywords: [
-      "about AWS Vision",
+      "about AWS Vision Financial",
+      "awsvision.com",
+      "AWS Vision not Amazon",
       "investment management company USA",
       "online financial firm Texas",
-      "UAE licensed investment firm",
-      "quantitative asset management",
     ],
-    priority: 0.75,
+    priority: 0.85,
     changeFrequency: "monthly",
   },
   "/serving-texas": {

@@ -11,12 +11,19 @@ export default function AboutPage() {
     <div>
       <section className="bg-gradient-to-br from-slate-950 to-teal-950 py-16 text-white">
         <div className="mx-auto max-w-7xl px-6">
-          <h1 className="text-4xl font-bold">About AWS Vision</h1>
+          <h1 className="text-4xl font-bold">About AWS Vision Financial</h1>
           <p className="mt-4 max-w-3xl text-lg text-slate-300 leading-relaxed">
-            AWS Vision is a quantitative fintech-driven investment firm. We offer Savings and
-            Fixed Deposit accounts with monthly and yearly gratuity, and invest client capital
-            across global sectors with monthly profit distribution.
+            AWS Vision Financial (awsvision.com) is a quantitative fintech-driven investment firm.
+            We offer Savings and Fixed Deposit accounts with monthly and yearly gratuity, and invest
+            client capital across global sectors with monthly profit distribution. We are an
+            independent financial firm — not affiliated with Amazon Web Services (AWS).
           </p>
+          <Link
+            href="/guides/aws-vision-financial-vs-amazon-aws"
+            className="mt-4 inline-block text-sm font-semibold text-teal-300 hover:underline"
+          >
+            AWS Vision Financial vs Amazon AWS →
+          </Link>
         </div>
       </section>
 
