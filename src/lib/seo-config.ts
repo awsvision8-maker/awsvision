@@ -147,16 +147,19 @@ export const PAGE_SEO: Record<string, PageSeo> = {
   },
   "/compare": {
     path: "/compare",
-    title: "Best Financial Firm Alternative? Compare AWS Vision vs Big Banks",
+    title: "AWS Vision vs U.S. Banks & Investment Firms | Rate Comparison",
     description:
-      "Compare AWS Vision Financial vs Bank of America, Chase, Wells Fargo and more — savings, FD, and investment returns. A practical way to evaluate firms when searching for the best financial firm in Texas or the USA.",
+      "Compare AWS Vision Financial vs Chase, Bank of America, Ally, Fidelity, Schwab, Vanguard, Betterment and more — bank deposit APYs and brokerage cash yields vs program returns.",
     keywords: [
+      "AWS Vision vs banks",
+      "AWS Vision vs Fidelity",
+      "AWS Vision vs Schwab",
+      "AWS Vision vs Chase",
       "best financial firm USA",
       "best financial firm in Texas",
       "bank vs investment firm",
       "compare investment returns",
-      "better than bank savings",
-      "Chase vs AWS Vision",
+      "brokerage cash yield vs bank",
       "high yield vs traditional bank",
     ],
     priority: 0.92,

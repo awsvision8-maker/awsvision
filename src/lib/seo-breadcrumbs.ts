@@ -22,7 +22,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   "student-banking": "Student Banking",
   "online-banking": "Online Banking",
   "financial-education": "Financial Education",
-  compare: "Compare Banks",
+  compare: "Compare Banks & Firms",
   rates: "Rates & Returns",
   contact: "Contact",
   about: "About",

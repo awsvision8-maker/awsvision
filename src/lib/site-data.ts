@@ -57,7 +57,7 @@ export const MAIN_NAV = [
         title: "Wealth Management",
         links: [
           { label: "Investment Accounts", href: "/wealth-management", desc: "Available now — open online" },
-          { label: "Compare vs Big Banks", href: "/compare", desc: "AWS Vision vs BoA, Chase, Wells Fargo & more" },
+          { label: "Compare vs Banks & Firms", href: "/compare", desc: "AWS Vision vs Chase, Fidelity, Schwab, Ally & more" },
           { label: "Portfolio Monitoring", href: "/login", desc: "Track stocks, funds, and sectors live" },
           { label: "Monthly Statements", href: "/login", desc: "Download professional profit reports" },
           { label: "Retirement Planning", href: "/wealth-management#retirement", desc: "IRA and 401(k) rollover services" },
@@ -180,7 +180,7 @@ export const FOOTER_LINKS = {
     { label: "Portfolio Management", href: "/portfolio-management" },
     { label: "Investment Advisory", href: "/investment-advisory" },
     { label: "Financial Planning", href: "/financial-planning" },
-    { label: "Compare vs Big Banks", href: "/compare" },
+    { label: "Compare vs Banks & Firms", href: "/compare" },
     { label: "Investment Guides", href: "/guides" },
     { label: "Investment Portal", href: "/login" },
     { label: "Rates & Returns", href: "/rates" },

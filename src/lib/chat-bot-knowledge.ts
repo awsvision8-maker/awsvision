@@ -102,7 +102,7 @@ const SITE_ENTRIES: BotKnowledgeEntry[] = [
     id: "compare",
     keywords: ["compare", "competitor", "vs", "versus", "better than"],
     answer:
-      "See how AWS Vision compares to traditional banks at awsvision.com/compare — including our structured monthly profit tiers and global sector diversification.",
+      "See how AWS Vision compares to U.S. banks and investment firms (Fidelity, Schwab, Vanguard, Chase, Ally, and more) at awsvision.com/compare — bank deposit APYs and brokerage cash yields vs our structured monthly profit tiers.",
   },
   {
     id: "security",

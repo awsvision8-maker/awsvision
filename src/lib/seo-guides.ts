@@ -497,25 +497,241 @@ export const SEO_GUIDES: SeoGuide[] = [
         ],
       },
       {
-        heading: "How to find us (not Amazon)",
+        heading: "How to find us",
         body: [
-          "Search “AWS Vision Financial,” “awsvision.com,” or “AWS Vision investment firm.” Our homepage title and about pages identify us as a financial services firm.",
-          "We are not Amazon Web Services, not Amazon Rekognition, and not an AWS Marketplace listing for computer vision.",
+          "Use awsvision.com, our About page, and Serving Texas / Serving United States pages. We do not sell cloud-computing services.",
+          "If a result mentions EC2, SageMaker, or Amazon Web Services, that is Amazon — not AWS Vision Financial.",
         ],
       },
       {
-        heading: "What we offer",
+        heading: "Next steps",
         body: [
-          "Online account opening, KYC, savings and FD products, wealth management plans, and a secure client portal — with service across Texas and nationwide.",
-          "Contact: support@awsvision.com · +1 (469) 754-2201.",
+          "Compare our program rates vs U.S. banks and investment firms on the Compare page, or open an account when ready.",
         ],
       },
     ],
     related: [
-      { label: "About AWS Vision", href: "/about" },
+      { label: "About", href: "/about" },
+      { label: "Compare vs banks & firms", href: "/compare" },
       { label: "Serving Texas", href: "/serving-texas" },
-      { label: "Open an account", href: "/signup" },
+    ],
+  },
+  {
+    slug: "aws-vision-vs-us-banks",
+    title: "AWS Vision vs U.S. Banks — Chase, BoA, Ally & More",
+    description:
+      "How AWS Vision Financial compares to major U.S. banks on deposit yields vs program returns — Chase, Bank of America, Wells Fargo, Capital One, Ally, Marcus, and more.",
+    keywords: [
+      "AWS Vision vs Chase",
+      "AWS Vision vs Bank of America",
+      "online investment firm vs bank",
+      "high yield vs traditional bank savings",
+      "Ally Bank vs investment firm",
+    ],
+    category: "Compare",
+    readTime: "7 min",
+    sections: [
+      {
+        heading: "What this comparison measures",
+        body: [
+          "U.S. banks publish savings and CD APYs (FDIC-insured deposits). AWS Vision programs are structured wealth products — not bank deposits — with monthly program rates that vary by enrolled capital.",
+          "Our Compare page uses published bank APYs as benchmarks against an illustrative AWS Vision ceiling (up to 7%/mo). Actual client rates are confirmed with support.",
+        ],
+      },
+      {
+        heading: "Banks included",
+        body: [
+          "Retail banks on the comparison: Bank of America, Chase, Wells Fargo, Capital One, Citi, Ally, American Express, Discover, Marcus by Goldman Sachs, U.S. Bank, PNC, TD, and Truist.",
+          "Online banks (Ally, Marcus, Discover, Amex) often post higher HYSAs than branch megabanks — still typically mid-single-digit APY in the current cycle.",
+        ],
+      },
+      {
+        heading: "When a bank may fit better",
+        body: [
+          "Prefer FDIC insurance, branch access, or checking/debit convenience — a retail bank is the right tool for cash you need protected and liquid under banking rules.",
+          "Prefer program-style monthly returns with online onboarding and a client portal — review AWS Vision rates, disclosures, and talk to support before enrolling.",
+        ],
+      },
+      {
+        heading: "Next steps",
+        body: [
+          "Open the live rate table on Compare, then review Rates and Contact for personalized terms.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Live comparison", href: "/compare" },
+      { label: "Rates", href: "/rates" },
+      { label: "vs Fidelity & Schwab", href: "/guides/aws-vision-vs-investment-firms" },
+    ],
+  },
+  {
+    slug: "aws-vision-vs-investment-firms",
+    title: "AWS Vision vs Fidelity, Schwab, Vanguard & Robos",
+    description:
+      "Compare AWS Vision Financial to Fidelity, Charles Schwab, Vanguard, E*TRADE, Merrill, Betterment, Wealthfront, and Edward Jones — cash/money-market yields vs program returns.",
+    keywords: [
+      "AWS Vision vs Fidelity",
+      "AWS Vision vs Schwab",
+      "AWS Vision vs Vanguard",
+      "AWS Vision vs Betterment",
+      "investment firm comparison USA",
+      "brokerage cash yield vs program returns",
+    ],
+    category: "Compare",
+    readTime: "8 min",
+    sections: [
+      {
+        heading: "Apples-to-apples: cash, not stock charts",
+        body: [
+          "Fidelity, Schwab, and Vanguard are excellent brokerages for stocks, ETFs, and advisory portfolios. For a fair deposit-style comparison we use their published cash, sweep, or money-market yields — not long-term equity returns.",
+          "Robo-advisors (Betterment Cash Reserve, Wealthfront Cash Account) similarly publish cash APYs separate from invested portfolios.",
+        ],
+      },
+      {
+        heading: "Firms on our Compare page",
+        body: [
+          "Brokerages: Fidelity, Charles Schwab, Vanguard, E*TRADE (Morgan Stanley).",
+          "Advisors / platforms: Merrill, Edward Jones, Fisher Investments (advisory-focused — limited retail cash product).",
+          "Robos: Betterment, Wealthfront.",
+        ],
+      },
+      {
+        heading: "Where AWS Vision differs",
+        body: [
+          "AWS Vision is an online investment firm with savings, fixed-deposit-style, and wealth program tiers — illustrated monthly program rates by capital, plus a client portal.",
+          "Brokerages win on trading tools, fund menus, and often SIPC-protected brokerage assets. Choose based on product fit, risk, and disclosures — not a single “best firm” label.",
+        ],
+      },
+      {
+        heading: "Next steps",
+        body: [
+          "Use the Compare calculator for side-by-side cash yields, then read Serving United States and talk to support if you want enrollment details.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Live comparison", href: "/compare" },
+      { label: "vs U.S. banks", href: "/guides/aws-vision-vs-us-banks" },
+      { label: "Investment management", href: "/investment-management" },
       { label: "Wealth management", href: "/wealth-management" },
+    ],
+  },
+  {
+    slug: "aws-vision-vs-chase-bank",
+    title: "AWS Vision vs Chase Bank — Rates & Products",
+    description:
+      "Chase Bank savings and CD APYs vs AWS Vision Financial program returns — what each is built for and how to compare fairly.",
+    keywords: [
+      "AWS Vision vs Chase",
+      "Chase Bank vs investment firm",
+      "Chase savings APY vs high yield",
+      "Chase CD rates comparison",
+    ],
+    category: "Compare",
+    readTime: "6 min",
+    sections: [
+      {
+        heading: "Chase at a glance",
+        body: [
+          "Chase is a major U.S. retail bank with branches, checking, credit cards, and deposit products. Standard Chase Savings APY is typically very low; featured CDs can post higher short-term promotional APYs.",
+          "Deposits at Chase are generally FDIC-insured within limits — a core reason many households keep cash there.",
+        ],
+      },
+      {
+        heading: "AWS Vision at a glance",
+        body: [
+          "AWS Vision Financial is an online investment firm (not a Chase affiliate). Programs are structured wealth products with rates that vary by capital — not FDIC bank deposits.",
+          "Our public Compare page illustrates AWS Vision at up to 7% monthly against Chase’s published CD/savings benchmarks for educational rate context only.",
+        ],
+      },
+      {
+        heading: "How to choose",
+        body: [
+          "Need insured deposits and a national branch network — Chase (or another bank) fits that job.",
+          "Evaluating online program-style returns — review awsvision.com/compare, rates, and disclosures, then contact support.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Full bank & firm table", href: "/compare" },
+      { label: "vs all U.S. banks", href: "/guides/aws-vision-vs-us-banks" },
+      { label: "Contact", href: "/contact" },
+    ],
+  },
+  {
+    slug: "aws-vision-vs-fidelity",
+    title: "AWS Vision vs Fidelity Investments",
+    description:
+      "Fidelity cash and money-market yields vs AWS Vision Financial program returns — brokerage tools vs online investment programs.",
+    keywords: [
+      "AWS Vision vs Fidelity",
+      "Fidelity vs online investment firm",
+      "Fidelity money market yield comparison",
+      "brokerage vs wealth program",
+    ],
+    category: "Compare",
+    readTime: "6 min",
+    sections: [
+      {
+        heading: "What Fidelity is known for",
+        body: [
+          "Fidelity Investments is a large U.S. brokerage with trading, retirement accounts, mutual funds, and advisory options. Cash parked at Fidelity often earns via money-market or core position yields — not the same as stock performance.",
+          "We compare those cash/MM figures on our Compare page so the benchmark matches deposit-style yields.",
+        ],
+      },
+      {
+        heading: "How AWS Vision compares",
+        body: [
+          "AWS Vision does not replace a full brokerage trading desk. It offers online savings, FD-style, and wealth program tiers with published illustrative monthly rates by capital.",
+          "Many clients use a brokerage for market investing and separately evaluate program-style products — read disclosures carefully for both.",
+        ],
+      },
+      {
+        heading: "Next steps",
+        body: [
+          "See Fidelity alongside Schwab, Vanguard, and banks on the Compare page, or open Investment management to learn AWS Vision products.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Compare page", href: "/compare" },
+      { label: "vs investment firms", href: "/guides/aws-vision-vs-investment-firms" },
+      { label: "vs Schwab", href: "/guides/aws-vision-vs-schwab" },
+    ],
+  },
+  {
+    slug: "aws-vision-vs-schwab",
+    title: "AWS Vision vs Charles Schwab",
+    description:
+      "Charles Schwab money-market and cash yields vs AWS Vision Financial — when a brokerage fits and when an online investment program may.",
+    keywords: [
+      "AWS Vision vs Schwab",
+      "Charles Schwab vs investment firm",
+      "Schwab money market comparison",
+      "Schwab cash yield vs program rate",
+    ],
+    category: "Compare",
+    readTime: "6 min",
+    sections: [
+      {
+        heading: "Schwab’s role",
+        body: [
+          "Charles Schwab is a major brokerage and bank affiliate with investing, banking, and advisory services. Cash features and money-market funds provide the cash-yield benchmark we use — not equity returns.",
+        ],
+      },
+      {
+        heading: "Side-by-side framing",
+        body: [
+          "Schwab excels at self-directed investing and a huge product shelf. AWS Vision focuses on online program tiers (savings, FD-style, wealth) with rates confirmed by capital.",
+          "Use the live Compare table for current illustrative numbers; rates on both sides change.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Compare page", href: "/compare" },
+      { label: "vs Fidelity", href: "/guides/aws-vision-vs-fidelity" },
+      { label: "vs investment firms hub", href: "/guides/aws-vision-vs-investment-firms" },
     ],
   },
   {

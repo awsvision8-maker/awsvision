@@ -23,6 +23,7 @@ export async function GET(request: Request) {
       banks: COMPETITOR_BANKS.map((b) => ({
         id: b.id,
         name: b.name,
+        category: b.category,
         savingsApy: b.savingsApy,
         cd12MonthApy: b.cd12MonthApy,
         bestPromoApy: b.bestPromoApy,

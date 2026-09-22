@@ -31,7 +31,7 @@ export default async function RatesPage() {
             href="/compare"
             className="mt-5 inline-flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/20 hover:bg-white/15"
           >
-            See how we compare to Bank of America, Chase & Wells Fargo →
+            See how we compare to Chase, Fidelity, Schwab & more →
           </Link>
         </div>
       </section>

@@ -20,7 +20,9 @@ import {
   COMPARISON_LAST_UPDATED,
   COMPARISON_SCENARIOS,
   COMPARISON_SOURCES,
-  COMPETITOR_BANKS,
+  COMPETITOR_RETAIL_BANKS,
+  COMPETITOR_INVESTMENT_FIRMS,
+  competitorCategoryLabel,
   apyOneYearEarnings,
   bestComparableApy,
   type ComparisonReport,
@@ -75,15 +77,16 @@ export function BankComparisonPageContent() {
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/15 px-4 py-1.5 text-sm font-semibold text-amber-300 ring-1 ring-amber-400/30">
               <Trophy className="h-4 w-4" />
-              Bank Comparison · Updated {COMPARISON_LAST_UPDATED}
+              Banks &amp; Investment Firms · Updated {COMPARISON_LAST_UPDATED}
             </div>
             <h1 className="mt-6 text-4xl font-bold tracking-tight sm:text-5xl">
-              See How AWS Vision Stacks Up Against the Big Banks
+              AWS Vision vs U.S. Banks &amp; Investment Firms
             </h1>
             <p className="mt-5 text-lg text-slate-300 leading-relaxed">
-              We compared bank annual APY (savings & CDs) against AWS Vision program earnings —
-              illustrated at up to {AWS_COMPARE_MAX_MONTHLY_RATE}% monthly. Your exact profit rate
-              depends on enrolled capital — talk to our team for your personalized terms.
+              Side-by-side with Chase, Bank of America, Ally, Fidelity, Schwab, Vanguard, Betterment
+              and more — bank deposit APYs and brokerage cash/money-market yields vs AWS Vision
+              program earnings (illustrated at up to {AWS_COMPARE_MAX_MONTHLY_RATE}% monthly). Your
+              exact profit rate depends on enrolled capital.
             </p>
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
               {loading ? (
@@ -183,12 +186,15 @@ export function BankComparisonPageContent() {
       {/* Savings comparison */}
       <section className="py-14 bg-slate-50">
         <div className="page-container">
-          <h2 className="text-2xl font-bold text-slate-900">Deposit Yields vs AWS Vision Programs</h2>
+          <h2 className="text-2xl font-bold text-slate-900">
+            Bank &amp; Firm Cash Yields vs AWS Vision Programs
+          </h2>
           <p className="mt-2 max-w-2xl text-slate-600">
-            Banks show best published annual APY (savings or promotional CD). AWS Vision earnings
-            below are illustrated at <strong>up to {AWS_COMPARE_MAX_MONTHLY_RATE}% monthly</strong>{" "}
-            — our highest program rate. Your actual profit percentage depends on enrolled capital and
-            is confirmed with support.
+            Banks use published deposit/CD APY. Brokerages and robos use cash / money-market /
+            cash-reserve yields (not equity returns). AWS Vision earnings below are illustrated at{" "}
+            <strong>up to {AWS_COMPARE_MAX_MONTHLY_RATE}% monthly</strong> — our highest program
+            rate. Your actual profit percentage depends on enrolled capital and is confirmed with
+            support.
           </p>
 
           <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -232,7 +238,12 @@ export function BankComparisonPageContent() {
                   savingsRows.map((row) => (
                     <tr key={row.bank.id} className="border-b border-slate-100">
                       <td className="px-4 py-4 font-medium text-slate-900 sm:px-6">
-                        {row.bank.name}
+                        <span className="block">{row.bank.name}</span>
+                        {"category" in row.bank && row.bank.category && (
+                          <span className="text-xs font-normal text-slate-400">
+                            {competitorCategoryLabel(row.bank.category)}
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-4 text-slate-600 sm:px-6">
                         {row.rateLabel ?? `${formatComparePercent(row.apy)} APY`}
@@ -252,7 +263,8 @@ export function BankComparisonPageContent() {
             </table>
           </div>
           <p className="mt-3 text-xs text-slate-500">
-            Bank earnings: principal × (annual APY ÷ 100). AWS Vision: illustrated at up to{" "}
+            Competitor earnings: principal × (published cash/deposit APY ÷ 100). Brokerage figures are
+            cash/MM yields — not stock-market returns. AWS Vision: illustrated at up to{" "}
             {AWS_COMPARE_MAX_MONTHLY_RATE}%/mo × 12 on principal (
             {formatCompareUsd(awsSavingsYear)}/yr at {formatCompareUsd(principal)}) vs a 4.5% bank
             APY earning about {formatCompareUsd(apyOneYearEarnings(principal, 4.5))}/yr. Actual AWS
@@ -508,13 +520,16 @@ export function BankComparisonPageContent() {
             Published competitor rates ({COMPARISON_LAST_UPDATED})
           </h2>
           <p className="mt-2 text-sm text-slate-600">
-            Reference figures from bank websites and independent rate publishers. Your actual rate may
-            vary by location, balance, and relationship requirements.
+            Banks show deposit/CD APYs. Brokerages and robos show cash / money-market / cash-reserve
+            yields — not stock-market returns. Figures are illustrative and change often.
           </p>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {COMPETITOR_BANKS.map((bank) => (
+
+          <h3 className="mt-8 text-lg font-semibold text-slate-900">U.S. banks</h3>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {COMPETITOR_RETAIL_BANKS.map((bank) => (
               <div key={bank.id} className="rounded-lg border border-slate-200 bg-white p-4 text-sm">
                 <p className="font-bold text-slate-900">{bank.name}</p>
+                <p className="text-xs text-slate-400">{competitorCategoryLabel(bank.category)}</p>
                 <ul className="mt-2 space-y-1 text-slate-600">
                   <li>Best published: {formatComparePercent(bestComparableApy(bank))} APY</li>
                   <li>Standard savings: {formatComparePercent(bank.savingsApy)} APY</li>
@@ -539,6 +554,72 @@ export function BankComparisonPageContent() {
               </div>
             ))}
           </div>
+
+          <h3 className="mt-10 text-lg font-semibold text-slate-900">
+            U.S. investment firms (cash &amp; MM benchmarks)
+          </h3>
+          <p className="mt-2 text-sm text-slate-600">
+            Fidelity, Schwab, Vanguard, E*TRADE, Merrill, Betterment, Wealthfront, Edward Jones,
+            Fisher — cash yields only for an apples-to-apples deposit-style comparison.
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {COMPETITOR_INVESTMENT_FIRMS.map((bank) => (
+              <div key={bank.id} className="rounded-lg border border-slate-200 bg-white p-4 text-sm">
+                <p className="font-bold text-slate-900">{bank.name}</p>
+                <p className="text-xs text-slate-400">{competitorCategoryLabel(bank.category)}</p>
+                <ul className="mt-2 space-y-1 text-slate-600">
+                  <li>Best cash/MM: {formatComparePercent(bestComparableApy(bank))} APY</li>
+                  <li>Cash / sweep: {formatComparePercent(bank.savingsApy)} APY</li>
+                  {bank.cd12MonthApy > 0 && (
+                    <li>12-mo CD / brokered: {formatComparePercent(bank.cd12MonthApy)} APY</li>
+                  )}
+                  {bank.bestPromoApy && (
+                    <li>
+                      Best promo: {formatComparePercent(bank.bestPromoApy)} — {bank.bestPromoNote}
+                    </li>
+                  )}
+                  {bank.monthlyFeeNote && <li>Fees: {bank.monthlyFeeNote}</li>}
+                </ul>
+                <p className="mt-2 text-xs text-slate-500">{bank.savingsNote}</p>
+                {bank.sourceUrl && (
+                  <a
+                    href={bank.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-block text-xs text-teal-600 hover:underline"
+                  >
+                    View source →
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <p className="mt-8 text-sm text-slate-600">
+            Deeper write-ups:{" "}
+            <Link href="/guides/aws-vision-vs-us-banks" className="text-teal-700 hover:underline">
+              vs U.S. banks
+            </Link>
+            {" · "}
+            <Link
+              href="/guides/aws-vision-vs-investment-firms"
+              className="text-teal-700 hover:underline"
+            >
+              vs Fidelity / Schwab / robos
+            </Link>
+            {" · "}
+            <Link href="/guides/aws-vision-vs-chase-bank" className="text-teal-700 hover:underline">
+              vs Chase
+            </Link>
+            {" · "}
+            <Link href="/guides/aws-vision-vs-fidelity" className="text-teal-700 hover:underline">
+              vs Fidelity
+            </Link>
+            {" · "}
+            <Link href="/guides/aws-vision-vs-schwab" className="text-teal-700 hover:underline">
+              vs Schwab
+            </Link>
+          </p>
         </div>
       </section>
 
@@ -574,11 +655,13 @@ export function BankComparisonPageContent() {
           <p>
             <strong>Important disclosures:</strong> AWS Vision investment, fixed deposit, and
             non-profit fund programs are structured wealth products — not FDIC-insured bank deposits.
-            Competitor savings and CD rates shown are illustrative benchmarks from publicly available
-            sources as of {COMPARISON_LAST_UPDATED} and may change without notice. AWS Vision
-            earnings on this page are illustrated at up to {AWS_COMPARE_MAX_MONTHLY_RATE}% monthly;
-            actual profit percentages vary depending on capital and are confirmed at enrollment with
-            support. Illustrations do not guarantee future performance.
+            Competitor savings, CD, and cash/money-market rates shown are illustrative benchmarks from
+            publicly available sources as of {COMPARISON_LAST_UPDATED} and may change without notice.
+            Brokerage and robo yields on this page are cash products only — not equity or mutual-fund
+            performance. AWS Vision earnings on this page are illustrated at up to{" "}
+            {AWS_COMPARE_MAX_MONTHLY_RATE}% monthly; actual profit percentages vary depending on
+            capital and are confirmed at enrollment with support. Illustrations do not guarantee
+            future performance.
           </p>
           <p>
             <strong>Sources reviewed:</strong>{" "}
