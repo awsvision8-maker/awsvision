@@ -10,70 +10,104 @@ export interface PageSeo {
   changeFrequency?: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
 }
 
-/** Core financial-firm keywords used site-wide */
+/** Core financial-firm keywords used site-wide (service-based · Texas + nationwide US) */
 export const DEFAULT_KEYWORDS = [
   "AWS Vision",
   "awsvision",
   "AWS Vision Financial",
-  "financial services firm",
-  "investment firm",
-  "wealth management company",
+  "financial services firm USA",
+  "online investment firm",
+  "wealth management company United States",
   "asset management firm",
   "fintech investment platform",
   "online investment account",
-  "fixed deposit account",
+  "fixed deposit account USA",
   "high yield savings account",
   "monthly investment returns",
   "portfolio management",
-  "Delaware financial services",
+  "Texas investment firm",
+  "online financial services Texas",
   "licensed investment company",
 ] as const;
 
 export const PAGE_SEO: Record<string, PageSeo> = {
   "/": {
     path: "/",
-    title: "AWS Vision Financial | Investment Firm — Savings, FD & Wealth Management",
+    title: "AWS Vision Financial | Online Investment Firm — Savings, FD & Wealth (Texas & USA)",
     description:
-      "AWS Vision is a licensed financial services and investment firm offering savings accounts, fixed deposits (FD), and wealth management with monthly profit distribution. Open an account online, track your portfolio 24/7, and compare returns vs major banks.",
+      "AWS Vision is a licensed U.S. financial services firm serving clients across Texas and nationwide. Open savings, fixed deposit (FD), and wealth management accounts online with monthly profit distribution and 24/7 portfolio tracking.",
     keywords: [
       ...DEFAULT_KEYWORDS,
-      "open investment account online",
-      "best fixed deposit rates",
-      "wealth management firm USA",
-      "financial firm near me",
+      "open investment account online USA",
+      "best fixed deposit rates Texas",
+      "wealth management firm Texas",
+      "online investment account United States",
       "monthly profit investment",
-      "FD account opening",
+      "FD account opening USA",
     ],
     priority: 1,
     changeFrequency: "daily",
   },
   "/about": {
     path: "/about",
-    title: "About AWS Vision | Licensed Financial & Investment Firm",
+    title: "About AWS Vision | Licensed Financial & Investment Firm (USA)",
     description:
-      "AWS Vision Financial is a quantitative fintech-driven asset management company licensed in the United States and UAE. Learn our mission, leadership, regulatory standing, and client-first wealth management approach.",
+      "AWS Vision Financial is a quantitative fintech-driven asset management company licensed in the United States and UAE. We serve clients online across Texas and the U.S. — learn our mission, leadership, and client-first approach.",
     keywords: [
       "about AWS Vision",
-      "investment management company",
-      "financial firm Delaware",
+      "investment management company USA",
+      "online financial firm Texas",
       "UAE licensed investment firm",
       "quantitative asset management",
     ],
     priority: 0.75,
     changeFrequency: "monthly",
   },
+  "/serving-texas": {
+    path: "/serving-texas",
+    title: "Investment Accounts for Texas Residents | AWS Vision Financial",
+    description:
+      "Online savings, fixed deposits, and wealth management for Texas clients — Dallas, Houston, Austin, San Antonio, and statewide. Open an account remotely with AWS Vision Financial. No branch visit required.",
+    keywords: [
+      "Texas investment firm",
+      "investment account Texas",
+      "Dallas wealth management online",
+      "Houston fixed deposit account",
+      "Austin investment platform",
+      "San Antonio savings account",
+      "online banking Texas residents",
+      "Texas FD rates",
+    ],
+    priority: 0.95,
+    changeFrequency: "weekly",
+  },
+  "/serving-united-states": {
+    path: "/serving-united-states",
+    title: "Online Financial Services Across the United States | AWS Vision",
+    description:
+      "AWS Vision Financial serves clients nationwide across the United States with online account opening, KYC verification, savings and FD products, and wealth management — licensed U.S. financial services without needing a local branch.",
+    keywords: [
+      "nationwide investment firm USA",
+      "online financial services United States",
+      "open investment account any state",
+      "US fintech wealth management",
+      "remote KYC investment account",
+    ],
+    priority: 0.9,
+    changeFrequency: "weekly",
+  },
   "/wealth-management": {
     path: "/wealth-management",
     title: "Wealth Management & Investment Plans | AWS Vision Financial",
     description:
-      "Professional wealth management with Silver to Executive investment plans — 2% to 7% monthly returns, global sector portfolios, real-time analytics, and downloadable profit statements. Open an investment account with a leading fintech asset manager.",
+      "Professional wealth management for Texas and U.S. clients — Silver to Executive plans with 2%–7% monthly program rates, global sector portfolios, real-time analytics, and profit statements. Open an investment account online.",
     keywords: [
-      "wealth management firm",
-      "investment management services",
+      "wealth management firm Texas",
+      "investment management services USA",
       "monthly profit investment plan",
       "global portfolio management",
       "high return investment account",
-      "professional asset management",
+      "professional asset management online",
     ],
     priority: 0.95,
     changeFrequency: "weekly",
@@ -148,14 +182,14 @@ export const PAGE_SEO: Record<string, PageSeo> = {
   },
   "/contact": {
     path: "/contact",
-    title: "Contact AWS Vision Financial | Investment Support & Advisors",
+    title: "Contact AWS Vision Financial | Texas & US Investment Support",
     description:
-      "Speak with AWS Vision Financial — call +1 (469) 754-2201 or (240) 780-6910, email support@awsvision.com, or schedule an appointment. Investment inquiries, account support, and institutional partnerships.",
+      "Contact AWS Vision Financial — call +1 (469) 754-2201 or (240) 780-6910, email support@awsvision.com, or book an appointment. Support for Texas and nationwide U.S. clients, account help, and institutional partnerships.",
     keywords: [
-      "contact investment firm",
-      "financial advisor appointment",
-      "AWS Vision support",
-      "investment consultation",
+      "contact investment firm Texas",
+      "financial advisor appointment USA",
+      "AWS Vision support phone",
+      "investment consultation online",
     ],
     priority: 0.8,
     changeFrequency: "monthly",

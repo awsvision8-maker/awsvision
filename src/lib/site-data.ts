@@ -193,6 +193,8 @@ export const FOOTER_LINKS = {
   ],
   company: [
     { label: "About AWS Vision", href: "/about" },
+    { label: "Serving Texas", href: "/serving-texas" },
+    { label: "Serving the U.S.", href: "/serving-united-states" },
     { label: "News", href: "/news" },
     { label: "Investor Relations", href: "/about#investors" },
     { label: "Privacy Policy", href: "/about#privacy" },

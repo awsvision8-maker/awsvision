@@ -31,6 +31,9 @@ const SEGMENT_LABELS: Record<string, string> = {
   news: "News",
   security: "Security",
   insurance: "Insurance",
+  "serving-texas": "Serving Texas",
+  "serving-united-states": "Serving the United States",
+  "referral-program": "Referral Program",
 };
 
 /** Build breadcrumb trail for a marketing path */

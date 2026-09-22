@@ -1,6 +1,6 @@
 # AWS Vision Financial — https://awsvision.com
 
-> Licensed financial services and investment management firm offering savings accounts, fixed deposits (FD), and wealth management with monthly profit distribution. U.S. headquarters in Lewes, Delaware and Germantown, Maryland.
+> Licensed financial services and investment management firm offering online savings accounts, fixed deposits (FD), and wealth management with monthly profit distribution. Service-based coverage across Texas and the United States. U.S. registered office in Lewes, Delaware; corporate headquarters in Germantown, Maryland.
 
 ## Primary services
 - High yield savings accounts with monthly gratuity tiers
@@ -9,8 +9,15 @@
 - Non-profit organization investment program
 - Online banking and client investment portal
 
+## Service areas
+- Texas (statewide, including Dallas, Houston, Austin, San Antonio) — online / phone service
+- United States — nationwide remote account opening
+- UAE — licensed operations
+
 ## Key pages
 - Home: https://awsvision.com/
+- Serving Texas: https://awsvision.com/serving-texas
+- Serving United States: https://awsvision.com/serving-united-states
 - Open account: https://awsvision.com/signup
 - Wealth management: https://awsvision.com/wealth-management
 - Fixed deposits: https://awsvision.com/personal/cds
@@ -25,3 +32,4 @@
 - Email: support@awsvision.com
 - Registered Office: 16192 Coastal Highway, Lewes, Delaware 19958, United States
 - Headquarters: 2 Village Green Court, Germantown, MD 20876, United States
+- Note: No public Texas retail storefront — Texas and U.S. clients are served online.

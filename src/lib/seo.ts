@@ -68,7 +68,7 @@ export function pageMetadata(path: string, overrides?: Partial<PageSeo>): Metada
   const keywords = mergeKeywords(page);
 
   return {
-    title,
+    title: { absolute: title },
     description,
     keywords,
     alternates: {
@@ -155,17 +155,25 @@ export const rootMetadata: Metadata = {
     },
   },
   verification: verificationMeta(),
+  // Nationwide / service-area focus — do not claim a fake Texas storefront
   other: {
-    "geo.region": "US-DE",
-    "geo.placename": SITE.address.city,
-    "geo.position": "38.7749;-75.1393",
-    ICBM: "38.7749, -75.1393",
+    "geo.region": "US",
+    "geo.placename": "United States",
   },
 };
 
 export const privateMetadata: Metadata = {
   robots: { index: false, follow: false, nocache: true, noimageindex: true },
 };
+
+const TEXAS_SERVICE_AREAS = [
+  { "@type": "State", name: "Texas", containedInPlace: { "@type": "Country", name: "United States" } },
+  { "@type": "City", name: "Dallas", containedInPlace: { "@type": "State", name: "Texas" } },
+  { "@type": "City", name: "Houston", containedInPlace: { "@type": "State", name: "Texas" } },
+  { "@type": "City", name: "Austin", containedInPlace: { "@type": "State", name: "Texas" } },
+  { "@type": "City", name: "San Antonio", containedInPlace: { "@type": "State", name: "Texas" } },
+  { "@type": "City", name: "Fort Worth", containedInPlace: { "@type": "State", name: "Texas" } },
+] as const;
 
 export function organizationJsonLd() {
   const url = getSiteUrl();
@@ -179,10 +187,11 @@ export function organizationJsonLd() {
     logo: absoluteUrl("/logo.png"),
     image: [absoluteUrl(OG_IMAGE_PATH), absoluteUrl("/logo.png")],
     description:
-      "AWS Vision Financial is a licensed financial services and investment management firm offering savings accounts, fixed deposits, wealth management, and online portfolio tracking with monthly profit distribution.",
+      "AWS Vision Financial is a licensed financial services and investment management firm offering online savings accounts, fixed deposits, and wealth management with monthly profit distribution. We serve clients across Texas and the United States.",
     slogan: SITE.tagline,
     telephone: SITE.phone,
     email: SITE.email,
+    // Legal registered office (not a Texas retail branch)
     address: {
       "@type": "PostalAddress",
       streetAddress: SITE.address.line1,
@@ -191,13 +200,9 @@ export function organizationJsonLd() {
       postalCode: SITE.address.zip,
       addressCountry: "US",
     },
-    geo: {
-      "@type": "GeoCoordinates",
-      latitude: 38.7749,
-      longitude: -75.1393,
-    },
     areaServed: [
       { "@type": "Country", name: "United States" },
+      ...TEXAS_SERVICE_AREAS,
       { "@type": "Country", name: "United Arab Emirates" },
     ],
     serviceType: [
@@ -207,6 +212,7 @@ export function organizationJsonLd() {
       "Fixed Deposits",
       "Asset Management",
       "Online Banking",
+      "Online Account Opening",
     ],
     knowsAbout: [
       "Investment management",
@@ -215,6 +221,7 @@ export function organizationJsonLd() {
       "Portfolio analytics",
       "Non-profit fund management",
       "Fintech asset management",
+      "Texas online investment accounts",
     ],
     contactPoint: [
       {
@@ -222,14 +229,16 @@ export function organizationJsonLd() {
         telephone: SITE.phone,
         email: SITE.email,
         contactType: "customer service",
-        areaServed: "US",
+        areaServed: ["US", "TX"],
         availableLanguage: ["English"],
       },
       {
         "@type": "ContactPoint",
         contactType: "sales",
+        telephone: SITE.phone,
         email: SITE.email,
         url: absoluteUrl("/contact"),
+        areaServed: ["US", "TX"],
       },
     ],
     sameAs: [url, `https://${SITE.domain}`],
@@ -240,29 +249,66 @@ export function organizationJsonLd() {
         {
           "@type": "Offer",
           itemOffered: {
-            "@type": "FinancialProduct",
+            "@type": "Service",
             name: "Savings Account",
             url: absoluteUrl("/personal/savings"),
+            areaServed: [{ "@type": "Country", name: "United States" }, { "@type": "State", name: "Texas" }],
           },
         },
         {
           "@type": "Offer",
           itemOffered: {
-            "@type": "FinancialProduct",
+            "@type": "Service",
             name: "Fixed Deposit Account",
             url: absoluteUrl("/personal/cds"),
+            areaServed: [{ "@type": "Country", name: "United States" }, { "@type": "State", name: "Texas" }],
           },
         },
         {
           "@type": "Offer",
           itemOffered: {
-            "@type": "FinancialProduct",
+            "@type": "Service",
             name: "Wealth Management Investment Plan",
             url: absoluteUrl("/wealth-management"),
+            areaServed: [{ "@type": "Country", name: "United States" }, { "@type": "State", name: "Texas" }],
           },
         },
       ],
     },
+  };
+}
+
+/** FAQ schema for Texas service page */
+export function texasServiceFaqJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: "Can Texas residents open an AWS Vision account online?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Yes. Texas residents can open savings, fixed deposit, and wealth management accounts entirely online with secure KYC verification. No in-person branch visit is required.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Does AWS Vision have a Texas office address?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "AWS Vision is a service-based online financial firm. We serve Texas clients remotely. Our U.S. registered office is in Delaware, with corporate headquarters in Maryland. Contact us by phone at +1 (469) 754-2201 or email support@awsvision.com.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Which Texas cities does AWS Vision serve?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "We serve clients statewide across Texas, including Dallas, Houston, Austin, San Antonio, Fort Worth, and surrounding metro areas, plus clients elsewhere in the United States.",
+        },
+      },
+    ],
   };
 }
 
