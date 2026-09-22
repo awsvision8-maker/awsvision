@@ -40,6 +40,8 @@ const SEGMENT_LABELS: Record<string, string> = {
   austin: "Austin",
   "san-antonio": "San Antonio",
   "fort-worth": "Fort Worth",
+  plano: "Plano",
+  "el-paso": "El Paso",
   "investment-management": "Investment Management",
   "portfolio-management": "Portfolio Management",
   "financial-planning": "Financial Planning",

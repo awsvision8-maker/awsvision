@@ -297,6 +297,93 @@ export const TEXAS_CITIES: TexasCity[] = [
       },
     ],
   },
+  {
+    slug: "plano",
+    name: "Plano",
+    metro: "Dallas–Fort Worth (DFW)",
+    headline: "Investment firm & wealth management for Plano, TX",
+    intro:
+      "Plano and Collin County residents use AWS Vision Financial online — investment management, wealth plans, savings, and fixed deposits with remote KYC across DFW.",
+    localFocus: [
+      "Plano professionals seeking online wealth and portfolio tracking",
+      "North Dallas suburbs comparing investment firms without a branch visit",
+      "Households that want clear rates before funding an account",
+    ],
+    processSteps: [
+      {
+        title: "Apply from Plano / Collin County",
+        body: "Complete signup and KYC online from Plano, Frisco, McKinney, or nearby communities.",
+      },
+      {
+        title: "Choose products",
+        body: "Savings, FD, or wealth tiers — review the rates page first.",
+      },
+      {
+        title: "Track in the portal",
+        body: "Monitor balances and statements remotely with phone support.",
+      },
+    ],
+    whyLocal: [
+      "Plano searches often overlap Dallas/DFW. We cover the north metro honestly as part of statewide online Texas service.",
+    ],
+    keywords: [
+      "Investment Firm Plano",
+      "Investment Advisor Plano TX",
+      "Financial Advisor Plano",
+      "Wealth Management Plano",
+      "Investment Management Plano",
+      "Financial Services Plano TX",
+    ],
+    faqs: [
+      {
+        q: "Do you serve Plano, Texas?",
+        a: "Yes. Plano clients open accounts online under the same DFW / Texas remote service model as Dallas.",
+      },
+    ],
+  },
+  {
+    slug: "el-paso",
+    name: "El Paso",
+    metro: "El Paso metro",
+    headline: "Investment accounts & wealth plans for El Paso, TX",
+    intro:
+      "El Paso residents can open AWS Vision savings, fixed deposit, and wealth management accounts online — statewide Texas coverage with remote support.",
+    localFocus: [
+      "El Paso households comparing online investment firms",
+      "Clients who want portfolio tracking without traveling to a branch",
+      "Investors seeking transparent rates before they enroll",
+    ],
+    processSteps: [
+      {
+        title: "Enroll from West Texas",
+        body: "Signup and KYC are fully online for El Paso and surrounding areas.",
+      },
+      {
+        title: "Fund your account",
+        body: "Choose savings, FD, or wealth plans after reviewing current terms.",
+      },
+      {
+        title: "Stay connected",
+        body: "Use the portal for statements; call or email support anytime.",
+      },
+    ],
+    whyLocal: [
+      "West Texas clients deserve the same remote access as major metros — we serve El Paso as part of statewide Texas coverage, without claiming a local storefront we do not operate.",
+    ],
+    keywords: [
+      "Investment Firm El Paso",
+      "Financial Advisor El Paso",
+      "Wealth Management El Paso",
+      "Investment Advisor El Paso TX",
+      "Financial Services El Paso",
+    ],
+    faqs: [
+      {
+        q: "Can El Paso residents open an AWS Vision account?",
+        a: "Yes. Complete online KYC, then fund savings, FD, or wealth plans through the portal.",
+      },
+    ],
+  },
 ];
 
 export function getTexasCity(slug: string) {

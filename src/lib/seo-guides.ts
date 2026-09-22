@@ -1073,6 +1073,390 @@ export const SEO_GUIDES: SeoGuide[] = [
       { label: "Houston", href: "/serving-texas/houston" },
     ],
   },
+  {
+    slug: "retirement-planning-dallas",
+    title: "Retirement Planning Dallas — Online Options for DFW",
+    description:
+      "Retirement planning in Dallas / DFW: how to combine savings, fixed deposits, and wealth plans online with AWS Vision Financial.",
+    keywords: [
+      "Retirement Planning Dallas",
+      "Retirement Advisor Dallas",
+      "Retirement Financial Advisor Dallas",
+      "retirement investing Dallas TX",
+    ],
+    category: "Retirement",
+    readTime: "7 min",
+    sections: [
+      {
+        heading: "Dallas retirement basics",
+        body: [
+          "Map when you need income, then choose flexible savings vs locked FD terms vs longer wealth plans. Coordinate tax questions with a CPA.",
+        ],
+      },
+      {
+        heading: "DFW remote enrollment",
+        body: [
+          "Dallas residents can open accounts online — see our Dallas page and retirement Texas guide.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Dallas", href: "/serving-texas/dallas" },
+      { label: "Retirement Texas", href: "/guides/retirement-planning-texas" },
+      { label: "Financial planning", href: "/financial-planning" },
+    ],
+  },
+  {
+    slug: "retirement-planning-houston",
+    title: "Retirement Planning Houston — Getting Started Online",
+    description:
+      "Retirement planning Houston: a practical starter guide for Greater Houston investors using online savings, FD, and wealth accounts.",
+    keywords: [
+      "Retirement Planning Houston",
+      "Retirement Advisor Houston",
+      "retirement investment Houston TX",
+    ],
+    category: "Retirement",
+    readTime: "7 min",
+    sections: [
+      {
+        heading: "Houston timelines",
+        body: [
+          "Busy professionals often need remote onboarding. Confirm product terms and support channels before you fund.",
+        ],
+      },
+      {
+        heading: "Next steps",
+        body: [
+          "Visit Serving Houston, compare rates, and read the statewide retirement guide.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Houston", href: "/serving-texas/houston" },
+      { label: "Retirement Texas", href: "/guides/retirement-planning-texas" },
+      { label: "Rates", href: "/rates" },
+    ],
+  },
+  {
+    slug: "high-yield-savings-texas",
+    title: "High Yield Savings Account Texas — Online Options",
+    description:
+      "High yield savings in Texas: what to compare on rates and access, and how AWS Vision savings accounts work online statewide.",
+    keywords: [
+      "high yield savings Texas",
+      "high yield savings account Texas",
+      "best high yield savings Texas",
+      "online savings account Texas",
+    ],
+    category: "Savings",
+    readTime: "6 min",
+    sections: [
+      {
+        heading: "Savings vs FD",
+        body: [
+          "High-yield style savings suits capital you may need sooner. Fixed deposits fit money you can lock for a term.",
+        ],
+      },
+      {
+        heading: "Open online",
+        body: [
+          "Texas clients enroll remotely — see personal savings and rates pages.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Savings accounts", href: "/personal/savings" },
+      { label: "FD vs savings", href: "/guides/fixed-deposit-vs-savings" },
+      { label: "Rates", href: "/rates" },
+    ],
+  },
+  {
+    slug: "fixed-deposit-rates-texas",
+    title: "Fixed Deposit Rates Texas — What to Review Before You Lock",
+    description:
+      "Fixed deposit rates in Texas: how to read program terms, maturity, and online FD account opening with AWS Vision Financial.",
+    keywords: [
+      "fixed deposit rates Texas",
+      "FD rates Texas",
+      "best FD rates Texas",
+      "CD rates Texas online",
+      "open FD account Texas",
+    ],
+    category: "Savings",
+    readTime: "6 min",
+    sections: [
+      {
+        heading: "Read the term sheet",
+        body: [
+          "Compare monthly program rates, term length, and early-access rules in your agreement — not just a headline number.",
+        ],
+      },
+      {
+        heading: "Texas online FDs",
+        body: [
+          "Open and fund fixed deposits online after KYC. See CDs/FD product page and rates.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Fixed deposits", href: "/personal/cds" },
+      { label: "Rates", href: "/rates" },
+      { label: "Compare banks", href: "/compare" },
+    ],
+  },
+  {
+    slug: "monthly-return-investment-texas",
+    title: "Monthly Return Investment Accounts in Texas",
+    description:
+      "Monthly return / monthly profit investing in Texas — how wealth plan program rates work at AWS Vision and what to verify each month.",
+    keywords: [
+      "monthly return investment Texas",
+      "monthly profit investment",
+      "monthly investment returns Texas",
+      "high return investment account Texas",
+    ],
+    category: "Investing",
+    readTime: "7 min",
+    sections: [
+      {
+        heading: "Program rates vs guarantees",
+        body: [
+          "Published monthly program rates by tier are not the same as bank APY marketing. Always read your agreement and portal statements.",
+        ],
+      },
+      {
+        heading: "Learn more",
+        body: [
+          "See how monthly profit investing works and the wealth management hub.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Monthly profit guide", href: "/guides/how-monthly-profit-investing-works" },
+      { label: "Wealth management", href: "/wealth-management" },
+      { label: "Serving Texas", href: "/serving-texas" },
+    ],
+  },
+  {
+    slug: "stocks-vs-bonds-long-term",
+    title: "Stocks vs Bonds for Long-Term Investing",
+    description:
+      "Stocks vs bonds for long-term investing — a plain educational overview for Texas and U.S. investors building diversified portfolios.",
+    keywords: [
+      "Stocks vs Bonds for Long-Term Investing",
+      "long term investing stocks bonds",
+      "portfolio diversification stocks bonds",
+    ],
+    category: "Investing",
+    readTime: "7 min",
+    sections: [
+      {
+        heading: "Different jobs in a portfolio",
+        body: [
+          "Stocks generally aim for growth with more volatility; bonds often emphasize income/stability. Mix depends on horizon and risk tolerance — not personalized advice.",
+        ],
+      },
+      {
+        heading: "How this relates to our products",
+        body: [
+          "Wealth plans and savings/FD products serve different roles than DIY brokerage. Compare what you need, then review AWS Vision offerings.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Diversified portfolio", href: "/guides/how-to-build-diversified-investment-portfolio" },
+      { label: "Risk management", href: "/guides/how-to-manage-investment-risk" },
+      { label: "Portfolio management", href: "/portfolio-management" },
+    ],
+  },
+  {
+    slug: "gold-vs-stocks-long-term",
+    title: "Gold vs Stocks for Long-Term Investing",
+    description:
+      "Gold vs stocks for long-term investing — educational comparison of roles in a portfolio, without personalized recommendations.",
+    keywords: [
+      "Gold vs Stocks for Long-Term Investing",
+      "gold vs stocks investing",
+      "long term gold investment",
+    ],
+    category: "Investing",
+    readTime: "6 min",
+    sections: [
+      {
+        heading: "Different risk profiles",
+        body: [
+          "Gold is often used as a diversifier; stocks are typically growth-oriented. Neither is automatically “best” for every investor.",
+        ],
+      },
+      {
+        heading: "Practical takeaway",
+        body: [
+          "Define your goal first, then choose products. Explore wealth and savings options if you want an online firm structure.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Long-term strategies", href: "/guides/best-long-term-investment-strategies" },
+      { label: "Wealth management", href: "/wealth-management" },
+    ],
+  },
+  {
+    slug: "interest-rates-investment-portfolios",
+    title: "How Interest Rates Affect Investment Portfolios",
+    description:
+      "How interest rates can affect investment portfolios — educational overview for Texas and U.S. investors monitoring savings, FDs, and wealth plans.",
+    keywords: [
+      "How Interest Rates Affect Investment Portfolios",
+      "interest rates and investing",
+      "rates impact on portfolio",
+    ],
+    category: "Investing",
+    readTime: "6 min",
+    sections: [
+      {
+        heading: "Rates change the backdrop",
+        body: [
+          "When policy and market rates move, the relative appeal of savings, deposits, and risk assets can shift. Review your horizon instead of reacting to every headline.",
+        ],
+      },
+      {
+        heading: "Stay informed",
+        body: [
+          "Check your portal statements and our rates page when terms update.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Rates", href: "/rates" },
+      { label: "Preserve wealth in volatility", href: "/guides/preserve-wealth-market-volatility" },
+    ],
+  },
+  {
+    slug: "wealth-management-business-owners-texas",
+    title: "Wealth Management for Business Owners in Texas",
+    description:
+      "Wealth management for business owners and entrepreneurs in Texas — separating operating cash from investment capital with online accounts.",
+    keywords: [
+      "Wealth Management for Business Owners",
+      "Investment Advisor for Business Owners",
+      "Financial Advisor for Business Owners",
+      "Wealth Management for Entrepreneurs",
+      "Financial Advisor for Entrepreneurs",
+    ],
+    category: "Wealth",
+    readTime: "7 min",
+    sections: [
+      {
+        heading: "Separate business and personal capital",
+        body: [
+          "Keep operating reserves distinct from longer-term investment accounts. Work with a CPA on tax treatment.",
+        ],
+      },
+      {
+        heading: "Online Texas option",
+        body: [
+          "AWS Vision offers remote onboarding for owners who travel or run distributed teams — see financial planning for business owners guide too.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Business owner planning", href: "/guides/financial-planning-for-business-owners" },
+      { label: "Small business", href: "/small-business" },
+      { label: "Wealth management", href: "/wealth-management" },
+    ],
+  },
+  {
+    slug: "capital-preservation-strategies",
+    title: "Capital Preservation Investment Strategies",
+    description:
+      "Capital preservation strategies for cautious investors — educational ideas on product mix, horizon, and monitoring with online accounts.",
+    keywords: [
+      "Capital Preservation Investment Strategy",
+      "Wealth Preservation Strategies",
+      "capital preservation investing",
+    ],
+    category: "Investing",
+    readTime: "6 min",
+    sections: [
+      {
+        heading: "Preservation starts with horizon",
+        body: [
+          "Money needed soon often belongs in more liquid savings; longer horizons may include broader plans. Read agreements carefully.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Risk management", href: "/guides/how-to-manage-investment-risk" },
+      { label: "Savings", href: "/personal/savings" },
+      { label: "Fixed deposits", href: "/personal/cds" },
+    ],
+  },
+  {
+    slug: "personalized-investment-strategy-texas",
+    title: "Personalized Investment Strategy Texas — Getting Started",
+    description:
+      "Building a personalized investment strategy in Texas: goals, product fit, and how online firms like AWS Vision support remote planning.",
+    keywords: [
+      "Personalized Investment Strategy",
+      "Investment Strategy Consultant",
+      "Personal Wealth Management Services",
+      "Strategic Investment Management",
+    ],
+    category: "Investing",
+    readTime: "7 min",
+    sections: [
+      {
+        heading: "Start with goals, not buzzwords",
+        body: [
+          "Write down time horizon, liquidity needs, and risk comfort. Then map to savings, FD, or wealth products.",
+        ],
+      },
+      {
+        heading: "Texas online support",
+        body: [
+          "Use guides, rates, and advisory pages — then enroll if the fit is clear. Not personalized advice.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Investment advisory", href: "/investment-advisory" },
+      { label: "Financial planning", href: "/financial-planning" },
+      { label: "Best firm Texas", href: "/guides/best-financial-firm-texas" },
+    ],
+  },
+  {
+    slug: "top-wealth-management-firms-texas",
+    title: "Top Wealth Management Firms in Texas — How Lists Work",
+    description:
+      "Top wealth management firms in Texas lists change often. Use this framework to evaluate any firm, including online options like AWS Vision Financial.",
+    keywords: [
+      "top wealth management firms in Texas",
+      "top investment firms in Texas",
+      "best wealth management companies Texas",
+    ],
+    category: "Wealth",
+    readTime: "6 min",
+    sections: [
+      {
+        heading: "Don’t outsource judgment to a listicle",
+        body: [
+          "Publisher rankings may emphasize AUM or brand, not your need for remote KYC or transparent program rates.",
+        ],
+      },
+      {
+        heading: "Evaluate directly",
+        body: [
+          "Read Serving Texas, wealth tiers, and the best wealth management firm Texas guide.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Best wealth Texas", href: "/guides/best-wealth-management-firm-texas" },
+      { label: "Wealth management", href: "/wealth-management" },
+      { label: "Locations", href: "/locations" },
+    ],
+  },
 ];
 
 export function getSeoGuide(slug: string) {
