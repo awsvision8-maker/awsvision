@@ -22,11 +22,13 @@
    - Never duplicate thin city spam. Never claim RIA / fake office / fake “#1”.
    - If code changed: commit + push + `npx vercel --prod --yes`.
 
-4. **Outreach (real only)**
-   - Do **not** send email unless Gmail/Chrome session clearly allows composing to a real target the user already approved.
-   - Default daily: append **1 personalized draft** to `docs/seo-outreach-log.md` (status: `draft`) using templates in `docs/backlink-outreach.md`.
-   - Rotate targets: Texas chamber / fintech podcast / CPA partner / directory.
-   - Never PBN, link farms, fake reviews.
+4. **Outreach (real only) — Gmail authorized**
+   - **Allowed account:** `abdulwahibshera@gmail.com` via logged-in Chrome (`mail.google.com`). Compose is permitted.
+   - Daily: send **up to 1** personalized outreach email from that Gmail when a real public contact email exists for the target (chamber, podcast, directory “contact”, partner site).
+   - Use templates in `docs/backlink-outreach.md`. Include awsvision.com links only (Texas / guides / hubs). No fake address. No PBN / fake reviews.
+   - After send: update `docs/seo-outreach-log.md` → status `sent` + date. If no real recipient email found that day: keep/add `draft` only.
+   - Never invent recipient addresses. Never email random people scraped without a public contact page.
+   - Cap: max 1 send/day (deliverability + spam safety).
 
 5. **Report**
    - Short chat update: health ✅/❌ · GSC actions · any deploy · outreach draft added · next focus.
