@@ -43,6 +43,23 @@ export function HomePage() {
                 monthly and yearly gratuity — plus global sector investing with monthly profit to
                 your account. We do not offer checking accounts.
               </p>
+              <p className="mt-3 text-sm text-slate-300">
+                Serving{" "}
+                <Link href="/serving-texas" className="font-medium text-teal-300 underline-offset-2 hover:underline">
+                  Texas
+                </Link>{" "}
+                &amp;{" "}
+                <Link
+                  href="/serving-united-states"
+                  className="font-medium text-teal-300 underline-offset-2 hover:underline"
+                >
+                  nationwide U.S.
+                </Link>{" "}
+                clients online ·{" "}
+                <Link href="/guides" className="font-medium text-teal-300 underline-offset-2 hover:underline">
+                  Guides
+                </Link>
+              </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
                 <Link href="/signup" className="w-full sm:w-auto">
                   <Button size="lg" className="w-full sm:min-w-[180px]">
@@ -152,9 +169,17 @@ export function HomePage() {
           <div className="mt-8">
             <HabitsMarquee />
           </div>
-          <Link href="/financial-education" className="mt-8 inline-flex items-center gap-2 text-teal-700 font-semibold hover:underline">
-            Visit Better Money Habits® <ArrowRight className="h-4 w-4" />
-          </Link>
+          <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2">
+            <Link href="/financial-education" className="inline-flex items-center gap-2 text-teal-700 font-semibold hover:underline">
+              Visit Better Money Habits® <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link href="/guides" className="inline-flex items-center gap-2 text-teal-700 font-semibold hover:underline">
+              Investment guides <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link href="/serving-texas/dallas" className="inline-flex items-center gap-2 text-teal-700 font-semibold hover:underline">
+              Dallas coverage <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
         </div>
       </section>
 

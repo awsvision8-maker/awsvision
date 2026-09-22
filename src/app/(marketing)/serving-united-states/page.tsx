@@ -82,10 +82,31 @@ export default function ServingUnitedStatesPage() {
             <Link href="/wealth-management" className={btnOutline}>
               Wealth plans
             </Link>
+            <Link href="/guides/open-investment-account-online-usa" className={btnOutline}>
+              How to open an account
+            </Link>
             <Link href="/contact" className={btnOutline}>
               Contact
             </Link>
           </div>
+          <p className="mt-6 text-sm text-slate-500">
+            Texas focus:{" "}
+            <Link href="/serving-texas/dallas" className="text-teal-700 hover:underline">
+              Dallas
+            </Link>
+            {" · "}
+            <Link href="/serving-texas/houston" className="text-teal-700 hover:underline">
+              Houston
+            </Link>
+            {" · "}
+            <Link href="/serving-texas/austin" className="text-teal-700 hover:underline">
+              Austin
+            </Link>
+            {" · "}
+            <Link href="/guides" className="text-teal-700 hover:underline">
+              All guides
+            </Link>
+          </p>
         </div>
       </section>
     </div>

@@ -186,6 +186,7 @@ export const FOOTER_LINKS = {
     { label: "Contact Us", href: "/contact" },
     { label: "Schedule Appointment", href: "/contact#appointment" },
     { label: "Security", href: "/security" },
+    { label: "Investment Guides", href: "/guides" },
     { label: "Financial Education", href: "/financial-education" },
     { label: "Referral Program", href: "/referral-program" },
     { label: "Legal Services", href: TEAMBASED_TAX_URL },
@@ -194,6 +195,10 @@ export const FOOTER_LINKS = {
   company: [
     { label: "About AWS Vision", href: "/about" },
     { label: "Serving Texas", href: "/serving-texas" },
+    { label: "Dallas", href: "/serving-texas/dallas" },
+    { label: "Houston", href: "/serving-texas/houston" },
+    { label: "Austin", href: "/serving-texas/austin" },
+    { label: "San Antonio", href: "/serving-texas/san-antonio" },
     { label: "Serving the U.S.", href: "/serving-united-states" },
     { label: "News", href: "/news" },
     { label: "Investor Relations", href: "/about#investors" },

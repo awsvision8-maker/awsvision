@@ -3,6 +3,7 @@ import { BookOpen, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EDUCATION_ARTICLES } from "@/lib/site-data";
 import { pageMetadata } from "@/lib/seo";
+import { SEO_GUIDES } from "@/lib/seo-guides";
 
 export const metadata = pageMetadata("/financial-education");
 
@@ -20,10 +21,28 @@ export default function FinancialEducationPage() {
             save more, manage debt, build credit, buy a home, plan for retirement, and grow your
             investments with confidence.
           </p>
+          <Link
+            href="/guides"
+            className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-teal-300 hover:underline"
+          >
+            Browse investment guides <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </section>
 
       <div className="mx-auto max-w-7xl px-6 py-16">
+        <div className="mb-12 rounded-2xl border border-teal-200 bg-teal-50/50 p-6">
+          <h2 className="text-lg font-semibold text-slate-900">Start with these guides</h2>
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+            {SEO_GUIDES.map((g) => (
+              <li key={g.slug}>
+                <Link href={`/guides/${g.slug}`} className="text-sm font-medium text-teal-800 hover:underline">
+                  {g.title} →
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
         <div className="flex flex-wrap gap-2">
           {categories.map((cat) => (
             <button

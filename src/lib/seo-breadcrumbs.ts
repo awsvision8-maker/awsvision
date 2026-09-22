@@ -34,6 +34,15 @@ const SEGMENT_LABELS: Record<string, string> = {
   "serving-texas": "Serving Texas",
   "serving-united-states": "Serving the United States",
   "referral-program": "Referral Program",
+  guides: "Investment Guides",
+  dallas: "Dallas",
+  houston: "Houston",
+  austin: "Austin",
+  "san-antonio": "San Antonio",
+  "open-investment-account-online-usa": "Open an Account Online",
+  "fixed-deposit-vs-savings": "FD vs Savings",
+  "texas-online-wealth-management": "Texas Wealth Management",
+  "how-monthly-profit-investing-works": "Monthly Profit Investing",
 };
 
 /** Build breadcrumb trail for a marketing path */

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Building2, MapPin, Phone, ShieldCheck } from "lucide-react";
 import { pageMetadata, texasServiceFaqJsonLd } from "@/lib/seo";
 import { SITE } from "@/lib/site-config";
+import { TEXAS_CITIES } from "@/lib/texas-cities";
 import { cn } from "@/lib/utils";
 
 export const metadata = pageMetadata("/serving-texas");
@@ -15,16 +16,7 @@ const btnOutline =
 const btnTeal =
   "inline-flex h-11 items-center justify-center rounded-lg bg-teal-700 px-5 text-sm font-semibold text-white transition hover:bg-teal-800";
 
-const CITIES = [
-  "Dallas–Fort Worth",
-  "Houston",
-  "Austin",
-  "San Antonio",
-  "El Paso",
-  "Plano",
-  "Irving",
-  "Arlington",
-];
+const OTHER_CITIES = ["El Paso", "Plano", "Irving", "Arlington"];
 
 const SERVICES = [
   {
@@ -132,10 +124,21 @@ export default function ServingTexasPage() {
         <div className="mx-auto max-w-7xl px-6">
           <h2 className="text-2xl font-bold text-slate-900">Cities we commonly serve</h2>
           <p className="mt-2 text-slate-600">
-            Service-based coverage — not a list of physical storefronts.
+            Service-based coverage — not a list of physical storefronts. Open a city page for local
+            details.
           </p>
           <ul className="mt-6 flex flex-wrap gap-2">
-            {CITIES.map((city) => (
+            {TEXAS_CITIES.map((city) => (
+              <li key={city.slug}>
+                <Link
+                  href={`/serving-texas/${city.slug}`}
+                  className="inline-block rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-teal-300 hover:text-teal-800"
+                >
+                  {city.name}
+                </Link>
+              </li>
+            ))}
+            {OTHER_CITIES.map((city) => (
               <li
                 key={city}
                 className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700"
@@ -144,6 +147,17 @@ export default function ServingTexasPage() {
               </li>
             ))}
           </ul>
+          <p className="mt-6 text-sm text-slate-600">
+            Read our{" "}
+            <Link href="/guides/texas-online-wealth-management" className="font-medium text-teal-700 underline">
+              Texas wealth management guide
+            </Link>{" "}
+            or browse all{" "}
+            <Link href="/guides" className="font-medium text-teal-700 underline">
+              investment guides
+            </Link>
+            .
+          </p>
         </div>
       </section>
 
