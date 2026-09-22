@@ -133,7 +133,8 @@ export const PAGE_SEO: Record<string, PageSeo> = {
     path: "/rates",
     title: "Investment Rates & FD Returns | AWS Vision Financial",
     description:
-      "Transparent savings gratuity tiers, fixed deposit monthly rates, and investment plan returns. Compare AWS Vision program rates for savings, CDs, FD accounts, and wealth management tiers.",
+    description:
+      "AWS Vision savings and fixed deposit programs with capital-based tiers. Exact monthly rates are confirmed on a call — public pages use up-to framing only.",
     keywords: [
       "investment rates",
       "fixed deposit rates",

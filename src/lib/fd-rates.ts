@@ -11,15 +11,15 @@ export interface FdRateRow {
   featured?: boolean;
 }
 
-/** Public FD offering — Wealth Accelerator promo package */
+/** Public FD offering — Wealth Accelerator promo package (rates discussed on call) */
 export function buildFdRates(promo: ActiveFdPromo = getActiveFdPromo()): FdRateRow[] {
   return [
     {
       product: `${promo.monthLong} Promo FD — ${promo.termMonths} Months`,
       min: `${formatPromoUsd(promo.minDeposit)}+`,
       term: `${promo.termMonths} months`,
-      monthlyRate: `${(promo.returnPercent / promo.termMonths).toFixed(2)}%/mo`,
-      totalReturn: `${promo.returnPercent}% total`,
+      monthlyRate: "Up to program rate · Discuss on call",
+      totalReturn: "Up to promotional package · Discuss on call",
       featured: true,
     },
   ];
@@ -37,10 +37,10 @@ export function buildFdProducts(promo: ActiveFdPromo = getActiveFdPromo()) {
   return [
     {
       name: `${promo.monthLong} Promo FD — ${promo.termMonths} Months`,
-      rate: `${promo.returnPercent}% total return`,
+      rate: "Up to promotional return · Discuss on call",
       desc: `Minimum ${formatPromoUsd(promo.minDeposit)}. Open in ${promo.monthLabel} only.`,
       features: [
-        `${promo.returnPercent}% return after ${promo.termMonths} months`,
+        "Up to promotional package return — confirm on call",
         "Monthly and yearly gratuity eligible",
         promo.enrollmentLabel,
         "Relationship manager support",

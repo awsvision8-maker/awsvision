@@ -23,16 +23,25 @@ export default async function RatesPage() {
         <div className="page-container">
           <h1 className="text-3xl font-bold sm:text-4xl">Today&apos;s Rates</h1>
           <p className="mt-4 max-w-2xl text-sm text-slate-300 sm:text-base">
-            Compare savings and fixed deposit rates available today. Loan, credit card, and checking
-            rates are shown for reference — those products are opening soon.
+            Savings and fixed deposit programs use capital-based tiers. Public figures are shown as
+            “up to” — your exact monthly rate is confirmed on a call with support or your
+            representative.
           </p>
           <p className="mt-3 text-sm text-emerald-300">{OPEN_NOW_MESSAGE}</p>
-          <Link
-            href="/compare"
-            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/20 hover:bg-white/15"
-          >
-            See how we compare to Chase, Fidelity, Schwab & more →
-          </Link>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Link
+              href="/contact"
+              className="inline-flex items-center gap-2 rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-amber-300"
+            >
+              Discuss rates on a call →
+            </Link>
+            <Link
+              href="/compare"
+              className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/20 hover:bg-white/15"
+            >
+              Compare vs banks &amp; firms →
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -64,14 +73,14 @@ export default async function RatesPage() {
 
         <RateSection
           title="Savings — Monthly & Yearly Gratuity (Available Now)"
-          headers={["Product", "Minimum", "Maximum", "Monthly Rate", "Annual (Simple)"]}
+          headers={["Product", "Minimum", "Maximum", "Monthly Rate", "Annual"]}
           mobileCards={RATES_DATA.savings.map((r) => ({
             title: r.product,
             fields: [
               { label: "Minimum", value: r.min },
               { label: "Maximum", value: r.max },
               { label: "Monthly Rate", value: r.rate, highlight: true },
-              { label: "Annual (Simple)", value: r.apy, highlight: true },
+              { label: "Annual", value: r.apy, highlight: true },
             ],
           }))}
         >
@@ -123,10 +132,10 @@ export default async function RatesPage() {
 
         <p className="-mt-4 text-xs text-slate-500 leading-relaxed sm:-mt-6">
           The {promo.monthLong} Promo FD is our current Fixed Deposit offering:{" "}
-          {fdRates[0]?.min ?? "$50,000+"} minimum, {promo.returnPercent}% total return over{" "}
-          {promo.termMonths} months. Enrollment by {promo.endsLabel.replace("Offer ends ", "")}.
-          Early withdrawal: contact your relationship manager to initiate — not available
-          self-service in the portal.
+          {fdRates[0]?.min ?? "$50,000+"} minimum over {promo.termMonths} months. Exact monthly and
+          total returns are confirmed on a call — we publish “up to” program framing only. Enrollment
+          by {promo.endsLabel.replace("Offer ends ", "")}. Early withdrawal: contact your
+          relationship manager (not self-service in the portal).
         </p>
 
         <RateSection
@@ -169,21 +178,31 @@ export default async function RatesPage() {
 
         <div className="rounded-xl bg-teal-50 p-6 text-center sm:p-8">
           <h2 className="text-lg font-bold text-slate-900 sm:text-xl">
-            Open a Savings, FD, or Investment account
+            Confirm your rate on a call
           </h2>
-          <p className="mt-2 text-sm text-slate-600 sm:text-base">{OPEN_NOW_MESSAGE}</p>
-          <Link href="/signup" className="mt-4 inline-block w-full sm:w-auto">
-            <Button size="lg" className="w-full sm:w-auto">
-              Open Account
-            </Button>
-          </Link>
+          <p className="mt-2 text-sm text-slate-600 sm:text-base">
+            Exact monthly and total returns depend on capital and package — we discuss them with you
+            before enrollment. {OPEN_NOW_MESSAGE}
+          </p>
+          <div className="mt-4 flex flex-wrap justify-center gap-3">
+            <Link href="/contact" className="inline-block w-full sm:w-auto">
+              <Button size="lg" className="w-full sm:w-auto">
+                Talk to Support
+              </Button>
+            </Link>
+            <Link href="/signup" className="inline-block w-full sm:w-auto">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                Open Account
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <p className="text-xs text-slate-400 leading-relaxed">
-          Rates are subject to change without notice. APY assumes monthly profit reinvestment.
-          Loan rates shown are for well-qualified applicants. Actual rates may vary based on
-          creditworthiness, loan amount, and term. Credit card APRs vary based on credit profile.
-          Investment returns are not guaranteed. See disclosures for full terms.
+          Rates and “up to” figures are indicative and subject to change without notice. Exact
+          program percentages are confirmed on a call and in your enrollment agreement. Loan and
+          card rates shown are for well-qualified applicants and coming-soon products. Investment
+          returns are not guaranteed. See disclosures for full terms.
         </p>
       </div>
     </div>

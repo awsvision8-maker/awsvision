@@ -253,11 +253,41 @@ export const HOME_QUICK_LINKS = [
 
 export const RATES_DATA = {
   savings: [
-    { product: "AWS Vision Advantage Savings", min: "$100", max: "No max", rate: "0.01%", apy: "0.01%" },
-    { product: "Advantage Savings (Preferred Rewards Platinum)", min: "$100", max: "No max", rate: "0.04%", apy: "0.04%" },
-    { product: "Investment Savings — Starter Tier", min: "$1,000", max: "$9,999", rate: "6.00%/mo", apy: "72.00% annual simple" },
-    { product: "Investment Savings — Growth Tier", min: "$10,000", max: "$99,999", rate: "7.50%/mo", apy: "90.00% annual simple" },
-    { product: "Investment Savings — Elite Tier", min: "$100,000", max: "$249,999", rate: "9.50%/mo", apy: "114.00% annual simple" },
+    {
+      product: "AWS Vision Advantage Savings",
+      min: "$100",
+      max: "No max",
+      rate: "Up to bank APY · Discuss on call",
+      apy: "Discuss on call",
+    },
+    {
+      product: "Advantage Savings (Preferred Rewards)",
+      min: "$100",
+      max: "No max",
+      rate: "Up to relationship APY · Discuss on call",
+      apy: "Discuss on call",
+    },
+    {
+      product: "Investment Savings — Starter Tier",
+      min: "$1,000",
+      max: "$9,999",
+      rate: "Up to program rate · Discuss on call",
+      apy: "Discuss on call",
+    },
+    {
+      product: "Investment Savings — Growth Tier",
+      min: "$10,000",
+      max: "$99,999",
+      rate: "Up to program rate · Discuss on call",
+      apy: "Discuss on call",
+    },
+    {
+      product: "Investment Savings — Elite Tier",
+      min: "$100,000",
+      max: "$249,999+",
+      rate: "Up to program rate · Discuss on call",
+      apy: "Discuss on call",
+    },
   ],
   loans: [
     { product: "30-Year Fixed Mortgage", rate: "6.875%", apr: "6.991%", type: "Home" },
