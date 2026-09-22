@@ -96,9 +96,9 @@ export function formatAwsSavingsRateLabel(tier: (typeof AWS_SAVINGS_TIERS)[numbe
   return `${formatComparePercent(tier.monthlyRate)}/mo (${formatComparePercent(annual, annual % 1 === 0 ? 0 : 1)} annual simple)`;
 }
 
-/** Investment plan rate label for compare page — public copy hides exact tier % */
-export function formatInvestmentPlanRateLabel(_plan: { monthlyRate: number; name: string }) {
-  return `Up to ${formatComparePercent(AWS_COMPARE_MAX_MONTHLY_RATE, 0)}/mo · Talk to Support`;
+/** Investment plan rate label for compare — shows the tier that matches selected capital */
+export function formatInvestmentPlanRateLabel(plan: { monthlyRate: number; name: string }) {
+  return `${formatComparePercent(plan.monthlyRate, 0)}/mo · ${plan.name}`;
 }
 
 /**
@@ -552,12 +552,12 @@ export interface ComparisonReport {
   lastUpdated: string;
   aws: {
     investmentTier: (typeof INVESTMENT_PLANS)[number];
-    /** Illustrative ceiling used for public compare (always up to 7%/mo) */
+    /** Monthly program rate for this principal’s matching tier */
     savingsMonthlyRate: number;
     savingsAnnualSimplePercent: number;
     /** @deprecated use savingsAnnualSimplePercent — kept for API compat */
     savingsApy: number;
-    /** monthly rate × 12 months on principal (simple) at illustrative ceiling */
+    /** monthly rate × 12 months on principal (simple) at matched tier */
     savingsYearEarnings: number;
     investmentYearSimple: number;
     investmentYearCompound: number;
@@ -592,12 +592,12 @@ export function buildComparisonReport(
   principal: number,
   promoOverride?: ActiveFdPromo | null
 ): ComparisonReport {
-  // Public compare illustrates the highest program rate (up to 7%/mo). Actual client rates vary by capital.
-  const investmentTier = awsIllustrativeComparePlan();
+  // Match published investment-plan tiers by enrolled capital (e.g. $10k → Gold 3%/mo, not Executive 7%).
+  const investmentTier = awsInvestmentTierForPrincipal(principal);
   const promo =
     promoOverride === undefined ? getActiveFdPromo() : promoOverride;
 
-  const awsMonthlyRate = AWS_COMPARE_MAX_MONTHLY_RATE;
+  const awsMonthlyRate = investmentTier.monthlyRate;
   const awsAnnualSimple = awsMonthlyRate * 12;
   const awsInvestmentSimple = monthlyProgramSimple(principal, awsMonthlyRate, 12);
   const awsInvestmentCompound = awsProgramEarnings(
@@ -718,7 +718,7 @@ export function buildComparisonReport(
       awsInvestmentYear: awsInvestmentSimple,
       chaseCdYear,
       multiplierVsChaseCd: multiplierLabel(awsInvestmentSimple, chaseCdYear),
-      tierName: "Up to 7% monthly",
+      tierName: `${investmentTier.name} · ${formatComparePercent(awsMonthlyRate, 0)}/mo`,
       monthlyRate: awsMonthlyRate,
     },
   };

@@ -84,6 +84,12 @@ export function BankComparisonPageContent({
   const awsSavingsYear = report?.aws.savingsYearEarnings ?? 0;
   const awsInvestmentYear = report?.aws.investmentYearSimple ?? 0;
   const chaseCdYear = hero?.chaseCdYear ?? 0;
+  const awsMonthlyRate = report?.aws.savingsMonthlyRate ?? hero?.monthlyRate ?? 0;
+  const awsTier = report?.aws.investmentTier;
+  const awsRateLabel = awsTier
+    ? formatInvestmentPlanRateLabel(awsTier)
+    : hero?.tierName ?? "Talk to Support";
+  const maxPublishedRate = AWS_COMPARE_MAX_MONTHLY_RATE;
 
   return (
     <div className="overflow-x-hidden">
@@ -101,8 +107,8 @@ export function BankComparisonPageContent({
             <p className="mt-5 text-lg text-slate-300 leading-relaxed">
               Side-by-side with Chase, Bank of America, Ally, Fidelity, Schwab, Vanguard, Betterment
               and more — bank deposit APYs and brokerage cash/money-market yields vs AWS Vision
-              program earnings (illustrated at up to {AWS_COMPARE_MAX_MONTHLY_RATE}% monthly). Your
-              exact profit rate depends on enrolled capital.
+              program earnings by capital tier (published plans up to {maxPublishedRate}% monthly
+              at Executive). Your exact profit rate depends on enrolled capital.
             </p>
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
               {loading ? (
@@ -118,14 +124,16 @@ export function BankComparisonPageContent({
                     sub: `on ${formatCompareUsd(principal)}`,
                   },
                   {
-                    stat: `Up to ${AWS_COMPARE_MAX_MONTHLY_RATE}%`,
-                    label: "AWS Vision illustration",
-                    sub: "Rates vary by capital · Talk to Support",
+                    stat: awsMonthlyRate
+                      ? `${formatComparePercent(awsMonthlyRate, 0)}/mo`
+                      : "—",
+                    label: awsTier ? `${awsTier.name} tier` : "AWS Vision rate",
+                    sub: `Matched to ${formatCompareUsd(principal)} capital`,
                   },
                   {
                     stat: formatCompareUsd(awsInvestmentYear),
                     label: "Est. 12-mo program profit",
-                    sub: `Illustrated at up to ${AWS_COMPARE_MAX_MONTHLY_RATE}%/mo × 12`,
+                    sub: `${formatComparePercent(awsMonthlyRate, 0)}/mo × 12 on this capital`,
                   },
                 ].map((item) => (
                   <div
@@ -187,14 +195,15 @@ export function BankComparisonPageContent({
             ))}
           </div>
           <p className="mt-3 text-xs text-slate-500">
-            Showing projections for <strong>{formatCompareUsd(principal)}</strong> using AWS Vision
-            at <strong>up to {AWS_COMPARE_MAX_MONTHLY_RATE}% monthly</strong> (
-            {formatCompareUsd(awsSavingsYear)} est. over 12 months). Profit percentages vary by
-            capital —{" "}
+            Showing projections for <strong>{formatCompareUsd(principal)}</strong> using the{" "}
+            <strong>{awsTier?.name ?? "matched"}</strong> tier at{" "}
+            <strong>{formatComparePercent(awsMonthlyRate, 0)} monthly</strong> (
+            {formatCompareUsd(awsSavingsYear)} est. over 12 months). Higher capital unlocks higher
+            published tiers (up to {maxPublishedRate}%/mo) —{" "}
             <Link href="/contact" className="font-semibold text-teal-700 hover:underline">
               talk to an agent
             </Link>{" "}
-            for your rate.
+            for enrollment terms.
           </p>
         </div>
       </section>
@@ -207,10 +216,12 @@ export function BankComparisonPageContent({
           </h2>
           <p className="mt-2 max-w-2xl text-slate-600">
             Banks use published deposit/CD APY. Brokerages and robos use cash / money-market /
-            cash-reserve yields (not equity returns). AWS Vision earnings below are illustrated at{" "}
-            <strong>up to {AWS_COMPARE_MAX_MONTHLY_RATE}% monthly</strong> — our highest program
-            rate. Your actual profit percentage depends on enrolled capital and is confirmed with
-            support.
+            cash-reserve yields (not equity returns). AWS Vision earnings below use the published
+            plan for this deposit size:{" "}
+            <strong>
+              {awsTier?.name ?? "matched tier"} at {formatComparePercent(awsMonthlyRate, 0)} monthly
+            </strong>
+            . Higher capital can qualify for higher tiers (up to {maxPublishedRate}%/mo Executive).
           </p>
 
           <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -234,10 +245,7 @@ export function BankComparisonPageContent({
                     </span>
                   </td>
                   <td className="px-4 py-4 font-bold text-teal-700 sm:px-6">
-                    {formatInvestmentPlanRateLabel({
-                      monthlyRate: AWS_COMPARE_MAX_MONTHLY_RATE,
-                      name: "AWS Vision",
-                    })}
+                    {awsRateLabel}
                   </td>
                   <td className="px-4 py-4 font-bold text-teal-700 sm:px-6">
                     {formatCompareUsd(awsSavingsYear)}
@@ -280,11 +288,10 @@ export function BankComparisonPageContent({
           </div>
           <p className="mt-3 text-xs text-slate-500">
             Competitor earnings: principal × (published cash/deposit APY ÷ 100). Brokerage figures are
-            cash/MM yields — not stock-market returns. AWS Vision: illustrated at up to{" "}
-            {AWS_COMPARE_MAX_MONTHLY_RATE}%/mo × 12 on principal (
+            cash/MM yields — not stock-market returns. AWS Vision for this size:{" "}
+            {formatComparePercent(awsMonthlyRate, 0)}/mo × 12 (
             {formatCompareUsd(awsSavingsYear)}/yr at {formatCompareUsd(principal)}) vs a 4.5% bank
-            APY earning about {formatCompareUsd(apyOneYearEarnings(principal, 4.5))}/yr. Actual AWS
-            Vision rates vary by capital.
+            APY earning about {formatCompareUsd(apyOneYearEarnings(principal, 4.5))}/yr.
           </p>
         </div>
       </section>
@@ -296,9 +303,11 @@ export function BankComparisonPageContent({
             CD vs Investment & Fixed Deposit Programs
           </h2>
           <p className="mt-2 max-w-2xl text-slate-600">
-            Bank CDs use APY. AWS Vision program earnings here use an illustration of{" "}
-            <strong>up to {AWS_COMPARE_MAX_MONTHLY_RATE}% monthly</strong>. Your personalized rate
-            depends on capital — talk to support or an agent for enrollment terms.
+            Bank CDs use APY. AWS Vision uses the published{" "}
+            <strong>
+              {awsTier?.name ?? "matched"} tier ({formatComparePercent(awsMonthlyRate, 0)} monthly)
+            </strong>{" "}
+            for this deposit size — talk to support for enrollment terms.
           </p>
 
           <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
@@ -314,10 +323,10 @@ export function BankComparisonPageContent({
               <tbody>
                 <tr className="border-b border-amber-100 bg-gradient-to-r from-amber-50 to-teal-50">
                   <td className="px-4 py-4 font-bold text-slate-900 sm:px-6">
-                    AWS Vision — up to {AWS_COMPARE_MAX_MONTHLY_RATE}%/mo
+                    AWS Vision — {formatComparePercent(awsMonthlyRate, 0)}/mo
                   </td>
                   <td className="px-4 py-4 text-slate-700 sm:px-6">
-                    Rates vary by capital · Talk to Support
+                    {awsTier?.name ?? "Matched tier"} for {formatCompareUsd(principal)}
                   </td>
                   <td className="px-4 py-4 font-bold text-teal-700 sm:px-6">
                     {formatCompareUsd(awsInvestmentYear)} / yr
@@ -354,7 +363,8 @@ export function BankComparisonPageContent({
               <h3 className="text-lg font-semibold text-slate-900">Promotional CD rates (banks)</h3>
               <p className="mt-1 text-sm text-slate-600">
                 Short-term promotional CDs — often require new money or specific terms. Compared
-                against AWS Vision illustrated at up to {AWS_COMPARE_MAX_MONTHLY_RATE}% monthly.
+                against AWS Vision at {formatComparePercent(awsMonthlyRate, 0)} monthly for this
+                capital size.
               </p>
               <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
                 <table className="w-full min-w-[720px] text-sm">
@@ -398,13 +408,14 @@ export function BankComparisonPageContent({
         <div className="page-container">
           <h2 className="text-2xl font-bold">AWS Vision Investment Tiers vs Traditional Banking</h2>
           <p className="mt-2 max-w-2xl text-slate-400">
-            At {formatCompareUsd(principal)}, illustrated AWS Vision earnings are{" "}
+            At {formatCompareUsd(principal)}, the matching{" "}
+            <strong className="text-teal-300">{awsTier?.name ?? "tier"}</strong> rate (
+            {formatComparePercent(awsMonthlyRate, 0)}/mo) projects about{" "}
             <strong className="text-teal-300">
-              {formatCompareUsd(investment?.awsAnnualCompound ?? 0)}
+              {formatCompareUsd(awsInvestmentYear)}
             </strong>{" "}
-            over 12 months (up to {AWS_COMPARE_MAX_MONTHLY_RATE}%/mo) vs.{" "}
-            {formatCompareUsd(chaseCdYear)} from Chase&apos;s standard 12-month CD. Exact profit
-            percentages vary by capital — talk to support for your plan.
+            over 12 months vs. {formatCompareUsd(chaseCdYear)} from Chase&apos;s standard 12-month
+            CD. Published plans go up to {maxPublishedRate}%/mo at Executive ($100k+).
           </p>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {AWS_VISION_COMPARE_TIERS.map((t) => (
@@ -445,16 +456,14 @@ export function BankComparisonPageContent({
               {COMPARISON_LAST_UPDATED}).
             </p>
             <p>
-              <strong>AWS Vision (illustration):</strong> Earnings = capital × (up to{" "}
-              {AWS_COMPARE_MAX_MONTHLY_RATE}% ÷ 100) × 12 months. This uses our highest published
-              program ceiling so you can see maximum modeled advantage vs big banks.{" "}
-              <strong>Profit percentages vary depending on capital</strong> — your enrolled rate is
-              confirmed with support or a relationship agent.
+              <strong>AWS Vision (by capital):</strong> Earnings = capital × (matched tier monthly
+              rate ÷ 100) × 12 months. Example: $10,000 → Gold at 3%/mo; $50,000 → Platinum at
+              5%/mo; $100,000+ → Executive at {maxPublishedRate}%/mo. Enrollment terms are confirmed
+              with support.
             </p>
             <p>
-              <strong>Personalized terms:</strong> Plan selection and monthly profit rate are set
-              with your representative based on deposit size and program fit — not listed as fixed
-              public tier percentages on this page.
+              <strong>Personalized terms:</strong> Plan selection follows published minimums on the
+              Rates page; your representative confirms the final monthly profit rate at enrollment.
             </p>
           </div>
 
@@ -464,7 +473,7 @@ export function BankComparisonPageContent({
               {
                 icon: Zap,
                 title: "Higher yields than branch savings",
-                desc: `Even megabank promotional CDs top out around 4–4.5% APY. AWS Vision programs can illustrate up to ${AWS_COMPARE_MAX_MONTHLY_RATE}% monthly on enrolled capital — a different product structure. Your rate depends on capital.`,
+                desc: `Even megabank promotional CDs top out around 4–4.5% APY. AWS Vision published tiers run from Silver (2%/mo) up to Executive (${maxPublishedRate}%/mo at $100k+) — a different product structure matched to capital.`,
               },
               {
                 icon: TrendingUp,
@@ -675,9 +684,8 @@ export function BankComparisonPageContent({
             publicly available sources as of {COMPARISON_LAST_UPDATED} and may change without notice.
             Brokerage and robo yields on this page are cash products only — not equity or mutual-fund
             performance. AWS Vision earnings on this page are illustrated at up to{" "}
-            {AWS_COMPARE_MAX_MONTHLY_RATE}% monthly; actual profit percentages vary depending on
             capital and are confirmed at enrollment with support. Illustrations do not guarantee
-            future performance.
+            future performance. Published plan ceiling is {maxPublishedRate}% monthly (Executive).
           </p>
           <p>
             <strong>Sources reviewed:</strong>{" "}
