@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ServiceHub } from "@/lib/service-hubs";
+import { SeoRelatedLinks } from "@/components/seo/seo-related-links";
 
 const btnPrimary =
   "inline-flex h-11 items-center justify-center rounded-lg bg-teal-500 px-5 text-sm font-semibold text-slate-950 transition hover:bg-teal-400";
@@ -89,22 +90,6 @@ export function ServiceHubPage({ hub }: { hub: ServiceHub }) {
                 </Link>
               </li>
             ))}
-            <li>
-              <Link
-                href="/serving-texas/dallas"
-                className="inline-flex rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-teal-300"
-              >
-                Dallas
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/serving-texas/houston"
-                className="inline-flex rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-teal-300"
-              >
-                Houston
-              </Link>
-            </li>
           </ul>
           <div className="mt-8">
             <Link href="/signup" className={btnTeal}>
@@ -113,6 +98,8 @@ export function ServiceHubPage({ hub }: { hub: ServiceHub }) {
           </div>
         </div>
       </section>
+
+      <SeoRelatedLinks />
     </div>
   );
 }

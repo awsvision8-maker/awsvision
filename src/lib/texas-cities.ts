@@ -5,6 +5,8 @@ export type TexasCity = {
   headline: string;
   intro: string;
   localFocus: string[];
+  processSteps?: { title: string; body: string }[];
+  whyLocal?: string[];
   keywords: string[];
   faqs: { q: string; a: string }[];
 };
@@ -21,6 +23,25 @@ export const TEXAS_CITIES: TexasCity[] = [
       "Dallas professionals and households seeking online investment management",
       "DFW clients who want wealth management without a branch visit",
       "Investors comparing financial services and portfolio options in North Texas",
+    ],
+    processSteps: [
+      {
+        title: "Apply online from Dallas",
+        body: "Create your account at awsvision.com/signup. Dallas and DFW residents complete identity verification (KYC) remotely — no in-person appointment required.",
+      },
+      {
+        title: "Choose savings, FD, or wealth",
+        body: "Pick flexible savings, a fixed deposit with a defined term, or a wealth management tier with monthly program rates and portal statements.",
+      },
+      {
+        title: "Fund and track in the portal",
+        body: "After approval, fund your account and monitor balances 24/7. Support is available by phone at +1 (469) 754-2201 for North Texas clients.",
+      },
+    ],
+    whyLocal: [
+      "Dallas searches for “investment firm Dallas” and “financial advisor Dallas” often assume a storefront. We compete honestly as an online firm with statewide Texas service — clearer than inventing a fake address for Maps.",
+      "DFW professionals who travel or work hybrid schedules often prefer remote onboarding and digital statements over branch visits.",
+      "Compare published rates before you enroll, then review agreements in the portal — the same process whether you are in Dallas, Plano, Irving, or Fort Worth.",
     ],
     keywords: [
       "Investment Firm Dallas",
@@ -55,6 +76,10 @@ export const TEXAS_CITIES: TexasCity[] = [
         q: "Can I get wealth management from Dallas without visiting a branch?",
         a: "Yes. Complete online signup and KYC, choose a wealth tier, fund your account, and review statements in the portal.",
       },
+      {
+        q: "How is this different from a local Dallas financial advisor?",
+        a: "Local advisors may offer in-person meetings. AWS Vision focuses on online investment products, transparent rates, and remote support — a fit when you want digital onboarding across DFW.",
+      },
     ],
   },
   {
@@ -68,6 +93,24 @@ export const TEXAS_CITIES: TexasCity[] = [
       "Houston households comparing investment companies online",
       "Professionals seeking portfolio management without a local branch",
       "Clients who want transparent rates and monthly profit distribution on wealth plans",
+    ],
+    processSteps: [
+      {
+        title: "Enroll from Greater Houston",
+        body: "Complete signup and KYC online from Houston or surrounding areas — Bellaire, Sugar Land, The Woodlands, and beyond.",
+      },
+      {
+        title: "Pick your product mix",
+        body: "Savings for flexibility, fixed deposits for defined terms, or wealth plans for longer-horizon portfolio growth.",
+      },
+      {
+        title: "Manage everything in one portal",
+        body: "Statements, balances, and support are available remotely — call or email when you need help.",
+      },
+    ],
+    whyLocal: [
+      "Houston is a major financial and energy market. Many residents search for a local advisor but still prefer online onboarding that works with busy schedules.",
+      "We serve Houston as part of statewide Texas coverage — honest about being online, not a fake downtown storefront.",
     ],
     keywords: [
       "Investment Firm Houston",

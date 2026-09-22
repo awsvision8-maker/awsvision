@@ -5,7 +5,7 @@ import { absoluteUrl } from "@/lib/seo";
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
-  return SITEMAP_PATHS.map((path) => {
+  return SITEMAP_PATHS.filter((path) => !PAGE_SEO[path]?.noindex).map((path) => {
     const page = PAGE_SEO[path];
     return {
       url: absoluteUrl(path),

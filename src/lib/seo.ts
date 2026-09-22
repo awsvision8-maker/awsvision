@@ -91,17 +91,19 @@ export function pageMetadata(path: string, overrides?: Partial<PageSeo>): Metada
       description,
       images: [absoluteUrl(OG_IMAGE_PATH)],
     },
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        "max-image-preview": "large",
-        "max-snippet": -1,
-        "max-video-preview": -1,
-      },
-    },
+    robots: page.noindex
+      ? { index: false, follow: false, googleBot: { index: false, follow: false } }
+      : {
+          index: true,
+          follow: true,
+          googleBot: {
+            index: true,
+            follow: true,
+            "max-image-preview": "large",
+            "max-snippet": -1,
+            "max-video-preview": -1,
+          },
+        },
   };
 }
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { SeoGuide } from "@/lib/seo-guides";
+import { SeoRelatedLinks } from "@/components/seo/seo-related-links";
 
 export function SeoGuideArticle({ guide }: { guide: SeoGuide }) {
   return (
@@ -50,6 +51,8 @@ export function SeoGuideArticle({ guide }: { guide: SeoGuide }) {
           </Link>
         </p>
       </div>
+
+      <SeoRelatedLinks title="More Texas investment resources" />
     </article>
   );
 }

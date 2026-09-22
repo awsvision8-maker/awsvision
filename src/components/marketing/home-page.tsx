@@ -36,7 +36,7 @@ export function HomePage() {
             <div>
               <Logo size="lg" href="/" priority className="mb-8" />
               <h1 className="text-4xl font-bold text-white sm:text-5xl lg:text-6xl leading-tight">
-                Investment Firm Texas — Wealth Management &amp; Financial Services
+                Online Investment &amp; Wealth Management
               </h1>
               <p className="mt-6 text-lg text-slate-200 leading-relaxed max-w-lg">
                 AWS Vision is an online investment firm for Texas and U.S. clients — savings, fixed

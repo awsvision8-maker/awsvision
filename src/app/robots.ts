@@ -9,12 +9,12 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: ["/", "/signup", "/signup/nonprofit"],
-        disallow: ["/portal/", "/admin/", "/api/", "/kyc", "/login"],
+        disallow: ["/portal/", "/admin/", "/manager/", "/api/", "/kyc", "/login"],
       },
       {
         userAgent: "Googlebot",
         allow: "/",
-        disallow: ["/portal/", "/admin/", "/api/", "/kyc", "/login"],
+        disallow: ["/portal/", "/admin/", "/manager/", "/api/", "/kyc", "/login"],
       },
     ],
     sitemap: `${base}/sitemap.xml`,

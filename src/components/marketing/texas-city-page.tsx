@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { TexasCity } from "@/lib/texas-cities";
 import { TEXAS_CITIES } from "@/lib/texas-cities";
 import { SITE } from "@/lib/site-config";
+import { SeoRelatedLinks } from "@/components/seo/seo-related-links";
 
 const btnPrimary =
   "inline-flex h-11 items-center justify-center rounded-lg bg-teal-500 px-5 text-sm font-semibold text-slate-950 transition hover:bg-teal-400";
@@ -57,13 +58,52 @@ export function TexasCityPageContent({ city }: { city: TexasCity }) {
           <h2 className="text-xl font-bold text-slate-900">Who we help in {city.name}</h2>
           <ul className="mt-4 grid gap-3 md:grid-cols-3">
             {city.localFocus.map((item) => (
-              <li key={item} className="rounded-xl border border-slate-200 bg-slate-50/80 p-4 text-sm leading-relaxed text-slate-600">
+              <li
+                key={item}
+                className="rounded-xl border border-slate-200 bg-slate-50/80 p-4 text-sm leading-relaxed text-slate-600"
+              >
                 {item}
               </li>
             ))}
           </ul>
         </div>
       </section>
+
+      {city.processSteps && city.processSteps.length > 0 && (
+        <section className="py-14">
+          <div className="mx-auto max-w-7xl px-6">
+            <h2 className="text-2xl font-bold text-slate-900">How {city.name} clients get started</h2>
+            <ol className="mt-8 grid gap-6 md:grid-cols-3">
+              {city.processSteps.map((step, i) => (
+                <li key={step.title} className="rounded-2xl border border-slate-200 p-6">
+                  <span className="text-xs font-bold uppercase tracking-wider text-teal-700">
+                    Step {i + 1}
+                  </span>
+                  <h3 className="mt-2 text-lg font-semibold text-slate-900">{step.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">{step.body}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+      )}
+
+      {city.whyLocal && city.whyLocal.length > 0 && (
+        <section className="border-y border-slate-200 bg-white py-14">
+          <div className="mx-auto max-w-3xl px-6">
+            <h2 className="text-2xl font-bold text-slate-900">
+              Why {city.name} investors choose an online firm
+            </h2>
+            <div className="mt-6 space-y-4">
+              {city.whyLocal.map((p) => (
+                <p key={p.slice(0, 40)} className="text-base leading-relaxed text-slate-600">
+                  {p}
+                </p>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="py-14">
         <div className="mx-auto grid max-w-7xl gap-6 px-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -130,8 +170,8 @@ export function TexasCityPageContent({ city }: { city: TexasCity }) {
             <Link href="/rates" className={btnTeal}>
               View rates
             </Link>
-            <Link href="/guides/texas-online-wealth-management" className={btnOutline}>
-              Texas wealth guide
+            <Link href="/guides/how-to-choose-investment-advisor-texas" className={btnOutline}>
+              Choose an advisor guide
             </Link>
           </div>
         </div>
@@ -162,6 +202,8 @@ export function TexasCityPageContent({ city }: { city: TexasCity }) {
           </ul>
         </div>
       </section>
+
+      <SeoRelatedLinks title={`Related for ${city.name} investors`} />
     </div>
   );
 }

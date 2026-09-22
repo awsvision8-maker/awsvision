@@ -12,6 +12,8 @@ export interface PageSeo {
   priority?: number;
   /** sitemap changeFrequency */
   changeFrequency?: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
+  /** Waitlist / non-core pages — keep out of Google index */
+  noindex?: boolean;
 }
 
 /** Core financial-firm keywords used site-wide (service-based · Texas + nationwide US) */
@@ -44,18 +46,16 @@ export const PAGE_SEO: Record<string, PageSeo> = {
   "/": {
     path: "/",
     title:
-      "Investment Firm Texas | Wealth Management & Financial Services | AWS Vision",
+      "AWS Vision Financial | Online Investment & Wealth Management (Texas & USA)",
     description:
-      "AWS Vision is an online investment firm serving Texas and the U.S. — investment management, wealth management, portfolio tracking, savings, and fixed deposits. Dallas, Houston, Austin, Fort Worth, San Antonio & statewide.",
+      "AWS Vision is a licensed online investment firm — savings, fixed deposits, wealth management, and portfolio tracking for Texas and nationwide U.S. clients. Open an account remotely.",
     keywords: [
       ...DEFAULT_KEYWORDS,
-      "Best Investment Firm in Texas",
+      "online investment firm USA",
+      "wealth management online",
       "Investment Firm Near Me",
       "Wealth Management Near Me",
-      "Financial Advisor Near Me",
-      "Investment Advisor Near Me",
-      "Private Wealth Management Texas",
-      "Portfolio Management Services Texas",
+      "open investment account online",
     ],
     priority: 1,
     changeFrequency: "daily",
@@ -252,8 +252,9 @@ export const PAGE_SEO: Record<string, PageSeo> = {
     description:
       "AWS Vision Advantage checking — SafeBalance, Plus, and Relationship tiers launching soon. Join the waitlist for a modern checking account from our financial services firm.",
     keywords: ["checking account", "online checking account", "free checking"],
-    priority: 0.5,
-    changeFrequency: "monthly",
+    priority: 0.2,
+    changeFrequency: "yearly",
+    noindex: true,
   },
   "/credit-cards": {
     path: "/credit-cards",
@@ -261,8 +262,9 @@ export const PAGE_SEO: Record<string, PageSeo> = {
     description:
       "AWS Vision credit cards — Customized Cash Rewards, Travel, Premium, Student, and Business Visa cards. Join the waitlist from AWS Vision Financial.",
     keywords: ["credit cards", "cash back credit card", "travel rewards card"],
-    priority: 0.6,
-    changeFrequency: "monthly",
+    priority: 0.2,
+    changeFrequency: "yearly",
+    noindex: true,
   },
   "/home-loans": {
     path: "/home-loans",
@@ -270,8 +272,9 @@ export const PAGE_SEO: Record<string, PageSeo> = {
     description:
       "Home mortgage, refinance, HELOC, and affordable loan programs launching soon from AWS Vision Financial. Join the waitlist for competitive mortgage rates and digital application.",
     keywords: ["home loan rates", "mortgage lender", "refinance mortgage", "HELOC"],
-    priority: 0.65,
-    changeFrequency: "monthly",
+    priority: 0.2,
+    changeFrequency: "yearly",
+    noindex: true,
   },
   "/auto-loans": {
     path: "/auto-loans",
@@ -279,8 +282,9 @@ export const PAGE_SEO: Record<string, PageSeo> = {
     description:
       "New, used, and refinance auto loans with competitive fixed APR from AWS Vision Financial. Join the waitlist — auto lending launching soon.",
     keywords: ["auto loan rates", "car financing", "auto refinance loan"],
-    priority: 0.6,
-    changeFrequency: "monthly",
+    priority: 0.2,
+    changeFrequency: "yearly",
+    noindex: true,
   },
   "/personal-loans": {
     path: "/personal-loans",
@@ -288,8 +292,9 @@ export const PAGE_SEO: Record<string, PageSeo> = {
     description:
       "Unsecured personal loans, debt consolidation, and portfolio-backed lending from AWS Vision Financial. Fixed rates, flexible terms — join the waitlist at launch.",
     keywords: ["personal loan rates", "debt consolidation loan", "unsecured personal loan"],
-    priority: 0.6,
-    changeFrequency: "monthly",
+    priority: 0.2,
+    changeFrequency: "yearly",
+    noindex: true,
   },
   "/small-business": {
     path: "/small-business",
@@ -315,8 +320,9 @@ export const PAGE_SEO: Record<string, PageSeo> = {
     description:
       "Life, health, and portfolio protection insurance for AWS Vision investment clients. Get a quote or speak with a licensed financial advisor.",
     keywords: ["investment insurance", "portfolio protection", "life insurance"],
-    priority: 0.55,
-    changeFrequency: "monthly",
+    priority: 0.2,
+    changeFrequency: "yearly",
+    noindex: true,
   },
   "/online-banking": {
     path: "/online-banking",

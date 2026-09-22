@@ -4,6 +4,7 @@ import { SitePromoFooter } from "@/components/marketing/site-promo-footer";
 import { LiveChatWidget } from "@/components/chat/live-chat-widget";
 import { MarketingJsonLd } from "@/components/seo/json-ld";
 import { PageJsonLd } from "@/components/seo/page-json-ld";
+import { BreadcrumbNav } from "@/components/seo/breadcrumb-nav";
 
 /** Refresh marketing pages daily so month-specific promo copy stays current */
 export const revalidate = 86400;
@@ -18,6 +19,7 @@ export default function MarketingLayout({
       <MarketingJsonLd />
       <PageJsonLd />
       <SiteHeader />
+      <BreadcrumbNav />
       <main className="flex-1">{children}</main>
       <SitePromoFooter />
       <SiteFooter />
