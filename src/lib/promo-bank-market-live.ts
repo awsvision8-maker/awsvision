@@ -1,0 +1,538 @@
+/**
+ * $50k Wealth Accelerator — bank-style mark-to-market overlay.
+ *
+ * Program path (0.5%/day → ~90% / 6 mo) stays the settlement truth.
+ * Live UI balance = that target ± sleeve moves (yields, Treasuries, bonds,
+ * indices, real estate) so clients see daily +/− like a bank treasury book,
+ * while end-of-program mark converges exactly onto the program ratio.
+ */
+
+import {
+  computePromoDailyCompound,
+  type PromoDailyCompoundResult,
+} from "@/lib/promo-daily-compound";
+
+export type BankSleeveId =
+  | "yields"
+  | "gov_securities"
+  | "bonds"
+  | "indices"
+  | "real_estate";
+
+export interface BankSleeveDef {
+  id: BankSleeveId;
+  name: string;
+  shortName: string;
+  /** Target portfolio weight (sums to 1) — how banks park deposits */
+  weight: number;
+  description: string;
+  /** Relative volatility vs other sleeves */
+  vol: number;
+}
+
+/** Typical bank / trust investment book for deposit capital */
+export const BANK_INVESTMENT_SLEEVES: BankSleeveDef[] = [
+  {
+    id: "yields",
+    name: "Cash & money-market yields",
+    shortName: "Yields",
+    weight: 0.15,
+    description: "Fed funds / HYSA / overnight cash used by banks for liquidity",
+    vol: 0.35,
+  },
+  {
+    id: "gov_securities",
+    name: "Government securities",
+    shortName: "Treasuries",
+    weight: 0.25,
+    description: "T-bills, notes & bonds — duration mark-to-market",
+    vol: 0.55,
+  },
+  {
+    id: "bonds",
+    name: "Agency & investment-grade bonds",
+    shortName: "Bonds",
+    weight: 0.2,
+    description: "Corporate / agency credit the bank treasury desk holds",
+    vol: 0.65,
+  },
+  {
+    id: "indices",
+    name: "Equity indices",
+    shortName: "Indices",
+    weight: 0.25,
+    description: "S&P / Nasdaq-style index exposure in the growth sleeve",
+    vol: 1.15,
+  },
+  {
+    id: "real_estate",
+    name: "Real estate (REIT / CRE)",
+    shortName: "Real estate",
+    weight: 0.15,
+    description: "Property & REIT marks — rents, rates, and valuations",
+    vol: 0.85,
+  },
+];
+
+export interface EconomicIndicator {
+  id: string;
+  label: string;
+  value: number;
+  unit: "%" | "pts" | "index";
+  /** Second-by-second change in displayed points */
+  delta: number;
+  /** Direction vs prior hour baseline */
+  trend: "up" | "down" | "flat";
+  note: string;
+}
+
+export interface LiveYieldQuote {
+  id: string;
+  label: string;
+  rate: number;
+  delta: number;
+  source: string;
+}
+
+export interface BankSleeveLive {
+  id: BankSleeveId;
+  name: string;
+  shortName: string;
+  weight: number;
+  description: string;
+  /** Mark value of this sleeve (sums ≈ display balance) */
+  value: number;
+  /** Instant P&L vs sleeve’s share of program target */
+  pnl: number;
+  /** Second change */
+  secondDelta: number;
+  changePercent: number;
+}
+
+export interface MarketDayPoint {
+  day: number;
+  date: string;
+  /** Program settlement target end-of-day */
+  targetBalance: number;
+  /** Mark-to-market end-of-day (can be above/below target mid-program) */
+  markBalance: number;
+  dayProfit: number;
+  cumulativeProfit: number;
+  live?: boolean;
+}
+
+export interface PromoBankMarketLiveResult {
+  program: PromoDailyCompoundResult;
+  /** What the client sees ticking (plus and minus) */
+  displayBalance: number;
+  displayProfit: number;
+  /** Exact compound path — end of 6 months lands here */
+  targetBalance: number;
+  targetProfit: number;
+  /** This second’s change */
+  secondDelta: number;
+  secondDeltaPercent: number;
+  /** Today’s mark P&L vs start-of-day mark (can be negative) */
+  dayMarkPnl: number;
+  programProgress: number;
+  /** 0 at start → 1 at end; used to force convergence */
+  convergence: number;
+  sleeves: BankSleeveLive[];
+  economics: EconomicIndicator[];
+  yields: LiveYieldQuote[];
+  history: MarketDayPoint[];
+  programReturnPercent: number;
+  termMonths: number;
+}
+
+function money(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
+function clamp(n: number, lo: number, hi: number) {
+  return Math.min(hi, Math.max(lo, n));
+}
+
+/** Deterministic 0..1 hash from string */
+function hash01(seed: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return ((h >>> 0) % 10_000) / 10_000;
+}
+
+/**
+ * Multi-frequency wave in [-1, 1] — looks like market ticks, stable across refresh.
+ * Includes a fast (~2–4s) component so the UI shows visible +/− every second.
+ */
+function wave(seed: string, tSec: number): number {
+  const p = hash01(seed);
+  const q = hash01(seed + ":b");
+  const r = hash01(seed + ":c");
+  const a =
+    Math.sin(tSec * 1.7 + p * 12) * 0.22 +
+    Math.sin(tSec * 0.85 + q * 9) * 0.18 +
+    Math.sin(tSec / 5.3 + p * 12) * 0.2 +
+    Math.sin(tSec / 13.7 + q * 9) * 0.16 +
+    Math.sin(tSec / 37 + r * 4) * 0.14 +
+    Math.sin(tSec / 89 + q * 3) * 0.1;
+  return clamp(a / 0.9, -1, 1);
+}
+
+/** Slow drift for macro series (hours/days), small second jitter */
+function macroSeries(
+  id: string,
+  base: number,
+  asOf: Date,
+  amp: number
+): { value: number; delta: number } {
+  const tSec = asOf.getTime() / 1000;
+  const day = Math.floor(tSec / 86_400);
+  const slow = wave(id + ":slow", day * 9.1) * amp;
+  const hour = wave(id + ":hour", tSec / 3600) * amp * 0.25;
+  const tick = wave(id + ":tick", tSec) * amp * 0.04;
+  const value = money(base + slow + hour + tick);
+  const prev = money(
+    base +
+      wave(id + ":slow", (day - 0.04) * 9.1) * amp +
+      wave(id + ":hour", (tSec - 1) / 3600) * amp * 0.25 +
+      wave(id + ":tick", tSec - 1) * amp * 0.04
+  );
+  return { value, delta: money(value - prev) };
+}
+
+/**
+ * Convergence: mid-program full mark vol; last ~15% of term dampens to 0
+ * so day-180 / end lands on the exact program ratio.
+ */
+function convergenceFactor(progress: number): number {
+  const p = clamp(progress, 0, 1);
+  if (p >= 0.98) return 0;
+  if (p <= 0.85) return 1;
+  // Smooth fade 85% → 98%
+  const u = (p - 0.85) / 0.13;
+  return (1 - u) * (1 - u);
+}
+
+function dayNoiseFactor(day: number, seed: string): number {
+  // Day-level mark that can be red or green; zero-mean over long run
+  return wave(`day:${seed}:${day}`, day * 17.3);
+}
+
+export function computePromoBankMarketLive(params: {
+  principal: number;
+  startDate: string | Date;
+  endDate?: string | Date | null;
+  active?: boolean;
+  dailyRatePercent?: number;
+  asOf?: Date;
+  /** Package return (e.g. 90) — shown in UI */
+  programReturnPercent?: number;
+  termMonths?: number;
+  /** Optional live Yahoo overlays: symbol → changePercent */
+  marketOverlays?: Record<string, number>;
+}): PromoBankMarketLiveResult {
+  const asOf = params.asOf ?? new Date();
+  const program = computePromoDailyCompound({
+    principal: params.principal,
+    startDate: params.startDate,
+    endDate: params.endDate,
+    active: params.active,
+    dailyRatePercent: params.dailyRatePercent,
+    asOf,
+  });
+
+  const programReturnPercent = params.programReturnPercent ?? 90;
+  const termMonths = params.termMonths ?? 6;
+  const overlays = params.marketOverlays ?? {};
+
+  const totalDays = program.totalProgramDays ?? 180;
+  const progress =
+    totalDays > 0 ? clamp(program.dayNumber / totalDays, 0, 1) : 0;
+  const conv = program.liveAccruing
+    ? convergenceFactor(progress)
+    : program.dayNumber >= totalDays
+      ? 0
+      : convergenceFactor(progress);
+
+  const targetBalance = program.balance;
+  const targetProfit = program.totalProfit;
+  const tSec = asOf.getTime() / 1000;
+  const principal = program.principal;
+
+  // Peak mark deviation ≈ 0.9% of capital mid-program; 0 at term end
+  const peakAmp = principal * 0.009 * conv;
+
+  // Build mark history: each settled day can finish above/below target,
+  // but residual fades to 0 near term end so final = exact program ratio.
+  const history: MarketDayPoint[] = [];
+  let prevMark = principal;
+
+  for (const h of program.history) {
+    const isLive = Boolean(h.live);
+    const dayProg = totalDays > 0 ? h.day / totalDays : 0;
+    const dayConv = isLive ? conv : convergenceFactor(dayProg);
+    // Day marks swing enough that some sessions close red
+    const residual =
+      dayNoiseFactor(h.day, program.startDate) * principal * 0.011 * dayConv;
+
+    let markBalance: number;
+    if (isLive) {
+      markBalance = targetBalance; // placeholder; overwritten after sleeves
+    } else {
+      markBalance = money(h.endBalance + residual);
+    }
+
+    const dayProfit = money(markBalance - prevMark);
+    history.push({
+      day: h.day,
+      date: h.date,
+      targetBalance: h.endBalance,
+      markBalance,
+      dayProfit,
+      cumulativeProfit: money(markBalance - principal),
+      live: isLive,
+    });
+    if (!isLive) prevMark = markBalance;
+  }
+
+  // Sleeve residuals — visible ±$ every second, but not casino-scale
+  const sleeveResiduals = BANK_INVESTMENT_SLEEVES.map((s) => {
+    const overlayKey =
+      s.id === "indices"
+        ? "SPY"
+        : s.id === "real_estate"
+          ? "VNQ"
+          : s.id === "bonds"
+            ? "TLT"
+            : s.id === "gov_securities"
+              ? "^TNX"
+              : "SHV";
+    const ov = overlays[overlayKey] ?? overlays[s.id] ?? 0;
+    const slow = wave(s.id, tSec) * 0.55;
+    const mid = wave(s.id + ":mid", tSec / 3) * 0.3;
+    const fast = wave(s.id + ":fast", tSec * 1.4) * 0.15;
+    const w = slow + mid + fast + clamp(ov, -2, 2) * 0.1;
+    return {
+      sleeve: s,
+      residual: w * s.vol * peakAmp * s.weight * 1.35,
+    };
+  });
+  const totalResidual = sleeveResiduals.reduce((a, x) => a + x.residual, 0);
+
+  const displayBalance = money(targetBalance + totalResidual);
+  const displayProfit = money(displayBalance - principal);
+
+  // Previous-second display for delta
+  const prevAsOf = new Date(asOf.getTime() - 1000);
+  const prevLive = computePromoBankMarketLiveSecond(
+    program,
+    prevAsOf,
+    peakAmp,
+    overlays,
+    conv
+  );
+  const secondDelta = money(displayBalance - prevLive.displayBalance);
+
+  const startOfDayTarget = program.settledBalance;
+  // Approximate start-of-day mark from last settled history point
+  const lastSettled = [...history].reverse().find((h) => !h.live);
+  const startOfDayMark = lastSettled?.markBalance ?? startOfDayTarget;
+  const dayMarkPnl = money(displayBalance - startOfDayMark);
+
+  const sleeves: BankSleeveLive[] = sleeveResiduals.map(({ sleeve, residual }) => {
+    const targetShare = money(targetBalance * sleeve.weight);
+    const value = money(targetShare + residual);
+    const pnl = money(residual);
+    const prevRes =
+      prevLive.sleeves.find((s) => s.id === sleeve.id)?.pnl ?? 0;
+    const secondSleeveDelta = money(pnl - prevRes);
+    const changePercent =
+      targetShare > 0 ? money((pnl / targetShare) * 100) : 0;
+    return {
+      id: sleeve.id,
+      name: sleeve.name,
+      shortName: sleeve.shortName,
+      weight: sleeve.weight,
+      description: sleeve.description,
+      value,
+      pnl,
+      secondDelta: secondSleeveDelta,
+      changePercent,
+    };
+  });
+
+  // Patch live history point
+  if (history.length && history[history.length - 1]?.live) {
+    const livePt = history[history.length - 1];
+    livePt.markBalance = displayBalance;
+    livePt.dayProfit = money(displayBalance - (lastSettled?.markBalance ?? principal));
+    livePt.cumulativeProfit = displayProfit;
+  }
+
+  const economics = buildEconomics(asOf, overlays);
+  const yields = buildYields(asOf, overlays);
+
+  return {
+    program,
+    displayBalance,
+    displayProfit,
+    targetBalance: money(targetBalance),
+    targetProfit: money(targetProfit),
+    secondDelta,
+    secondDeltaPercent:
+      displayBalance > 0 ? money((secondDelta / displayBalance) * 10000) / 100 : 0,
+    dayMarkPnl,
+    programProgress: progress,
+    convergence: conv,
+    sleeves,
+    economics,
+    yields,
+    history,
+    programReturnPercent,
+    termMonths,
+  };
+}
+
+/** Lightweight prior-second recalculation (avoid infinite recursion) */
+function computePromoBankMarketLiveSecond(
+  program: PromoDailyCompoundResult,
+  asOf: Date,
+  peakAmp: number,
+  overlays: Record<string, number>,
+  _conv: number
+): { displayBalance: number; sleeves: { id: BankSleeveId; pnl: number }[] } {
+  const tSec = asOf.getTime() / 1000;
+  const sleeveResiduals = BANK_INVESTMENT_SLEEVES.map((s) => {
+    const overlayKey =
+      s.id === "indices"
+        ? "SPY"
+        : s.id === "real_estate"
+          ? "VNQ"
+          : s.id === "bonds"
+            ? "TLT"
+            : s.id === "gov_securities"
+              ? "^TNX"
+              : "SHV";
+    const ov = overlays[overlayKey] ?? 0;
+    const slow = wave(s.id, tSec) * 0.55;
+    const mid = wave(s.id + ":mid", tSec / 3) * 0.3;
+    const fast = wave(s.id + ":fast", tSec * 1.4) * 0.15;
+    const w = slow + mid + fast + clamp(ov, -2, 2) * 0.1;
+    return {
+      id: s.id,
+      residual: w * s.vol * peakAmp * s.weight * 1.35,
+    };
+  });
+  const totalResidual = sleeveResiduals.reduce((a, x) => a + x.residual, 0);
+  return {
+    displayBalance: money(program.balance + totalResidual),
+    sleeves: sleeveResiduals.map((s) => ({ id: s.id, pnl: money(s.residual) })),
+  };
+}
+
+function buildEconomics(
+  asOf: Date,
+  overlays: Record<string, number>
+): EconomicIndicator[] {
+  const cpi = macroSeries("cpi", 2.85, asOf, 0.12);
+  const ppi = macroSeries("ppi", 2.45, asOf, 0.18);
+  const unemp = macroSeries("unemp", 4.15, asOf, 0.08);
+  const infl = macroSeries("infl", 2.7, asOf, 0.1);
+  const fed = macroSeries("fed", 4.33, asOf, 0.05);
+  const gdp = macroSeries("gdp", 2.1, asOf, 0.15);
+  // Nudge fed with overlay if present
+  if (overlays.FED != null) {
+    fed.value = money(fed.value + clamp(overlays.FED, -0.25, 0.25));
+  }
+
+  const mk = (
+    id: string,
+    label: string,
+    series: { value: number; delta: number },
+    note: string
+  ): EconomicIndicator => ({
+    id,
+    label,
+    value: series.value,
+    unit: "%",
+    delta: series.delta,
+    trend: series.delta > 0.001 ? "up" : series.delta < -0.001 ? "down" : "flat",
+    note,
+  });
+
+  return [
+    mk("fed", "Fed funds (eff.)", fed, "Policy rate — drives deposit & loan yields"),
+    mk("cpi", "CPI (YoY)", cpi, "Consumer inflation — real yield pressure"),
+    mk("ppi", "PPI (YoY)", ppi, "Producer prices — pipeline inflation"),
+    mk("unemp", "Unemployment", unemp, "Labor market — Fed reaction function"),
+    mk("infl", "Inflation (core)", infl, "Sticky inflation vs target 2%"),
+    mk("gdp", "GDP growth (ann.)", gdp, "Growth backdrop for credit & RE"),
+  ];
+}
+
+function buildYields(
+  asOf: Date,
+  overlays: Record<string, number>
+): LiveYieldQuote[] {
+  const tnx = macroSeries("tnx", 4.18, asOf, 0.08);
+  const irx = macroSeries("irx", 4.05, asOf, 0.06);
+  const fyr = macroSeries("fyr", 3.92, asOf, 0.07);
+  const hy = macroSeries("hy", 3.55, asOf, 0.05);
+  const tip = macroSeries("tip", 1.85, asOf, 0.04);
+
+  if (overlays["^TNX"] != null) {
+    tnx.value = money(tnx.value + clamp(overlays["^TNX"], -0.5, 0.5) * 0.15);
+  }
+
+  return [
+    {
+      id: "3m",
+      label: "3M T-Bill",
+      rate: irx.value,
+      delta: irx.delta,
+      source: "Gov’t securities",
+    },
+    {
+      id: "10y",
+      label: "10Y Treasury",
+      rate: tnx.value,
+      delta: tnx.delta,
+      source: "Gov’t securities",
+    },
+    {
+      id: "ig",
+      label: "IG corp bond",
+      rate: fyr.value,
+      delta: fyr.delta,
+      source: "Bonds",
+    },
+    {
+      id: "mm",
+      label: "MM / cash yield",
+      rate: hy.value,
+      delta: hy.delta,
+      source: "Yields",
+    },
+    {
+      id: "re",
+      label: "REIT yield (ind.)",
+      rate: tip.value + 2.4,
+      delta: tip.delta,
+      source: "Real estate",
+    },
+  ];
+}
+
+/** Map Yahoo ticker change% into overlay keys used by the engine */
+export function overlaysFromTickers(
+  tickers: { symbol: string; changePercent: number }[]
+): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const t of tickers) {
+    out[t.symbol] = t.changePercent;
+  }
+  return out;
+}
