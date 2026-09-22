@@ -23,6 +23,16 @@
 
 Then expand: Houston → Austin → Fort Worth → San Antonio (same pattern).
 
+## “Best financial firm” keywords
+
+| Query | Primary page | Realistic first-page window |
+|-------|--------------|------------------------------|
+| best financial firm in Texas | `/guides/best-financial-firm-texas` + `/serving-texas` | **4–9 months** with real links |
+| best investment firm in Texas | same | **4–9 months** |
+| best financial firm in US / USA | `/guides/best-financial-firm-usa` + `/compare` | **9–18+ months** (review-site heavy) |
+
+Do not claim “#1 in America” on-page. Target with honest how-to-choose content.
+
 ---
 
 ## Page → keyword ownership

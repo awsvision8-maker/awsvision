@@ -79,11 +79,13 @@ export const PAGE_SEO: Record<string, PageSeo> = {
   },
   "/serving-texas": {
     path: "/serving-texas",
-    title: "Investment Firm Texas | Investment Management & Wealth Management",
+    title: "Investment Firm Texas | Best Financial Firm Options Online | AWS Vision",
     description:
-      "Online investment firm for Texas — investment management, wealth management, portfolio services, savings & FD. Serving Dallas, Houston, Austin, Fort Worth, San Antonio and statewide. No retail branch required.",
+      "Comparing the best financial firm in Texas? AWS Vision Financial is an online investment firm — investment management, wealth management, savings & FD for Dallas, Houston, Austin, Fort Worth, San Antonio and statewide.",
     keywords: [
       "Investment Firm Texas",
+      "best financial firm in Texas",
+      "best investment firm in Texas",
       "Investment Company Texas",
       "Investment Management Texas",
       "Investment Advisor Texas",
@@ -91,8 +93,7 @@ export const PAGE_SEO: Record<string, PageSeo> = {
       "Wealth Management Texas",
       "Portfolio Management Texas",
       "Financial Services Texas",
-      "Best Investment Firm in Texas",
-      "Local Investment Advisor",
+      "top financial firms in Texas",
     ],
     priority: 0.95,
     changeFrequency: "weekly",
@@ -146,17 +147,19 @@ export const PAGE_SEO: Record<string, PageSeo> = {
   },
   "/compare": {
     path: "/compare",
-    title: "Compare AWS Vision vs Bank of America, Chase & Wells Fargo",
+    title: "Best Financial Firm Alternative? Compare AWS Vision vs Big Banks",
     description:
-      "See how AWS Vision savings, fixed deposit, and investment returns compare to Bank of America, Chase, Wells Fargo, Capital One, and Citibank. A financial firm built for higher monthly yields.",
+      "Compare AWS Vision Financial vs Bank of America, Chase, Wells Fargo and more — savings, FD, and investment returns. A practical way to evaluate firms when searching for the best financial firm in Texas or the USA.",
     keywords: [
+      "best financial firm USA",
+      "best financial firm in Texas",
       "bank vs investment firm",
       "compare investment returns",
       "better than bank savings",
       "Chase vs AWS Vision",
       "high yield vs traditional bank",
     ],
-    priority: 0.9,
+    priority: 0.92,
     changeFrequency: "weekly",
   },
   "/nonprofit": {

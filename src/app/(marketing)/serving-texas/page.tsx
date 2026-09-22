@@ -53,10 +53,10 @@ export default function ServingTexasPage() {
             Investment firm Texas — management, wealth &amp; financial services
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-slate-300">
-            AWS Vision Financial is an online investment company serving Texas clients with
-            investment management, wealth management, portfolio tracking, savings, and fixed
-            deposits. Dallas, Houston, Austin, Fort Worth, San Antonio, and statewide — remote KYC,
-            phone support, no retail branch required.
+            Comparing options for the best financial firm in Texas? AWS Vision Financial is an online
+            investment company serving Texas clients with investment management, wealth management,
+            portfolio tracking, savings, and fixed deposits — Dallas, Houston, Austin, Fort Worth,
+            San Antonio, and statewide. Remote KYC, phone support, no retail branch required.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/signup" className={btnPrimary}>
@@ -150,6 +150,10 @@ export default function ServingTexasPage() {
           </ul>
           <p className="mt-6 text-sm text-slate-600">
             Read our{" "}
+            <Link href="/guides/best-financial-firm-texas" className="font-medium text-teal-700 underline">
+              best financial firm in Texas guide
+            </Link>
+            ,{" "}
             <Link href="/guides/texas-online-wealth-management" className="font-medium text-teal-700 underline">
               Texas wealth management guide
             </Link>{" "}

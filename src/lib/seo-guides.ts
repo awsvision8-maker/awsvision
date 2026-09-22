@@ -11,6 +11,107 @@ export type SeoGuide = {
 
 export const SEO_GUIDES: SeoGuide[] = [
   {
+    slug: "best-financial-firm-texas",
+    title: "Best Financial Firm in Texas — How to Choose (2026 Guide)",
+    description:
+      "Looking for the best financial firm in Texas? Use this checklist — products, transparency, online vs branch, fees, and trust signals — then compare AWS Vision Financial as an online option.",
+    keywords: [
+      "best financial firm in Texas",
+      "best financial firm Texas",
+      "best investment firm in Texas",
+      "best investment company Texas",
+      "top financial firms in Texas",
+      "best wealth management firm Texas",
+    ],
+    category: "Company",
+    readTime: "9 min",
+    sections: [
+      {
+        heading: "What “best financial firm in Texas” usually means",
+        body: [
+          "Searchers comparing the best financial firm in Texas typically want clear products, honest disclosures, responsive support, and a service model that fits their life — branch, hybrid, or fully online.",
+          "No single firm is “best” for everyone. Rankings on blogs change often. Use a checklist, then verify the firm’s real website, contact details, and account terms.",
+        ],
+      },
+      {
+        heading: "Checklist before you enroll",
+        body: [
+          "Products: savings, fixed deposits / CDs, wealth or portfolio plans — matching your time horizon.",
+          "Transparency: published rates or program terms, written agreements, and a way to reach support by phone or email.",
+          "Operations: if they claim a Texas office, it should be real. Online firms should say so clearly (AWS Vision serves Texas remotely — no fake storefront).",
+          "Trust: about page, legal disclosures, privacy/terms, and consistent branding (for us: awsvision.com / AWS Vision Financial).",
+        ],
+      },
+      {
+        heading: "Where AWS Vision Financial fits",
+        body: [
+          "We are an online investment firm serving Texas clients statewide — Dallas, Houston, Austin, Fort Worth, San Antonio, and beyond — with savings, FD, and wealth management plus a client portal.",
+          "If you want remote onboarding and clear rates rather than a retail branch visit, compare our rates and Texas pages, then apply online. Educational guides are not personalized investment advice.",
+        ],
+      },
+      {
+        heading: "Next steps",
+        body: [
+          "Read Serving Texas, compare rates, and open an account when ready. For brand clarity vs Amazon AWS, see our AWS Vision Financial vs Amazon guide.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Serving Texas", href: "/serving-texas" },
+      { label: "Investment management", href: "/investment-management" },
+      { label: "Compare vs banks", href: "/compare" },
+      { label: "Dallas", href: "/serving-texas/dallas" },
+      { label: "Rates", href: "/rates" },
+    ],
+  },
+  {
+    slug: "best-financial-firm-usa",
+    title: "Best Financial Firm in the USA — How to Evaluate Options",
+    description:
+      "Searching for the best financial firm in the US? Here’s a practical framework — then see how an online firm like AWS Vision Financial compares for nationwide remote investing.",
+    keywords: [
+      "best financial firm in US",
+      "best financial firm in the USA",
+      "best financial firm USA",
+      "best investment firm in USA",
+      "top financial firms United States",
+      "best wealth management firm USA",
+    ],
+    category: "Company",
+    readTime: "8 min",
+    sections: [
+      {
+        heading: "Why “best in the US” lists are noisy",
+        body: [
+          "National “best financial firm in the US” results are often dominated by large banks, mega RIAs, and review publishers. Those lists may not match an online investor who wants remote KYC and transparent product pages.",
+          "Treat listicles as starting points. Verify any firm on its own site before you send money.",
+        ],
+      },
+      {
+        heading: "Evaluation framework",
+        body: [
+          "Fit: Does the firm offer the accounts you need (savings, FD, wealth)?",
+          "Access: Can you enroll and track online from any U.S. state?",
+          "Clarity: Are rates, support contacts, and legal pages easy to find?",
+          "Independence: Confirm you have the right brand — e.g. AWS Vision Financial at awsvision.com is not Amazon Web Services.",
+        ],
+      },
+      {
+        heading: "AWS Vision Financial nationwide",
+        body: [
+          "We serve clients across the United States online with savings, fixed deposits, and wealth management. Texas is a focus market; the same remote model works nationwide.",
+          "Start with our U.S. coverage page, rates, and signup when you are ready to compare.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Serving the U.S.", href: "/serving-united-states" },
+      { label: "Best firm in Texas guide", href: "/guides/best-financial-firm-texas" },
+      { label: "Wealth management", href: "/wealth-management" },
+      { label: "Open an account", href: "/signup" },
+    ],
+  },
+  {
     slug: "aws-vision-financial-vs-amazon-aws",
     title: "AWS Vision Financial vs Amazon AWS — What’s the Difference?",
     description:
