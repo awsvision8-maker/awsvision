@@ -3,15 +3,14 @@
 import { useEffect, useState } from "react";
 import {
   ArrowDownRight,
-  ArrowRight,
   ArrowUpRight,
   ExternalLink,
   Loader2,
-  Newspaper,
-  TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MarketNewsItem, MarketTicker, MarketUpdatePayload } from "@/lib/market-news-types";
+
+const DISPLAY_NEWS = 6;
 
 function formatPrice(value: number) {
   return new Intl.NumberFormat("en-US", {
@@ -22,92 +21,95 @@ function formatPrice(value: number) {
   }).format(value);
 }
 
-function TickerChip({ ticker }: { ticker: MarketTicker }) {
+function Sparkline({ values, up }: { values: number[]; up: boolean }) {
+  if (values.length < 2) return null;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min || 1;
+  const w = 48;
+  const h = 18;
+  const pts = values
+    .map((v, i) => {
+      const x = (i / (values.length - 1)) * w;
+      const y = h - ((v - min) / span) * h;
+      return `${x},${y}`;
+    })
+    .join(" ");
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="shrink-0 opacity-80" aria-hidden>
+      <polyline
+        fill="none"
+        stroke={up ? "#34d399" : "#fb7185"}
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+        points={pts}
+      />
+    </svg>
+  );
+}
+
+function TickerPill({ ticker }: { ticker: MarketTicker }) {
   const up = ticker.change >= 0;
   return (
-    <div className="flex min-w-[148px] shrink-0 items-center gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 backdrop-blur-sm">
-      <div>
-        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+    <div className="flex shrink-0 items-center gap-2.5 border-r border-white/10 px-3 py-1.5 last:border-r-0">
+      <div className="min-w-0">
+        <p className="font-mono text-[10px] font-semibold uppercase tracking-wide text-slate-400">
           {ticker.symbol}
         </p>
-        <p className="text-sm font-semibold text-white tabular-nums">{formatPrice(ticker.price)}</p>
+        <p className="font-mono text-xs font-semibold tabular-nums text-white">
+          {formatPrice(ticker.price)}
+        </p>
       </div>
-      <div
+      {ticker.sparkline && ticker.sparkline.length > 1 ? (
+        <Sparkline values={ticker.sparkline} up={up} />
+      ) : null}
+      <span
         className={cn(
-          "ml-auto flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-xs font-bold tabular-nums",
-          up ? "bg-emerald-500/15 text-emerald-300" : "bg-rose-500/15 text-rose-300"
+          "inline-flex items-center gap-0.5 font-mono text-[10px] font-bold tabular-nums",
+          up ? "text-emerald-400" : "text-rose-400"
         )}
       >
-        {up ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
+        {up ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
         {up ? "+" : ""}
         {ticker.changePercent.toFixed(2)}%
-      </div>
+      </span>
     </div>
   );
 }
 
-function NewsCard({ item, featured = false }: { item: MarketNewsItem; featured?: boolean }) {
+function NewsRow({ item, index }: { item: MarketNewsItem; index: number }) {
   return (
     <a
       href={item.link}
       target="_blank"
       rel="noopener noreferrer"
-      className={cn(
-        "group flex gap-4 rounded-xl border border-slate-200 bg-white p-4 transition hover:border-teal-300 hover:shadow-md sm:p-5",
-        featured && "sm:col-span-2 lg:flex-col"
-      )}
+      className="group grid grid-cols-[auto_1fr_auto] items-start gap-3 border-b border-white/[0.06] px-1 py-2.5 transition hover:bg-white/[0.03] sm:gap-4 sm:px-2"
     >
-      {item.thumbnail ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={item.thumbnail}
-          alt=""
-          className={cn(
-            "h-20 w-28 shrink-0 rounded-lg object-cover bg-slate-100",
-            featured && "sm:h-44 sm:w-full"
-          )}
-        />
-      ) : (
-        <div
-          className={cn(
-            "flex h-20 w-28 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-teal-700",
-            featured && "sm:h-44 sm:w-full"
-          )}
-        >
-          <Newspaper className="h-7 w-7" />
+      <span className="mt-0.5 w-5 font-mono text-[10px] tabular-nums text-slate-600 group-hover:text-teal-500/80">
+        {String(index + 1).padStart(2, "0")}
+      </span>
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-slate-500">
+          <span className="font-medium text-teal-400/90">{item.publisher}</span>
+          <span className="text-slate-700">·</span>
+          <time dateTime={item.publishedAt} className="tabular-nums">
+            {item.publishedLabel}
+          </time>
+          {item.relatedTickers.slice(0, 3).map((t) => (
+            <span
+              key={t}
+              className="rounded border border-white/10 bg-white/[0.04] px-1 py-px font-mono text-[9px] font-semibold tracking-wide text-slate-400"
+            >
+              {t}
+            </span>
+          ))}
         </div>
-      )}
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-slate-500">
-          <span className="text-teal-700">{item.publisher}</span>
-          <span aria-hidden>·</span>
-          <time dateTime={item.publishedAt}>{item.publishedLabel}</time>
-        </div>
-        <h3
-          className={cn(
-            "mt-1.5 font-semibold text-slate-900 leading-snug group-hover:text-teal-800",
-            featured ? "text-lg sm:text-xl" : "text-sm sm:text-base"
-          )}
-        >
+        <h3 className="mt-1 line-clamp-2 text-[13px] font-medium leading-snug text-slate-200 transition group-hover:text-white sm:line-clamp-1 sm:text-sm">
           {item.title}
         </h3>
-        {item.relatedTickers.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {item.relatedTickers.map((t) => (
-              <span
-                key={t}
-                className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-slate-600"
-              >
-                {t}
-              </span>
-            ))}
-          </div>
-        )}
-        <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-teal-700 opacity-0 transition group-hover:opacity-100">
-          Read on Yahoo Finance
-          <ExternalLink className="h-3 w-3" />
-        </span>
       </div>
+      <ExternalLink className="mt-1 h-3.5 w-3.5 shrink-0 text-slate-600 opacity-0 transition group-hover:opacity-100 group-hover:text-teal-400" />
     </a>
   );
 }
@@ -139,7 +141,6 @@ export function MarketNewsSection() {
     };
 
     void load();
-    // Re-check through the day so stories older than 24h leave the homepage
     const interval = window.setInterval(() => void load(), 60 * 60 * 1000);
     return () => {
       cancelled = true;
@@ -149,10 +150,10 @@ export function MarketNewsSection() {
 
   if (loading) {
     return (
-      <section className="border-y border-slate-200 bg-slate-950 py-12 sm:py-16" aria-busy="true">
-        <div className="page-container flex items-center justify-center gap-3 text-slate-400">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          Loading today’s market updates…
+      <section className="border-y border-slate-800 bg-slate-950 py-6" aria-busy="true">
+        <div className="page-container flex items-center justify-center gap-2 text-xs text-slate-500">
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          Market desk…
         </div>
       </section>
     );
@@ -162,81 +163,75 @@ export function MarketNewsSection() {
     return null;
   }
 
-  const [featured, ...rest] = data.news;
+  const headlines = data.news.slice(0, DISPLAY_NEWS);
 
   return (
-    <section className="border-y border-slate-800 bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900 text-white">
-      <div className="border-b border-white/10 bg-teal-950/40">
-        <div className="page-container flex flex-wrap items-center justify-between gap-3 py-3">
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
-            </span>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-teal-200">
-              Today&apos;s market desk
-            </p>
+    <section className="border-y border-slate-800 bg-slate-950 text-white">
+      {/* Compact desk header + tickers */}
+      <div className="border-b border-white/10 bg-gradient-to-r from-slate-950 via-slate-900 to-teal-950/30">
+        <div className="page-container flex flex-col gap-0 lg:flex-row lg:items-stretch">
+          <div className="flex shrink-0 items-center justify-between gap-4 border-b border-white/10 py-2.5 lg:w-56 lg:flex-col lg:items-start lg:justify-center lg:border-b-0 lg:border-r lg:py-3 lg:pr-5">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-50" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              </span>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-teal-300/90">
+                  Market desk
+                </p>
+                <h2 className="text-sm font-semibold tracking-tight text-white">Live indices</h2>
+              </div>
+            </div>
+            <a
+              href="https://finance.yahoo.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500 transition hover:text-teal-300"
+            >
+              Yahoo
+              <ExternalLink className="h-3 w-3" />
+            </a>
           </div>
-          <p className="text-[11px] text-slate-400">
-            Top headlines from the last 24 hours · {data.source}
-          </p>
+
+          {data.tickers.length > 0 ? (
+            <div className="min-w-0 flex-1 overflow-x-auto">
+              <div className="flex min-w-max items-center py-1">
+                {data.tickers.map((t) => (
+                  <TickerPill key={t.symbol} ticker={t} />
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
 
-      {data.tickers.length > 0 && (
-        <div className="border-b border-white/10">
-          <div className="page-container overflow-x-auto py-4">
-            <div className="flex min-w-max gap-3">
-              {data.tickers.map((t) => (
-                <TickerChip key={t.symbol} ticker={t} />
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="page-container py-12 sm:py-16">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-teal-300">
-              <TrendingUp className="h-3.5 w-3.5" />
-              Today&apos;s top finance updates
-            </div>
-            <h2 className="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">
-              Markets &amp; stock news
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-400 sm:text-base">
-              Only the most important stock-market headlines from today stay here. Older stories are
-              removed automatically as the day rolls forward.
-            </p>
-          </div>
-          <a
-            href="https://finance.yahoo.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-teal-300 hover:text-teal-200"
-          >
-            Yahoo Finance
-            <ArrowRight className="h-4 w-4" />
-          </a>
+      {/* Dense headline wire */}
+      <div className="page-container py-4 sm:py-5">
+        <div className="mb-2 flex items-baseline justify-between gap-3">
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
+            Top headlines · last 24h
+          </p>
+          <p className="hidden text-[10px] text-slate-600 sm:block">
+            Importance-ranked · auto-refreshed
+          </p>
         </div>
 
-        {data.news.length > 0 ? (
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {featured && <NewsCard item={featured} featured />}
-            {rest.map((item) => (
-              <NewsCard key={item.id} item={item} />
+        {headlines.length > 0 ? (
+          <div className="rounded-lg border border-white/[0.08] bg-white/[0.02]">
+            {headlines.map((item, i) => (
+              <NewsRow key={item.id} item={item} index={i} />
             ))}
           </div>
         ) : (
-          <p className="mt-8 rounded-xl border border-white/10 bg-white/5 px-4 py-6 text-sm text-slate-400">
-            Fresh market headlines will appear here as they publish today.
+          <p className="rounded-lg border border-white/10 px-3 py-4 text-xs text-slate-500">
+            Fresh headlines will appear as they publish today.
           </p>
         )}
 
-        <p className="mt-6 text-[11px] leading-relaxed text-slate-500">
-          Headlines are curated from Yahoo Finance (last 24 hours, importance-ranked) and may be
-          delayed. Not investment advice. AWS Vision programs are separate from listed equities.
+        <p className="mt-3 text-[10px] leading-relaxed text-slate-600">
+          Curated from {data.source}. Delayed quotes possible. Not investment advice — AWS Vision
+          programs are separate from listed equities.
         </p>
       </div>
     </section>
