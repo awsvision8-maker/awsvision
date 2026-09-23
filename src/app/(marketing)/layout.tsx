@@ -7,6 +7,7 @@ import { MarketingJsonLd } from "@/components/seo/json-ld";
 import { PageJsonLd } from "@/components/seo/page-json-ld";
 import { BreadcrumbNav } from "@/components/seo/breadcrumb-nav";
 import { SiteVisitorTracker } from "@/components/analytics/site-visitor-tracker";
+import { ContentProtection } from "@/components/security/content-protection";
 
 /** Refresh marketing pages daily so month-specific promo copy stays current */
 export const revalidate = 86400;
@@ -17,7 +18,8 @@ export default function MarketingLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col overflow-x-hidden bg-white">
+    <div className="content-protected flex min-h-screen flex-col overflow-x-hidden bg-white">
+      <ContentProtection />
       <MarketingJsonLd />
       <PageJsonLd />
       <SiteHeader />
