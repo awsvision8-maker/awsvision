@@ -1,5 +1,6 @@
 /** Central SEO copy for public marketing routes */
 import { SEO_GUIDES } from "@/lib/seo-guides";
+import { texasCitySeo, usCitySeo, usStateSeo } from "@/lib/seo-location-meta";
 import { TEMPLATE_SERVICE_HUB_SLUGS, getServiceHub } from "@/lib/service-hubs";
 import { TEXAS_CITIES } from "@/lib/texas-cities";
 import { US_CITIES_ROUTABLE, US_STATES } from "@/lib/us-locations";
@@ -15,6 +16,9 @@ export interface PageSeo {
   changeFrequency?: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
   /** Waitlist / non-core pages — keep out of Google index */
   noindex?: boolean;
+  /** Optional geo hints for location pages */
+  geoRegion?: string;
+  geoPlacename?: string;
 }
 
 /** Core financial-firm keywords used site-wide (service-based · Texas + nationwide US) */
@@ -22,6 +26,7 @@ export const DEFAULT_KEYWORDS = [
   "AWS Vision",
   "awsvision",
   "AWS Vision Financial",
+  "awsvision.com",
   "Investment Firm Texas",
   "Investment Company Texas",
   "Investment Management Firm Texas",
@@ -37,10 +42,14 @@ export const DEFAULT_KEYWORDS = [
   "Asset Management Texas",
   "Portfolio Management Texas",
   "online investment firm",
+  "online investment firm USA",
   "fintech investment platform",
   "online investment account",
+  "wealth management online",
   "fixed deposit account USA",
   "licensed investment company",
+  "nationwide financial services USA",
+  "open investment account online",
 ] as const;
 
 export const PAGE_SEO: Record<string, PageSeo> = {
@@ -82,9 +91,9 @@ export const PAGE_SEO: Record<string, PageSeo> = {
   },
   "/serving-texas": {
     path: "/serving-texas",
-    title: "Investment Firm Texas | Best Financial Firm Options Online | AWS Vision",
+    title: "Investment Firm Texas | Wealth Management Statewide | AWS Vision Financial",
     description:
-      "Comparing the best financial firm in Texas? AWS Vision Financial is an online investment firm — investment management, wealth management, savings & FD for Dallas, Houston, Austin, Fort Worth, San Antonio and statewide.",
+      "AWS Vision Financial — online investment firm for Texas. Wealth management, savings & fixed deposits for Dallas, Houston, Austin, Fort Worth, San Antonio and 90+ Texas cities. Remote KYC.",
     keywords: [
       "Investment Firm Texas",
       "best financial firm in Texas",
@@ -97,9 +106,14 @@ export const PAGE_SEO: Record<string, PageSeo> = {
       "Portfolio Management Texas",
       "Financial Services Texas",
       "top financial firms in Texas",
+      "online investment firm Texas",
+      "Texas wealth management online",
+      "open investment account Texas",
     ],
     priority: 0.95,
     changeFrequency: "weekly",
+    geoRegion: "US-TX",
+    geoPlacename: "Texas",
   },
   "/guides": {
     path: "/guides",
@@ -435,15 +449,16 @@ export const PAGE_SEO: Record<string, PageSeo> = {
 /** Sync city landing pages from TEXAS_CITIES */
 for (const city of TEXAS_CITIES) {
   const path = `/serving-texas/${city.slug}`;
+  const meta = texasCitySeo(city);
   PAGE_SEO[path] = {
     path,
-    title: city.light
-      ? `${city.name} TX Investment Accounts & Wealth | AWS Vision`
-      : `${city.name} Investment Firm & Wealth Management | AWS Vision`,
-    description: city.intro.slice(0, 158),
-    keywords: city.keywords,
+    title: meta.title,
+    description: meta.description,
+    keywords: meta.keywords,
     priority: city.light ? 0.78 : 0.88,
     changeFrequency: city.light ? "monthly" : "weekly",
+    geoRegion: "US-TX",
+    geoPlacename: `${city.name}, Texas`,
   };
 }
 
@@ -466,9 +481,17 @@ for (const guide of SEO_GUIDES) {
   const path = `/guides/${guide.slug}`;
   PAGE_SEO[path] = {
     path,
-    title: `${guide.title} | AWS Vision`,
-    description: guide.description,
-    keywords: guide.keywords,
+    title: `${guide.title} | AWS Vision Financial`,
+    description: guide.description.slice(0, 158),
+    keywords: Array.from(
+      new Set([
+        ...guide.keywords,
+        "AWS Vision Financial",
+        "Investment Firm Texas",
+        "Wealth Management Texas",
+        "online investment firm USA",
+      ])
+    ),
     priority: HIGH_PRIORITY_GUIDE_SLUGS.has(guide.slug) ? 0.84 : 0.72,
     changeFrequency: HIGH_PRIORITY_GUIDE_SLUGS.has(guide.slug) ? "weekly" : "monthly",
   };
@@ -481,8 +504,17 @@ for (const slug of TEMPLATE_SERVICE_HUB_SLUGS) {
   PAGE_SEO[hub.path] = {
     path: hub.path,
     title: `${hub.h1} | AWS Vision Financial`,
-    description: hub.intro,
-    keywords: hub.keywords,
+    description: hub.intro.slice(0, 158),
+    keywords: Array.from(
+      new Set([
+        ...hub.keywords,
+        "AWS Vision Financial",
+        "Investment Firm Texas",
+        "Wealth Management Texas",
+        "online investment firm USA",
+        hub.h1,
+      ])
+    ),
     priority: 0.93,
     changeFrequency: "weekly",
   };
@@ -491,25 +523,31 @@ for (const slug of TEMPLATE_SERVICE_HUB_SLUGS) {
 /** Sync U.S. state + major-city light pages (Texas cities stay on /serving-texas) */
 for (const state of US_STATES) {
   const path = `/serving-united-states/${state.slug}`;
+  const meta = usStateSeo(state);
   PAGE_SEO[path] = {
     path,
-    title: `${state.name} Investment Accounts & Wealth | AWS Vision`,
-    description: state.intro.slice(0, 158),
-    keywords: state.keywords,
-    priority: state.slug === "texas" ? 0.9 : 0.8,
+    title: meta.title,
+    description: meta.description,
+    keywords: meta.keywords,
+    priority: state.slug === "texas" ? 0.9 : 0.82,
     changeFrequency: "monthly",
+    geoRegion: `US-${state.abbr}`,
+    geoPlacename: state.name,
   };
 }
 
 for (const city of US_CITIES_ROUTABLE) {
   const path = `/serving-united-states/${city.stateSlug}/${city.slug}`;
+  const meta = usCitySeo(city);
   PAGE_SEO[path] = {
     path,
-    title: `${city.name}, ${city.stateAbbr} Investment Accounts | AWS Vision`,
-    description: city.intro.slice(0, 158),
-    keywords: city.keywords,
-    priority: 0.72,
+    title: meta.title,
+    description: meta.description,
+    keywords: meta.keywords,
+    priority: 0.74,
     changeFrequency: "monthly",
+    geoRegion: `US-${city.stateAbbr}`,
+    geoPlacename: `${city.name}, ${city.stateName}`,
   };
 }
 

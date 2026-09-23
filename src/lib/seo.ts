@@ -66,27 +66,51 @@ export function pageMetadata(path: string, overrides?: Partial<PageSeo>): Metada
   const title = page.title;
   const description = page.description;
   const keywords = mergeKeywords(page);
+  const isGuide = page.path.startsWith("/guides/");
+  const isLocation =
+    page.path.startsWith("/serving-texas") ||
+    page.path.startsWith("/serving-united-states") ||
+    page.path === "/locations";
+
+  const other: Record<string, string> = {
+    "geo.region": page.geoRegion ?? "US",
+    "geo.placename": page.geoPlacename ?? (isLocation ? "United States" : "United States"),
+  };
 
   return {
     title: { absolute: title },
     description,
     keywords,
+    applicationName: BRAND_SUFFIX,
+    authors: [{ name: BRAND_SUFFIX, url: getSiteUrl() }],
+    creator: BRAND_SUFFIX,
+    publisher: BRAND_SUFFIX,
+    category: "Finance",
+    classification: "Financial Services · Investment Management · Wealth Management",
+    referrer: "origin-when-cross-origin",
     alternates: {
       canonical: url,
       languages: { "en-US": url },
     },
     openGraph: {
-      type: "website",
+      type: isGuide ? "article" : "website",
       locale: "en_US",
       url,
       siteName: BRAND_SUFFIX,
       title,
       description,
       images: sharedOgImages(),
+      ...(isGuide
+        ? {
+            authors: [BRAND_SUFFIX],
+            section: "Investment Guides",
+          }
+        : {}),
     },
     twitter: {
       card: "summary_large_image",
       site: "@awsvision",
+      creator: "@awsvision",
       title,
       description,
       images: [absoluteUrl(OG_IMAGE_PATH)],
@@ -104,6 +128,7 @@ export function pageMetadata(path: string, overrides?: Partial<PageSeo>): Metada
             "max-video-preview": -1,
           },
         },
+    other,
   };
 }
 
@@ -425,6 +450,57 @@ export function webPageJsonLd(pathname: string) {
     isPartOf: { "@id": `${getSiteUrl()}/#website` },
     about: { "@id": `${getSiteUrl()}/#organization` },
     inLanguage: "en-US",
+    primaryImageOfPage: {
+      "@type": "ImageObject",
+      url: absoluteUrl(OG_IMAGE_PATH),
+    },
+    keywords: (page.keywords ?? []).slice(0, 16).join(", "),
+  };
+}
+
+/** Service-area schema for Texas / U.S. location landings */
+export function locationServiceJsonLd(pathname: string) {
+  const page = PAGE_SEO[pathname];
+  if (!page) return null;
+  if (
+    !(
+      pathname.startsWith("/serving-texas") ||
+      pathname.startsWith("/serving-united-states/") ||
+      pathname === "/locations"
+    )
+  ) {
+    return null;
+  }
+
+  const url = absoluteUrl(pathname);
+  const area =
+    page.geoPlacename && page.geoRegion
+      ? {
+          "@type": page.geoRegion.length > 5 ? "City" : "State",
+          name: page.geoPlacename,
+          address: {
+            "@type": "PostalAddress",
+            addressRegion: page.geoRegion.replace("US-", ""),
+            addressCountry: "US",
+          },
+        }
+      : { "@type": "Country", name: "United States" };
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "FinancialService",
+    "@id": `${url}/#service-area`,
+    name: page.title.split("|")[0].trim(),
+    description: page.description,
+    url,
+    provider: { "@id": `${getSiteUrl()}/#organization` },
+    areaServed: area,
+    serviceType: [
+      "Investment Management",
+      "Wealth Management",
+      "Savings Accounts",
+      "Fixed Deposits",
+    ],
   };
 }
 

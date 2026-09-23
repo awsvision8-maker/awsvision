@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { breadcrumbJsonLd, contactPageJsonLd, webPageJsonLd } from "@/lib/seo";
+import { breadcrumbJsonLd, contactPageJsonLd, locationServiceJsonLd, webPageJsonLd } from "@/lib/seo";
 
 function JsonLdScript({ data }: { data: object }) {
   return (
@@ -20,6 +20,9 @@ export function PageJsonLd() {
 
   const webPage = webPageJsonLd(pathname);
   if (webPage) schemas.push(webPage);
+
+  const locationService = locationServiceJsonLd(pathname);
+  if (locationService) schemas.push(locationService);
 
   if (pathname === "/contact" || pathname.startsWith("/contact")) {
     schemas.push(contactPageJsonLd());
