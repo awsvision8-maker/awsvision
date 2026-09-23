@@ -440,6 +440,110 @@ export const TEXAS_CITIES: TexasCity[] = [
       },
     ],
   },
+  {
+    slug: "mckinney",
+    name: "McKinney",
+    metro: "Dallas–Fort Worth (DFW) · Collin County",
+    headline: "Investment firm & wealth management for McKinney, TX",
+    intro:
+      "AWS Vision Financial serves McKinney and Collin County clients online — investment management, wealth plans, savings, and fixed deposits with remote KYC. No McKinney retail branch required.",
+    localFocus: [
+      "McKinney households comparing online investment firms in Collin County",
+      "Professionals who want wealth management without driving to a branch",
+      "Investors near McKinney, Allen, and Fairview seeking clear program terms",
+    ],
+    processSteps: [
+      {
+        title: "Apply from McKinney",
+        body: "Complete signup and KYC online from McKinney or anywhere in North Texas — no in-person appointment required.",
+      },
+      {
+        title: "Choose savings, FD, or wealth",
+        body: "Review current terms on the rates page, then select the plan that matches your timeline.",
+      },
+      {
+        title: "Fund and track in the portal",
+        body: "After approval, fund your account and monitor balances and statements remotely. Phone: +1 (469) 754-2201.",
+      },
+    ],
+    whyLocal: [
+      "McKinney “financial advisor near me” results often push storefronts. We serve McKinney honestly as part of statewide online Texas coverage — no invented local address for Maps.",
+      "Collin County clients who travel or work hybrid schedules often prefer remote onboarding and digital statements.",
+      "Use /compare and /rates before you enroll, then review agreements in the portal.",
+    ],
+    keywords: [
+      "Investment Firm McKinney",
+      "Investment Advisor McKinney TX",
+      "Financial Advisor McKinney",
+      "Wealth Management McKinney",
+      "Investment Management McKinney",
+      "Financial Services McKinney TX",
+      "Wealth Management Collin County",
+    ],
+    faqs: [
+      {
+        q: "Does AWS Vision serve McKinney, Texas?",
+        a: "Yes. McKinney and Collin County clients open savings, fixed deposit, and wealth management accounts online with remote KYC.",
+      },
+      {
+        q: "Do you have an office in McKinney?",
+        a: "No public McKinney retail storefront. Clients are served remotely by portal, phone, and email.",
+      },
+      {
+        q: "Can I manage a wealth plan from McKinney online?",
+        a: "Yes. Apply online, complete KYC, fund your plan, and track statements in the client portal.",
+      },
+    ],
+  },
+  {
+    slug: "arlington",
+    name: "Arlington",
+    metro: "Dallas–Fort Worth (DFW) · Tarrant County",
+    headline: "Investment accounts & wealth plans for Arlington, TX",
+    intro:
+      "Arlington and mid-cities DFW clients can open AWS Vision savings, fixed deposit, and wealth management accounts online — statewide Texas service with remote support, no Arlington retail branch.",
+    localFocus: [
+      "Arlington households comparing online investment firms between Dallas and Fort Worth",
+      "Mid-cities professionals who want portfolio tracking without a branch visit",
+      "Investors seeking transparent rates before they enroll",
+    ],
+    processSteps: [
+      {
+        title: "Enroll from Arlington",
+        body: "Signup and KYC are fully online for Arlington, Grand Prairie, and nearby mid-cities communities.",
+      },
+      {
+        title: "Pick your product",
+        body: "Choose savings, FD, or wealth tiers after reviewing published terms on the rates page.",
+      },
+      {
+        title: "Stay connected",
+        body: "Use the portal for statements; call or email support anytime — +1 (469) 754-2201.",
+      },
+    ],
+    whyLocal: [
+      "Arlington sits between Dallas and Fort Worth — clients often want one online firm that covers the whole metro without fake storefront claims. That is our model.",
+      "Compare bank-style products on /compare, then open an account remotely if the fit is right.",
+    ],
+    keywords: [
+      "Investment Firm Arlington TX",
+      "Financial Advisor Arlington Texas",
+      "Wealth Management Arlington TX",
+      "Investment Advisor Arlington",
+      "Financial Services Arlington TX",
+      "Investment Management Arlington",
+    ],
+    faqs: [
+      {
+        q: "Can Arlington residents open an AWS Vision account?",
+        a: "Yes. Complete online KYC, then fund savings, FD, or wealth plans through the portal.",
+      },
+      {
+        q: "Is there an Arlington branch?",
+        a: "No. We serve Arlington remotely as part of our Texas service-area model.",
+      },
+    ],
+  },
 ];
 
 export function getTexasCity(slug: string) {

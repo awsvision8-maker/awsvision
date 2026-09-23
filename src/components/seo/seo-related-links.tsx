@@ -11,6 +11,11 @@ const DEFAULT_CLUSTER: SeoLink[] = [
   { label: "Serving Texas", href: "/serving-texas" },
   { label: "Dallas", href: "/serving-texas/dallas" },
   { label: "Houston", href: "/serving-texas/houston" },
+  { label: "Austin", href: "/serving-texas/austin" },
+  { label: "Fort Worth", href: "/serving-texas/fort-worth" },
+  { label: "Frisco", href: "/serving-texas/frisco" },
+  { label: "McKinney", href: "/serving-texas/mckinney" },
+  { label: "Compare", href: "/compare" },
   { label: "Guides", href: "/guides" },
   { label: "Rates", href: "/rates" },
 ];

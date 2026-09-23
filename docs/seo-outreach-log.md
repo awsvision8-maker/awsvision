@@ -7,3 +7,5 @@
 | 2026-09-23 | Austin Chamber of Commerce — `join@austinchamber.com` | directory | **sent** | From `abdulwahibshera@gmail.com`. Subject: Listing request — AWS Vision Financial (online investment services, Texas). Links: awsvision.com, /serving-texas/austin, /guides/texas-online-wealth-management. Gmail “Message sent”. Template #1. |
 | 2026-09-23 | Only Finance Podcast (Houston) — `info@onlyfinance.com` | guest | **sent** | From `abdulwahibshera@gmail.com`. Subject: Guest idea — choosing an investment advisor online in Texas. Pitch guides: /guides/how-to-choose-investment-advisor-texas, /serving-texas. Gmail “Message sent”. Template #2. |
 | 2026-09-22 | Personal-finance / fintech podcast (Texas or US remote) | guest | draft | Superseded by Only Finance send (2026-09-23). |
+| 2026-09-23 | **STOP chamber/membership email outreach** | policy | **halted** | User directed: do not email chamber / legal / membership departments. Prefer on-site SEO + public “add business” forms only. |
+| 2026-09-23 | On-site: McKinney + Arlington city pages + home/city internal links | on-site | **shipped** | Unique city copy; sitemap via TEXAS_CITIES; no fake TX storefront. |

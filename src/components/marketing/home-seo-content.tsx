@@ -4,7 +4,7 @@ import { MARYLAND_HEADQUARTERS, SITE } from "@/lib/site-config";
 const SERVICES = [
   {
     title: "Wealth Management & Investment Plans",
-    desc: "Professional asset management with tiered monthly returns, global sector portfolios, and a secure client portal for real-time profit tracking.",
+    desc: "Professional asset management with tiered monthly program rates, global sector portfolios, and a secure client portal for statement tracking.",
     href: "/wealth-management",
   },
   {
@@ -67,6 +67,18 @@ export function HomeSeoContent() {
           against major banks on our{" "}
           <Link href="/compare" className="text-teal-700 hover:underline">comparison guide</Link>, or{" "}
           <Link href="/signup" className="text-teal-700 hover:underline">open an account online</Link> in minutes.
+          Texas cities we serve online:{" "}
+          <Link href="/serving-texas/dallas" className="text-teal-700 hover:underline">Dallas</Link>,{" "}
+          <Link href="/serving-texas/houston" className="text-teal-700 hover:underline">Houston</Link>,{" "}
+          <Link href="/serving-texas/austin" className="text-teal-700 hover:underline">Austin</Link>,{" "}
+          <Link href="/serving-texas/fort-worth" className="text-teal-700 hover:underline">Fort Worth</Link>,{" "}
+          <Link href="/serving-texas/san-antonio" className="text-teal-700 hover:underline">San Antonio</Link>,{" "}
+          <Link href="/serving-texas/plano" className="text-teal-700 hover:underline">Plano</Link>,{" "}
+          <Link href="/serving-texas/frisco" className="text-teal-700 hover:underline">Frisco</Link>,{" "}
+          <Link href="/serving-texas/mckinney" className="text-teal-700 hover:underline">McKinney</Link>,{" "}
+          <Link href="/serving-texas/arlington" className="text-teal-700 hover:underline">Arlington</Link>
+          {" "}— full list on{" "}
+          <Link href="/serving-texas" className="text-teal-700 hover:underline">Serving Texas</Link>.
           Investment products are not FDIC insured and may lose value. Banking deposits are subject to approval.
         </p>
       </div>
