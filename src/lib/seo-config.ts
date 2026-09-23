@@ -46,18 +46,20 @@ export const PAGE_SEO: Record<string, PageSeo> = {
   "/": {
     path: "/",
     title:
-      "AWS Vision Financial (awsvision.com) | Investment & Wealth — Not Amazon AWS",
+      "Investment Firm Texas | Wealth Management & Financial Services | AWS Vision",
     description:
-      "AWS Vision Financial is an independent investment firm at awsvision.com — online savings, fixed deposits, and wealth management for Texas and the U.S. Not affiliated with Amazon Web Services (AWS).",
+      "AWS Vision Financial — investment firm serving Texas and U.S. clients online. Wealth management, savings, and fixed deposits at awsvision.com. Not affiliated with Amazon Web Services (AWS).",
     keywords: [
       ...DEFAULT_KEYWORDS,
       "AWS Vision Financial",
       "awsvision.com",
-      "AWS Vision investment firm",
-      "AWS Vision not Amazon",
+      "Investment Firm Texas",
+      "Wealth Management Texas",
+      "Financial Services Texas",
       "online investment firm USA",
       "wealth management online",
       "open investment account online",
+      "AWS Vision not Amazon",
     ],
     priority: 1,
     changeFrequency: "daily",

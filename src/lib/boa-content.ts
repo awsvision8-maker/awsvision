@@ -95,10 +95,10 @@ export const NEWS_ITEMS = [
     cta: "Explore our mobile app",
   },
   {
-    title: "AWS Vision Q1 Performance Report",
-    desc: "AWS Vision delivered strong performance in Q1 2026, recording an impressive 40% profit despite global economic turbulence.",
+    title: "AWS Vision Q1 Client Update",
+    desc: "A look at how we supported clients in Q1 2026 — portal tools, account operations, and market context. Past results are not a guarantee of future performance.",
     href: "/news#q1-2026",
-    cta: "Read the report",
+    cta: "Read the update",
   },
   {
     title: "Introducing the AWS Vision Dashboard",
@@ -176,7 +176,7 @@ export const FAQ_CATEGORIES = [
   {
     title: "Investments & Portfolio",
     items: [
-      { q: "What returns can I expect?", a: "Investment-linked accounts offer tiered returns from 6% to 96% p.a. based on capital tier. Monthly profits are credited to your account." },
+      { q: "What returns can I expect?", a: "Program rates vary by plan and capital tier. See the current rates page for published “up to” figures, then confirm terms on a call before enrolling. Investment returns are not guaranteed and may differ from promotional examples." },
       { q: "How do I track my investments?", a: "Sign in to the client portal to see real-time holdings by sector, region, stock, and fund with advanced charts." },
       { q: "How do I download monthly statements?", a: "Portal → Statements → Download PDF. Professional format with full transaction details." },
       { q: "Can I withdraw my capital?", a: "Yes. Place a withdrawal request in the portal for savings and investment accounts. For fixed deposits, contact your relationship manager to initiate an early withdrawal." },
@@ -204,36 +204,40 @@ export const NEWS_ARTICLES = [
   {
     id: "q1-2026",
     date: "April 2026",
-    title: "AWS Vision Q1 Performance Report",
-    excerpt: "AWS Vision has delivered strong performance in Q1 2026, recording an impressive 40% profit despite global economic turbulence, including heightened trade tensions.",
-    body: "Our quantitative models and algorithmic trading systems continued to outperform traditional benchmarks. Client payout distributions remained consistent, supported by our performance reserve and adaptive investment tactics.",
+    title: "AWS Vision Q1 2026 Client Update",
+    excerpt:
+      "How we supported clients in Q1 2026 — portal improvements, account operations, and market context. Past results are not a guarantee of future performance.",
+    body: "We focused on clearer client reporting, reliable monthly statements, and tools that help investors follow their accounts. Program rates and outcomes depend on the plan you enroll in; review current terms on the rates page and discuss details on a call before committing capital.",
   },
   {
     id: "q1-2025",
     date: "April 2025",
-    title: "AWS Vision Q1 2025 Performance Report",
-    excerpt: "AWS Vision delivered stable performance in Q1 2025 as we expanded our client base and refined our algorithmic asset management platform.",
-    body: "We continued building toward our mission of quantitative fintech-driven investing with transparent client reporting and portfolio analytics.",
+    title: "AWS Vision Q1 2025 Client Update",
+    excerpt:
+      "In Q1 2025 we expanded our client base and continued refining the portfolio analytics available in the client portal.",
+    body: "We kept building toward transparent online investing with structured savings, fixed deposit, and wealth programs — without claiming unverified media rankings or guaranteed returns.",
   },
   {
     id: "dashboard",
     date: "March 2025",
     title: "Introducing the AWS Vision Dashboard",
-    excerpt: "Your window into real-time performance and precision. Our world-class dashboard empowers investors with detailed analytics and easy navigation.",
-    body: "Track investments, earnings, and portfolio performance with advanced charts. Download monthly profit statements, place deposit and withdrawal requests, and monitor sector allocation — all from one secure platform.",
+    excerpt:
+      "Track accounts, statements, and portfolio details in one secure client portal designed for online investors.",
+    body: "Download statements, place deposit and withdrawal requests, and monitor sector allocation from the dashboard. Features may expand over time; availability depends on your account type.",
   },
   {
     id: "media",
     date: "April 2025",
-    title: "Featured in Bloomberg, CNBC, Yahoo Finance & More",
-    excerpt: "AWS Vision's approach to structured yield solutions and fintech-driven asset management was covered across leading financial media outlets.",
-    body: "The article highlighted our data-driven investment precision, multi-asset expertise, and flexible client-focused solutions for high-net-worth individuals and institutional investors.",
+    title: "Building in Public — Guides & Education",
+    excerpt:
+      "We publish plain-language guides on choosing online investment firms, Texas service coverage, and how our programs compare to traditional bank products.",
+    body: "Start with our guides hub and Texas service pages. Education is not personalized investment advice — verify terms before you enroll.",
   },
 ];
 
 export const HOME_STATS = [
-  { value: "7%", label: "Max Monthly Profit" },
-  { value: "420%", label: "Executive Total ROI" },
-  { value: "80+", label: "Active Clients" },
-  { value: "$1.8M", label: "Assets Under Management (USD)" },
+  { value: "Up to 7%", label: "Monthly program rate*" },
+  { value: "6 plans", label: "Investment tiers" },
+  { value: "TX + US", label: "Online service area" },
+  { value: "Portal", label: "Statements & tracking" },
 ];

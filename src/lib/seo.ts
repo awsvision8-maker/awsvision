@@ -333,14 +333,67 @@ export function websiteJsonLd() {
     description: PAGE_SEO["/"].description,
     inLanguage: "en-US",
     publisher: { "@id": `${url}/#organization` },
-    potentialAction: {
-      "@type": "SearchAction",
-      target: {
-        "@type": "EntryPoint",
-        urlTemplate: `${url}/help?q={search_term_string}`,
+  };
+}
+
+export function guideArticleJsonLd(guide: {
+  slug: string;
+  title: string;
+  description: string;
+  category: string;
+  sections: { heading: string; body: string[] }[];
+}) {
+  const url = absoluteUrl(`/guides/${guide.slug}`);
+  const site = getSiteUrl();
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "@id": `${url}/#article`,
+    headline: guide.title,
+    description: guide.description,
+    articleSection: guide.category,
+    inLanguage: "en-US",
+    isAccessibleForFree: true,
+    mainEntityOfPage: { "@type": "WebPage", "@id": `${url}/#webpage` },
+    author: { "@id": `${site}/#organization` },
+    publisher: {
+      "@id": `${site}/#organization`,
+      name: BRAND_SUFFIX,
+      logo: {
+        "@type": "ImageObject",
+        url: absoluteUrl("/logo.png"),
       },
-      "query-input": "required name=search_term_string",
     },
+    image: [absoluteUrl(OG_IMAGE_PATH), absoluteUrl("/logo.png")],
+    about: { "@id": `${site}/#organization` },
+  };
+}
+
+/** FAQPage from guide section headings (question-style) + first paragraph answers */
+export function guideFaqJsonLd(guide: {
+  slug: string;
+  title: string;
+  sections: { heading: string; body: string[] }[];
+}) {
+  const questions = guide.sections
+    .filter((s) => /\?|how |what |why |when |where |which |can |does |do /i.test(s.heading))
+    .slice(0, 8)
+    .map((s) => ({
+      "@type": "Question" as const,
+      name: s.heading.includes("?") ? s.heading : `${s.heading}?`,
+      acceptedAnswer: {
+        "@type": "Answer" as const,
+        text: s.body.join(" ").slice(0, 500),
+      },
+    }));
+
+  if (questions.length < 2) return null;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "@id": `${absoluteUrl(`/guides/${guide.slug}`)}/#faq`,
+    mainEntity: questions,
   };
 }
 

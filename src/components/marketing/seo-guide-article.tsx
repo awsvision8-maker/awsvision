@@ -1,10 +1,25 @@
 import Link from "next/link";
 import type { SeoGuide } from "@/lib/seo-guides";
 import { SeoRelatedLinks } from "@/components/seo/seo-related-links";
+import { guideArticleJsonLd, guideFaqJsonLd } from "@/lib/seo";
 
 export function SeoGuideArticle({ guide }: { guide: SeoGuide }) {
+  const articleLd = guideArticleJsonLd(guide);
+  const faqLd = guideFaqJsonLd(guide);
+
   return (
     <article>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }}
+      />
+      {faqLd ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
+        />
+      ) : null}
+
       <header className="bg-gradient-to-br from-slate-950 to-teal-950 py-14 text-white">
         <div className="mx-auto max-w-3xl px-6">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-300">

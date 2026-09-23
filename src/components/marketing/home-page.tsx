@@ -36,10 +36,10 @@ export function HomePage() {
             <div>
               <Logo size="lg" href="/" priority className="mb-8" />
               <h1 className="text-4xl font-bold text-white sm:text-5xl lg:text-6xl leading-tight">
-                AWS Vision Financial — Online Investment &amp; Wealth
+                Investment Firm Texas — Wealth Management &amp; Financial Services
               </h1>
               <p className="mt-6 text-lg text-slate-200 leading-relaxed max-w-lg">
-                Independent investment firm at awsvision.com — savings, fixed deposits, and wealth
+                AWS Vision Financial (awsvision.com) — online savings, fixed deposits, and wealth
                 plans for Texas and U.S. clients. Not affiliated with Amazon Web Services (AWS).
               </p>
               <p className="mt-3 text-sm text-slate-300">
@@ -92,6 +92,9 @@ export function HomePage() {
                   </div>
                 ))}
               </div>
+              <p className="mt-3 text-[11px] text-slate-400">
+                *Program rates vary by plan — confirm on a call. Not a guarantee of future results.
+              </p>
             </div>
 
             {/* Login panel — BoA exact pattern */}

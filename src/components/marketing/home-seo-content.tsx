@@ -30,14 +30,16 @@ export function HomeSeoContent() {
     <section className="border-t border-slate-200 bg-white py-16" aria-labelledby="financial-services-heading">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <h2 id="financial-services-heading" className="text-2xl font-bold text-slate-900 sm:text-3xl">
-          A Full-Service Financial Firm for Modern Investors
+          Investment Firm Texas — Online Wealth Management &amp; Financial Services
         </h2>
         <p className="mt-4 max-w-3xl text-slate-600 leading-relaxed">
-          {SITE.name} is a licensed financial services and investment management company with U.S. headquarters in{" "}
-          {SITE.address.city}, {SITE.address.state} and {MARYLAND_HEADQUARTERS.city}, {MARYLAND_HEADQUARTERS.state}. We combine quantitative fintech-driven asset management
-          with transparent savings, fixed deposit (FD), and wealth management products — so individuals,
-          families, and non-profit organizations can grow capital with monthly profit distribution and
-          bank-grade security.
+          {SITE.name} is a licensed financial services and investment management company serving Texas
+          and nationwide U.S. clients online, with U.S. headquarters in {SITE.address.city},{" "}
+          {SITE.address.state} and {MARYLAND_HEADQUARTERS.city}, {MARYLAND_HEADQUARTERS.state}. We combine
+          quantitative fintech-driven asset management with transparent savings, fixed deposit (FD), and
+          wealth management products — so individuals, families, and non-profit organizations can grow
+          capital with structured program returns and bank-grade security. We do not operate a Texas
+          retail branch; enrollment is remote.
         </p>
 
         <div className="mt-10 grid gap-6 sm:grid-cols-2">
