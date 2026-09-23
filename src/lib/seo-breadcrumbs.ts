@@ -1,5 +1,7 @@
 import { PAGE_SEO } from "@/lib/seo-config";
 import { SITE } from "@/lib/site-config";
+import { getTexasCity } from "@/lib/texas-cities";
+import { getUsState, getUsCity } from "@/lib/us-locations";
 
 export interface BreadcrumbItem {
   name: string;
@@ -35,93 +37,67 @@ const SEGMENT_LABELS: Record<string, string> = {
   "serving-united-states": "Serving the United States",
   "referral-program": "Referral Program",
   guides: "Investment Guides",
-  dallas: "Dallas",
-  houston: "Houston",
-  austin: "Austin",
-  "san-antonio": "San Antonio",
-  "fort-worth": "Fort Worth",
-  plano: "Plano",
-  "el-paso": "El Paso",
-  frisco: "Frisco",
-  mckinney: "McKinney",
-  arlington: "Arlington",
   "investment-management": "Investment Management",
   "portfolio-management": "Portfolio Management",
   "financial-planning": "Financial Planning",
   "investment-advisory": "Investment Advisory",
   "asset-management": "Asset Management",
   locations: "Locations",
-  "best-financial-firm-texas": "Best Financial Firm Texas",
-  "best-financial-firm-usa": "Best Financial Firm USA",
-  "best-investment-firm-texas": "Best Investment Firm Texas",
-  "best-wealth-management-firm-texas": "Best Wealth Management Texas",
-  "financial-advisor-near-me-texas": "Financial Advisor Near Me",
-  "investment-advisor-near-me-texas": "Investment Advisor Near Me",
-  "private-wealth-management-texas": "Private Wealth Texas",
-  "asset-management-texas": "Asset Management Texas",
-  "best-investment-firm-dallas": "Best Investment Firm Dallas",
-  "best-financial-advisor-houston": "Best Financial Advisor Houston",
-  "best-wealth-management-austin": "Best Wealth Management Austin",
-  "investment-firm-near-me": "Investment Firm Near Me",
-  "high-net-worth-financial-advisor-texas": "HNW Advisor Texas",
-  "open-investment-account-online-usa": "Open an Account Online",
-  "fixed-deposit-vs-savings": "FD vs Savings",
-  "texas-online-wealth-management": "Texas Wealth Management",
-  "how-monthly-profit-investing-works": "Monthly Profit Investing",
-  "how-to-choose-investment-advisor-texas": "Choose an Investment Advisor",
-  "how-to-choose-financial-advisor-texas": "Choose a Financial Advisor",
-  "investment-advisor-vs-financial-advisor": "Advisor vs Financial Advisor",
-  "wealth-management-vs-investment-management": "Wealth vs Investment Management",
-  "what-does-investment-management-firm-do": "What Investment Firms Do",
-  "how-does-portfolio-management-work": "How Portfolio Management Works",
-  "how-to-build-diversified-investment-portfolio": "Diversified Portfolio",
-  "how-to-manage-investment-risk": "Manage Investment Risk",
-  "best-long-term-investment-strategies": "Long-Term Strategies",
-  "how-much-does-financial-advisor-cost-texas": "Advisor Cost in Texas",
-  "financial-planning-for-business-owners": "Business Owner Planning",
-  "investment-strategies-high-net-worth": "High Net Worth Strategies",
-  "preserve-wealth-market-volatility": "Wealth in Volatility",
-  "retirement-planning-texas": "Retirement Planning Texas",
-  "investment-company-texas": "Investment Company Texas",
-  "online-financial-advisor-texas": "Online Financial Advisor Texas",
-  "wealth-management-houston": "Wealth Management Houston",
-  "investment-firm-fort-worth": "Investment Firm Fort Worth",
-  "wealth-management-san-antonio": "Wealth Management San Antonio",
-  "wealth-advisor-dallas": "Wealth Advisor Dallas",
-  "best-portfolio-management-texas": "Best Portfolio Management Texas",
-  "financial-services-firm-texas": "Financial Services Firm Texas",
 };
 
-/** Build breadcrumb trail for a marketing path */
+function labelForSegment(seg: string, builtPath: string): string {
+  if (SEGMENT_LABELS[seg]) return SEGMENT_LABELS[seg];
+
+  const page = PAGE_SEO[builtPath];
+  if (page) {
+    return page.title.split("|")[0].trim().replace(/ AWS Vision$/, "");
+  }
+
+  const texas = getTexasCity(seg);
+  if (texas) return texas.name;
+
+  const usState = getUsState(seg);
+  if (usState) return usState.name;
+
+  // /serving-united-states/{state}/{city}
+  const parts = builtPath.split("/").filter(Boolean);
+  if (parts[0] === "serving-united-states" && parts.length === 3) {
+    const city = getUsCity(parts[1], parts[2]);
+    if (city) return city.name;
+  }
+
+  return seg.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/** Build breadcrumb trail for a marketing path (includes intermediate hubs). */
 export function breadcrumbsForPath(pathname: string): BreadcrumbItem[] {
   const normalized = pathname.split("?")[0].replace(/\/$/, "") || "/";
   const crumbs: BreadcrumbItem[] = [{ name: SITE.name, path: "/" }];
 
   if (normalized === "/") return crumbs;
 
-  const page = PAGE_SEO[normalized];
-  if (page) {
-    const segments = normalized.split("/").filter(Boolean);
-    if (segments.length > 1) {
-      const parentPath = `/${segments[0]}`;
-      const parentLabel = SEGMENT_LABELS[segments[0]];
-      if (parentLabel && PAGE_SEO[parentPath]) {
-        crumbs.push({ name: parentLabel, path: parentPath });
+  const segments = normalized.split("/").filter(Boolean);
+  let built = "";
+  for (let i = 0; i < segments.length; i++) {
+    const seg = segments[i];
+    built += `/${seg}`;
+    const isLast = i === segments.length - 1;
+    // Skip intermediate segments that are not real pages (rare)
+    if (!isLast && !PAGE_SEO[built] && !SEGMENT_LABELS[seg]) {
+      // still include known location parents
+      if (
+        !(
+          (segments[0] === "serving-united-states" && i === 1) ||
+          (segments[0] === "serving-texas" && i === 1)
+        )
+      ) {
+        continue;
       }
     }
     crumbs.push({
-      name: page.title.split("|")[0].trim().replace(/ AWS Vision$/, ""),
-      path: normalized,
+      name: labelForSegment(seg, built),
+      path: built,
     });
-    return crumbs;
-  }
-
-  const segments = normalized.split("/").filter(Boolean);
-  let built = "";
-  for (const seg of segments) {
-    built += `/${seg}`;
-    const label = SEGMENT_LABELS[seg] ?? seg.replace(/-/g, " ");
-    crumbs.push({ name: label, path: built });
   }
   return crumbs;
 }

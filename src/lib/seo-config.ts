@@ -400,9 +400,9 @@ export const PAGE_SEO: Record<string, PageSeo> = {
   },
   "/serving-united-states": {
     path: "/serving-united-states",
-    title: "Online Financial Services Across the United States | AWS Vision",
+    title: "Online Financial Services Across All 50 U.S. States | AWS Vision",
     description:
-      "AWS Vision Financial serves clients nationwide across the United States with online account opening, KYC verification, savings and FD products, and wealth management — licensed U.S. financial services without needing a local branch.",
+      "AWS Vision Financial serves all 50 U.S. states online — state hubs and major-city pages, remote KYC, savings, fixed deposits, and wealth management. No local branch required.",
     keywords: [
       "nationwide investment firm USA",
       "online financial services United States",
@@ -410,22 +410,24 @@ export const PAGE_SEO: Record<string, PageSeo> = {
       "US fintech wealth management",
       "remote KYC investment account",
       "best financial firm USA",
+      "investment accounts all 50 states",
     ],
-    priority: 0.9,
+    priority: 0.92,
     changeFrequency: "weekly",
   },
   "/locations": {
     path: "/locations",
-    title: "Locations We Serve — Texas Cities & Nationwide U.S. | AWS Vision",
+    title: "Locations We Serve — Texas Cities & All 50 U.S. States | AWS Vision",
     description:
-      "AWS Vision Financial service areas: Dallas, Houston, Austin, Fort Worth, San Antonio, statewide Texas, and nationwide U.S. online — no fake retail storefronts.",
+      "Service areas for AWS Vision Financial: expanded Texas city pages plus all 50 U.S. states and major cities online — coverage pages, not retail storefronts.",
     keywords: [
       "AWS Vision locations",
       "Texas investment firm cities",
       "Dallas Houston Austin investment",
       "online financial firm service areas",
+      "investment firm all 50 states",
     ],
-    priority: 0.88,
+    priority: 0.9,
     changeFrequency: "weekly",
   },
 };

@@ -16,8 +16,25 @@ const btnTeal =
   "inline-flex h-11 items-center justify-center rounded-lg bg-teal-700 px-5 text-sm font-semibold text-white transition hover:bg-teal-800";
 
 export default function ServingUnitedStatesPage() {
+  const stateListLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "AWS Vision Financial — U.S. states served online",
+    numberOfItems: US_STATES.length,
+    itemListElement: US_STATES.map((s, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: s.name,
+      url: `https://awsvision.com/serving-united-states/${s.slug}`,
+    })),
+  };
+
   return (
     <div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(stateListLd) }}
+      />
       <section className="bg-gradient-to-br from-slate-950 to-teal-950 py-16 text-white sm:py-20">
         <div className="mx-auto max-w-7xl px-6">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal-300">
