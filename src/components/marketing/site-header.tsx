@@ -133,6 +133,12 @@ export function SiteHeader() {
             >
               Rates
             </Link>
+            <Link
+              href="/contact"
+              className="px-4 py-5 text-sm font-medium text-slate-700 hover:text-teal-700 transition-colors"
+            >
+              Contact Us
+            </Link>
           </nav>
 
           <div className="flex items-center gap-2">
@@ -196,6 +202,9 @@ export function SiteHeader() {
             ))}
             <Link href="/rates" onClick={() => setMobileOpen(false)} className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-900 hover:bg-slate-50">
               Rates
+            </Link>
+            <Link href="/contact" onClick={() => setMobileOpen(false)} className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-900 hover:bg-slate-50">
+              Contact Us
             </Link>
             <Link href="/help" onClick={() => setMobileOpen(false)} className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-900 hover:bg-slate-50">
               Search & Help
