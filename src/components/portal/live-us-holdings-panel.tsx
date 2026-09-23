@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Building2, Landmark, LineChart, TrendingUp } from "lucide-react";
+import { Building2, Landmark, LineChart, Shield, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MobileDataCard } from "@/components/ui/mobile-data-card";
 import { SectorAllocationChart } from "@/components/charts/investment-charts";
-import { buildUsHoldingsForPortfolio } from "@/lib/us-growth-holdings";
+import {
+  buildUsHoldingsForPortfolio,
+  type HoldingsAllocationStyle,
+} from "@/lib/us-growth-holdings";
 import { formatCurrency, formatPercent } from "@/lib/utils";
 
 interface LiveAccountInput {
@@ -14,6 +17,7 @@ interface LiveAccountInput {
   label?: string;
   balance: number;
   annualReturnPercent: number;
+  style?: HoldingsAllocationStyle;
 }
 
 interface LiveUsHoldingsPanelProps {
@@ -33,11 +37,30 @@ export function LiveUsHoldingsPanel({ accounts, invested }: LiveUsHoldingsPanelP
     useMemo(
       () =>
         buildUsHoldingsForPortfolio({
-          accounts: invested ? accounts.filter((a) => a.balance > 0) : [],
+          accounts: invested
+            ? accounts
+                .filter((a) => a.balance > 0)
+                .map((a) => ({
+                  ...a,
+                  style: a.style ?? "stocks",
+                }))
+            : [],
           asOf: now,
         }),
       [accounts, invested, now]
     );
+
+  const stylesPresent = useMemo(() => {
+    const set = new Set(
+      (invested ? accounts.filter((a) => a.balance > 0) : []).map(
+        (a) => a.style ?? "stocks"
+      )
+    );
+    return set;
+  }, [accounts, invested]);
+
+  const showPromoBook = stylesPresent.has("promo");
+  const showStocksBook = stylesPresent.has("stocks") || stylesPresent.size === 0;
 
   const liveTotal = holdings.reduce((s, h) => s + h.value, 0);
   const byAccount = useMemo(() => {
@@ -64,6 +87,24 @@ export function LiveUsHoldingsPanel({ accounts, invested }: LiveUsHoldingsPanelP
     );
   }
 
+  const sleeveChips = showPromoBook
+    ? [
+        { icon: TrendingUp, label: "Yields", hint: "Money-market / dividend" },
+        { icon: LineChart, label: "Indices", hint: "Equity index funds" },
+        { icon: Shield, label: "Securities", hint: "Gov’t / TIPS" },
+        { icon: Landmark, label: "Bonds", hint: "Fixed income" },
+        { icon: Building2, label: "Real estate", hint: "US REITs" },
+      ]
+    : [
+        { icon: LineChart, label: "US stocks", hint: "Equities & company shares" },
+      ];
+
+  const mixSubtitle = showPromoBook
+    ? showStocksBook
+      ? "Promo book · stocks (by account)"
+      : "Yields · indices · securities · bonds · RE"
+    : "US equities / stocks";
+
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-teal-200 bg-gradient-to-r from-slate-950 via-slate-900 to-teal-950 p-5 text-white sm:p-6">
@@ -75,6 +116,13 @@ export function LiveUsHoldingsPanel({ accounts, invested }: LiveUsHoldingsPanelP
             <h3 className="mt-1 text-xl font-semibold tracking-tight sm:text-2xl">
               Portfolio holdings
             </h3>
+            <p className="mt-1 max-w-xl text-sm text-slate-400">
+              {showPromoBook && !showStocksBook
+                ? "$50k promotional FD capital is allocated across yields, indices, securities, bonds, and real estate."
+                : showPromoBook && showStocksBook
+                  ? "Promotional FD uses a diversified book; savings and investment packages are invested in stocks."
+                  : "Savings and investment package capital is invested in US stocks."}
+            </p>
           </div>
           <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-right backdrop-blur">
             <p className="flex items-center justify-end gap-1.5 text-[11px] uppercase tracking-wide text-slate-400">
@@ -89,13 +137,12 @@ export function LiveUsHoldingsPanel({ accounts, invested }: LiveUsHoldingsPanelP
             </p>
           </div>
         </div>
-        <div className="mt-4 grid gap-2 sm:grid-cols-4">
-          {[
-            { icon: LineChart, label: "US equities", hint: "Blue-chip companies" },
-            { icon: Landmark, label: "Bonds", hint: "US fixed income" },
-            { icon: TrendingUp, label: "Yields", hint: "Dividend sleeves" },
-            { icon: Building2, label: "Real estate", hint: "US REITs" },
-          ].map((item) => (
+        <div
+          className={`mt-4 grid gap-2 ${
+            sleeveChips.length > 1 ? "sm:grid-cols-2 lg:grid-cols-5" : "sm:grid-cols-1"
+          }`}
+        >
+          {sleeveChips.map((item) => (
             <div
               key={item.label}
               className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2"
@@ -117,7 +164,7 @@ export function LiveUsHoldingsPanel({ accounts, invested }: LiveUsHoldingsPanelP
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Asset mix</CardTitle>
-            <p className="text-sm text-slate-500">Equity · bond · yield · REIT</p>
+            <p className="text-sm text-slate-500">{mixSubtitle}</p>
           </CardHeader>
           <CardContent className="space-y-3">
             {assetClassAllocation.map((row) => (
@@ -170,7 +217,7 @@ export function LiveUsHoldingsPanel({ accounts, invested }: LiveUsHoldingsPanelP
                     title={h.name}
                     badge={<Badge variant="default">{h.symbol}</Badge>}
                     fields={[
-                      { label: "Class", value: h.assetClass ?? "Equity" },
+                      { label: "Class", value: h.assetClass ?? "Stock" },
                       { label: "Sector", value: h.sector },
                       { label: "Region", value: h.region },
                       { label: "Allocation", value: `${h.allocation}%` },

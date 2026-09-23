@@ -14,9 +14,10 @@ import {
   RegionAllocationChart,
 } from "@/components/charts/investment-charts";
 import { getInvestmentPlan } from "@/lib/investment-plans";
+import { getAccountLabel } from "@/lib/portfolio-engine";
+import { resolveHoldingsAllocationStyle } from "@/lib/us-growth-holdings";
 import { usePortfolio } from "@/lib/use-portfolio";
 import { formatCurrency, formatPercent, formatMonthYear } from "@/lib/utils";
-import { getAccountLabel } from "@/lib/portfolio-engine";
 
 export default function PortfolioPage() {
   const portfolio = usePortfolio();
@@ -50,6 +51,10 @@ export default function PortfolioPage() {
       label: getAccountLabel(a),
       balance: Math.max(a.balance, ledger?.principal ?? 0),
       annualReturnPercent: a.interestRate || portfolio.annualReturn || 12,
+      style: resolveHoldingsAllocationStyle({
+        investmentPlanId: a.investmentPlanId,
+        dailyCompoundActive: Boolean(a.dailyCompound?.active),
+      }),
     };
   });
 

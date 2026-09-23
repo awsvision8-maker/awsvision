@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getInvestmentPlan } from "@/lib/investment-plans";
 import { getAccountLabel } from "@/lib/portfolio-engine";
+import { resolveHoldingsAllocationStyle } from "@/lib/us-growth-holdings";
 import { usePortfolio } from "@/lib/use-portfolio";
 import { RETURN_TIERS } from "@/lib/mock-data";
 import { formatCurrency, formatDate } from "@/lib/utils";
@@ -24,6 +25,10 @@ export default function AccountsPage() {
       label: getAccountLabel(a),
       balance: Math.max(a.balance, ledger?.principal ?? 0),
       annualReturnPercent: a.interestRate || portfolio.annualReturn || 12,
+      style: resolveHoldingsAllocationStyle({
+        investmentPlanId: a.investmentPlanId,
+        dailyCompoundActive: Boolean(a.dailyCompound?.active),
+      }),
     };
   });
 

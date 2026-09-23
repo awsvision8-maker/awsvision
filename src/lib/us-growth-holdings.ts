@@ -1,12 +1,26 @@
 /**
- * US-only allocation universe — companies / funds with long rising 10-year track records.
- * Mixes equities, bond/yield products, and real estate (REITs).
- * Each account gets a deterministic pseudo-random subset (8–15 names).
+ * US allocation universe.
+ * - $50k FD promo: yields, indices, securities, bonds, real estate
+ * - Savings & investment packages: equities / stocks only
  */
 
 import type { InvestmentHolding } from "@/types";
+import { isFdPromoPlanId } from "@/lib/promotions";
 
 export type UsAssetClass = "Equity" | "Bond" | "Yield" | "Real Estate";
+
+/** How capital is shown as invested for an account */
+export type HoldingsAllocationStyle = "stocks" | "promo";
+
+export function resolveHoldingsAllocationStyle(account: {
+  investmentPlanId?: string | null;
+  dailyCompoundActive?: boolean | null;
+}): HoldingsAllocationStyle {
+  if (account.dailyCompoundActive || isFdPromoPlanId(account.investmentPlanId)) {
+    return "promo";
+  }
+  return "stocks";
+}
 
 export interface UsHoldingTemplate {
   id: string;
@@ -307,6 +321,37 @@ export const US_GROWTH_UNIVERSE: UsHoldingTemplate[] = [
 
 const MS_PER_DAY = 86_400_000;
 
+/** Index ETFs shown under promo “Indices” sleeve (still Equity in the master list). */
+const PROMO_INDEX_IDS = new Set(["us_spy", "us_qqq"]);
+/** TIP / TIPS used as government securities sleeve for promo. */
+const PROMO_SECURITIES_IDS = new Set(["us_tip"]);
+
+function universeForStyle(style: HoldingsAllocationStyle): UsHoldingTemplate[] {
+  if (style === "stocks") {
+    return US_GROWTH_UNIVERSE.filter((u) => u.assetClass === "Equity");
+  }
+  return US_GROWTH_UNIVERSE.filter(
+    (u) =>
+      u.assetClass === "Bond" ||
+      u.assetClass === "Yield" ||
+      u.assetClass === "Real Estate" ||
+      PROMO_INDEX_IDS.has(u.id)
+  );
+}
+
+export function displayAssetClass(
+  template: UsHoldingTemplate,
+  style: HoldingsAllocationStyle
+): InvestmentHolding["assetClass"] {
+  if (style === "stocks") return "Stock";
+  if (PROMO_INDEX_IDS.has(template.id)) return "Indices";
+  if (PROMO_SECURITIES_IDS.has(template.id)) return "Securities";
+  if (template.assetClass === "Bond") return "Bonds";
+  if (template.assetClass === "Yield") return "Yields";
+  if (template.assetClass === "Real Estate") return "Real Estate";
+  return "Stock";
+}
+
 function hashString(input: string): number {
   let h = 2166136261;
   for (let i = 0; i < input.length; i++) {
@@ -325,50 +370,80 @@ function mulberry32(seed: number) {
   };
 }
 
-function ensureAssetClassCoverage(
+function ensureStyleCoverage(
   picked: UsHoldingTemplate[],
+  style: HoldingsAllocationStyle,
   rng: () => number
 ): UsHoldingTemplate[] {
-  const need: UsAssetClass[] = ["Equity", "Bond", "Yield", "Real Estate"];
-  const have = new Set(picked.map((p) => p.assetClass));
+  const universe = universeForStyle(style);
   const result = [...picked];
-  for (const cls of need) {
+
+  if (style === "stocks") {
+    if (result.length === 0 && universe.length > 0) {
+      result.push(universe[Math.floor(rng() * universe.length)]);
+    }
+    return result;
+  }
+
+  const needClasses: UsAssetClass[] = ["Yield", "Bond", "Real Estate"];
+  const have = new Set(result.map((p) => p.assetClass));
+  for (const cls of needClasses) {
     if (have.has(cls)) continue;
-    const pool = US_GROWTH_UNIVERSE.filter(
+    const pool = universe.filter(
       (u) => u.assetClass === cls && !result.some((r) => r.id === u.id)
     );
     if (pool.length === 0) continue;
     result.push(pool[Math.floor(rng() * pool.length)]);
   }
+
+  if (!result.some((r) => PROMO_INDEX_IDS.has(r.id))) {
+    const pool = universe.filter(
+      (u) => PROMO_INDEX_IDS.has(u.id) && !result.some((r) => r.id === u.id)
+    );
+    if (pool.length > 0) result.push(pool[Math.floor(rng() * pool.length)]);
+  }
+
+  if (!result.some((r) => PROMO_SECURITIES_IDS.has(r.id))) {
+    const pool = universe.filter(
+      (u) => PROMO_SECURITIES_IDS.has(u.id) && !result.some((r) => r.id === u.id)
+    );
+    if (pool.length > 0) result.push(pool[Math.floor(rng() * pool.length)]);
+  }
+
   return result;
 }
 
-/** Stable 8–15 US holdings for one account (overlaps across accounts OK). */
-export function selectUsHoldingsForAccount(accountId: string): UsHoldingTemplate[] {
-  const rng = mulberry32(hashString(`aws-us-holdings:${accountId}`));
-  const count = 8 + Math.floor(rng() * 8); // 8..15
-  const pool = [...US_GROWTH_UNIVERSE];
-  // Fisher–Yates with seeded RNG
+/** Stable holdings subset for one account (style-aware). */
+export function selectUsHoldingsForAccount(
+  accountId: string,
+  style: HoldingsAllocationStyle = "stocks"
+): UsHoldingTemplate[] {
+  const rng = mulberry32(hashString(`aws-us-holdings:${style}:${accountId}`));
+  const universe = universeForStyle(style);
+  const count =
+    style === "stocks"
+      ? 8 + Math.floor(rng() * 8) // 8..15 stocks
+      : 8 + Math.floor(rng() * 5); // 8..12 promo sleeves
+  const pool = [...universe];
   for (let i = pool.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
     [pool[i], pool[j]] = [pool[j], pool[i]];
   }
-  let picked = pool.slice(0, count);
-  picked = ensureAssetClassCoverage(picked, rng);
-  // Cap at 15
+  let picked = pool.slice(0, Math.min(count, pool.length));
+  picked = ensureStyleCoverage(picked, style, rng);
   if (picked.length > 15) picked = picked.slice(0, 15);
   return picked;
 }
 
 function normalizeAllocations(
   templates: UsHoldingTemplate[],
-  accountId: string
+  accountId: string,
+  style: HoldingsAllocationStyle
 ): { template: UsHoldingTemplate; allocation: number }[] {
-  const rng = mulberry32(hashString(`aws-us-weights:${accountId}`));
+  const rng = mulberry32(hashString(`aws-us-weights:${style}:${accountId}`));
   const raw = templates.map((t) => t.weightBias * (0.75 + rng() * 0.55));
   const sum = raw.reduce((a, b) => a + b, 0) || 1;
   const pcts = raw.map((w) => (w / sum) * 100);
-  // Round to 1 decimal and fix drift on last
   const rounded = pcts.map((p) => Math.round(p * 10) / 10);
   const drift = Math.round((100 - rounded.reduce((a, b) => a + b, 0)) * 10) / 10;
   rounded[rounded.length - 1] = Math.round((rounded[rounded.length - 1] + drift) * 10) / 10;
@@ -399,12 +474,14 @@ export function buildUsHoldingsForAccount(params: {
   balance: number;
   annualReturnPercent: number;
   asOf?: Date;
+  style?: HoldingsAllocationStyle;
 }): InvestmentHolding[] {
   const asOf = params.asOf ?? new Date();
+  const style = params.style ?? "stocks";
   if (params.balance <= 0) return [];
 
-  const selected = selectUsHoldingsForAccount(params.accountId);
-  const weighted = normalizeAllocations(selected, params.accountId);
+  const selected = selectUsHoldingsForAccount(params.accountId, style);
+  const weighted = normalizeAllocations(selected, params.accountId, style);
   const live = liveGrowthFactor(params.annualReturnPercent, asOf);
   const liveBalance = params.balance * live;
 
@@ -426,7 +503,7 @@ export function buildUsHoldingsForAccount(params: {
       ytdReturn: Math.max(0.5, Math.min(45, ytdReturn)),
       accountId: params.accountId,
       accountLabel: params.accountLabel,
-      assetClass: template.assetClass,
+      assetClass: displayAssetClass(template, style),
       tenYearNote: template.tenYearNote,
     };
   });
@@ -438,6 +515,7 @@ export function buildUsHoldingsForPortfolio(params: {
     label?: string;
     balance: number;
     annualReturnPercent: number;
+    style?: HoldingsAllocationStyle;
   }[];
   asOf?: Date;
 }): {
@@ -453,6 +531,7 @@ export function buildUsHoldingsForPortfolio(params: {
       accountLabel: a.label,
       balance: a.balance,
       annualReturnPercent: a.annualReturnPercent,
+      style: a.style ?? "stocks",
       asOf,
     })
   );
@@ -460,10 +539,15 @@ export function buildUsHoldingsForPortfolio(params: {
   const sectorMap = new Map<string, { value: number; color: string }>();
   const classMap = new Map<string, { value: number; color: string }>();
   const classColors: Record<string, string> = {
+    Stock: "#0ea5e9",
     Equity: "#0ea5e9",
+    Bonds: "#6366f1",
     Bond: "#6366f1",
+    Yields: "#84cc16",
     Yield: "#84cc16",
     "Real Estate": "#f59e0b",
+    Indices: "#06b6d4",
+    Securities: "#8b5cf6",
   };
 
   for (const h of holdings) {
@@ -471,7 +555,7 @@ export function buildUsHoldingsForPortfolio(params: {
     const color = tpl?.color ?? "#64748b";
     const prev = sectorMap.get(h.sector) ?? { value: 0, color };
     sectorMap.set(h.sector, { value: prev.value + h.value, color: prev.color || color });
-    const cls = h.assetClass ?? "Equity";
+    const cls = h.assetClass ?? "Stock";
     const cprev = classMap.get(cls) ?? { value: 0, color: classColors[cls] ?? "#64748b" };
     classMap.set(cls, { value: cprev.value + h.value, color: cprev.color });
   }
@@ -508,14 +592,8 @@ export function applyLiveTickToHoldings(
 ): InvestmentHolding[] {
   if (holdings.length === 0) return holdings;
   const factor = liveGrowthFactor(annualReturnPercent, asOf);
-  // Holdings already include some live factor from snapshot time — recompute from base
-  // by stripping approximate current factor is hard; instead scale relative to midday.
-  // Simpler: treat provided values as "start of day" style base if they came without live,
-  // or re-apply from allocation total.
   const baseTotal = holdings.reduce((s, h) => s + h.value, 0);
   if (baseTotal <= 0) return holdings;
-  // Normalize then re-apply live on a settled base (undo prior live by dividing isn't needed
-  // if we rebuild from allocation % each tick in the UI).
   return holdings.map((h) => ({
     ...h,
     value: Math.round(h.value * factor * 100) / 100,

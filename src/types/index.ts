@@ -209,7 +209,16 @@ export interface InvestmentHolding {
   ytdReturn: number;
   accountId?: string;
   accountLabel?: string;
-  assetClass?: "Equity" | "Bond" | "Yield" | "Real Estate";
+  assetClass?:
+    | "Equity"
+    | "Stock"
+    | "Bond"
+    | "Bonds"
+    | "Yield"
+    | "Yields"
+    | "Real Estate"
+    | "Indices"
+    | "Securities";
   tenYearNote?: string;
 }
 

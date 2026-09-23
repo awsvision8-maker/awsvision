@@ -30,6 +30,7 @@ import { StatCard } from "@/components/ui/stat-card";
 import { getInvestmentPlan } from "@/lib/investment-plans";
 import { isBirthdayToday } from "@/lib/birthday";
 import { getAccountLabel } from "@/lib/portfolio-engine";
+import { resolveHoldingsAllocationStyle } from "@/lib/us-growth-holdings";
 import { usePortfolio } from "@/lib/use-portfolio";
 import { formatCurrency, formatDate, formatMonthYear } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
@@ -145,6 +146,10 @@ export default function DashboardPage() {
       label: getAccountLabel(a),
       balance: Math.max(a.balance, ledger?.principal ?? 0),
       annualReturnPercent: a.interestRate || portfolio.annualReturn || 12,
+      style: resolveHoldingsAllocationStyle({
+        investmentPlanId: a.investmentPlanId,
+        dailyCompoundActive: Boolean(a.dailyCompound?.active),
+      }),
     };
   });
 

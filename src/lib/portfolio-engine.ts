@@ -16,7 +16,7 @@ import {
   computePromoDailyCompound,
   type PromoDailyCompoundResult,
 } from "@/lib/promo-daily-compound";
-import { buildUsHoldingsForPortfolio } from "@/lib/us-growth-holdings";
+import { buildUsHoldingsForPortfolio, resolveHoldingsAllocationStyle } from "@/lib/us-growth-holdings";
 
 const MONTH_LABELS = [
   "Jan",
@@ -908,7 +908,6 @@ export function buildPortfolioSnapshot(
   const usAllocation =
     approvedDepositTotal > 0
       ? buildUsHoldingsForPortfolio({
-          // Every funded account (savings, investment, FD, nonprofit) — not promo-only
           accounts: accountResults
             .filter((r) => r.growth.balance > 0 || r.principal > 0)
             .map((r) => ({
@@ -921,6 +920,10 @@ export function buildPortfolioSnapshot(
               balance: Math.max(r.growth.balance, r.principal),
               annualReturnPercent:
                 r.growth.annualReturnPercent || weightedAnnual || planRate * 12,
+              style: resolveHoldingsAllocationStyle({
+                investmentPlanId: r.account.investmentPlanId,
+                dailyCompoundActive: r.account.dailyCompoundActive,
+              }),
             })),
           asOf,
         })
@@ -929,10 +932,7 @@ export function buildPortfolioSnapshot(
           sectorAllocation: FALLBACK_SECTOR_ALLOCATION,
           regionAllocation: US_REGION_ALLOCATION,
           assetClassAllocation: [
-            { name: "Equity", value: 55, color: "#0ea5e9" },
-            { name: "Bond", value: 15, color: "#6366f1" },
-            { name: "Yield", value: 12, color: "#84cc16" },
-            { name: "Real Estate", value: 18, color: "#f59e0b" },
+            { name: "Stock", value: 100, color: "#0ea5e9" },
           ],
         };
 
