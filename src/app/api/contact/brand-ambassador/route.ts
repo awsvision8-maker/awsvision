@@ -1,6 +1,7 @@
 import { saveAmbassadorApplication } from "@/lib/server/ambassador-service";
 import { jsonError, jsonOk } from "@/lib/server/api";
 import { notifyAmbassadorApplication } from "@/lib/server/notifications";
+import { clientIpFromRequest, verifyRecaptchaToken } from "@/lib/server/verify-recaptcha";
 
 export async function POST(request: Request) {
   try {
@@ -14,7 +15,11 @@ export async function POST(request: Request) {
       linkedin?: string;
       experience?: string;
       message?: string;
+      recaptchaToken?: string;
     };
+
+    const captcha = await verifyRecaptchaToken(body.recaptchaToken, clientIpFromRequest(request));
+    if (!captcha.ok) return jsonError(captcha.error, 400);
 
     if (!body.firstName?.trim() || !body.lastName?.trim() || !body.email?.trim() || !body.phone?.trim() || !body.message?.trim()) {
       return jsonError("Please complete all required fields", 400);

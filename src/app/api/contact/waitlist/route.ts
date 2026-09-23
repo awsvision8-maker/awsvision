@@ -1,15 +1,22 @@
 import { saveWaitlistEntry } from "@/lib/server/form-service";
 import { jsonError, jsonOk } from "@/lib/server/api";
 import { notifyWaitlist } from "@/lib/server/notifications";
+import { clientIpFromRequest, verifyRecaptchaToken } from "@/lib/server/verify-recaptcha";
 
 const VALID_TYPES = ["newsletter", "products", "credit_cards", "loans"] as const;
 
 export async function POST(request: Request) {
   try {
-    const { email, listType } = (await request.json()) as {
+    const body = (await request.json()) as {
       email?: string;
       listType?: string;
+      recaptchaToken?: string;
     };
+
+    const captcha = await verifyRecaptchaToken(body.recaptchaToken, clientIpFromRequest(request));
+    if (!captcha.ok) return jsonError(captcha.error, 400);
+
+    const { email, listType } = body;
 
     if (!email?.trim() || !listType || !VALID_TYPES.includes(listType as (typeof VALID_TYPES)[number])) {
       return jsonError("Invalid waitlist request", 400);

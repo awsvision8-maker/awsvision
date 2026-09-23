@@ -1,6 +1,7 @@
 import { saveContactMessage } from "@/lib/server/form-service";
 import { jsonError, jsonOk } from "@/lib/server/api";
 import { notifyContact } from "@/lib/server/notifications";
+import { clientIpFromRequest, verifyRecaptchaToken } from "@/lib/server/verify-recaptcha";
 
 export async function POST(request: Request) {
   try {
@@ -11,7 +12,11 @@ export async function POST(request: Request) {
       phone?: string;
       topic?: string;
       message?: string;
+      recaptchaToken?: string;
     };
+
+    const captcha = await verifyRecaptchaToken(body.recaptchaToken, clientIpFromRequest(request));
+    if (!captcha.ok) return jsonError(captcha.error, 400);
 
     if (!body.firstName?.trim() || !body.lastName?.trim() || !body.email?.trim() || !body.message?.trim()) {
       return jsonError("Please fill in all required fields", 400);

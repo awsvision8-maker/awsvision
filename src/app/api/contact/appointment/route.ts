@@ -1,6 +1,7 @@
 import { saveAppointment } from "@/lib/server/form-service";
 import { jsonError, jsonOk } from "@/lib/server/api";
 import { notifyAppointment } from "@/lib/server/notifications";
+import { clientIpFromRequest, verifyRecaptchaToken } from "@/lib/server/verify-recaptcha";
 
 export async function POST(request: Request) {
   try {
@@ -10,7 +11,11 @@ export async function POST(request: Request) {
       phone?: string;
       preferredDate?: string;
       topic?: string;
+      recaptchaToken?: string;
     };
+
+    const captcha = await verifyRecaptchaToken(body.recaptchaToken, clientIpFromRequest(request));
+    if (!captcha.ok) return jsonError(captcha.error, 400);
 
     if (!body.fullName?.trim() || !body.email?.trim() || !body.topic?.trim()) {
       return jsonError("Please fill in all required fields", 400);

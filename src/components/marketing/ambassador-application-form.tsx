@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getRecaptchaSiteKey, RecaptchaV2 } from "@/components/security/recaptcha-v2";
 
 export function AmbassadorApplicationForm() {
   const [form, setForm] = useState({
@@ -16,6 +17,8 @@ export function AmbassadorApplicationForm() {
     experience: "",
     message: "",
   });
+  const [recaptchaToken, setRecaptchaToken] = useState("");
+  const [recaptchaKey, setRecaptchaKey] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -23,21 +26,29 @@ export function AmbassadorApplicationForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    if (getRecaptchaSiteKey() && !recaptchaToken) {
+      setError("Please complete the reCAPTCHA checkbox");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/contact/brand-ambassador", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, recaptchaToken }),
       });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "Failed to submit");
+        setRecaptchaToken("");
+        setRecaptchaKey((k) => k + 1);
         return;
       }
       setSuccess(true);
     } catch {
       setError("Failed to submit application");
+      setRecaptchaToken("");
+      setRecaptchaKey((k) => k + 1);
     } finally {
       setLoading(false);
     }
@@ -88,6 +99,7 @@ export function AmbassadorApplicationForm() {
           placeholder="Tell us about your network and how you will represent AWS Vision..."
         />
       </div>
+      <RecaptchaV2 key={recaptchaKey} onChange={setRecaptchaToken} />
       {error && <p className="text-sm text-red-600">{error}</p>}
       <Button type="submit" className="w-full sm:w-auto" loading={loading}>
         Submit Application

@@ -6,6 +6,7 @@ import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { getRecaptchaSiteKey, RecaptchaV2 } from "@/components/security/recaptcha-v2";
 import { SITE } from "@/lib/site-data";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +29,13 @@ async function postJson(url: string, body: object) {
   });
   const data = await res.json().catch(() => ({}));
   return { ok: res.ok, error: (data as { error?: string }).error };
+}
+
+function requireCaptcha(token: string): string | null {
+  if (getRecaptchaSiteKey() && !token) {
+    return "Please complete the reCAPTCHA checkbox";
+  }
+  return null;
 }
 
 function SuccessBanner({
@@ -73,6 +81,8 @@ export function ContactMessageForm() {
   const [phone, setPhone] = useState("");
   const [topic, setTopic] = useState("Investment & Portfolio Inquiry");
   const [message, setMessage] = useState("");
+  const [recaptchaToken, setRecaptchaToken] = useState("");
+  const [recaptchaKey, setRecaptchaKey] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
@@ -84,6 +94,8 @@ export function ContactMessageForm() {
     setPhone("");
     setTopic("Investment & Portfolio Inquiry");
     setMessage("");
+    setRecaptchaToken("");
+    setRecaptchaKey((k) => k + 1);
     setDone(false);
     setError("");
   };
@@ -91,6 +103,11 @@ export function ContactMessageForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    const captchaError = requireCaptcha(recaptchaToken);
+    if (captchaError) {
+      setError(captchaError);
+      return;
+    }
     setLoading(true);
     const result = await postJson("/api/contact/message", {
       firstName,
@@ -99,10 +116,15 @@ export function ContactMessageForm() {
       phone,
       topic,
       message,
+      recaptchaToken,
     });
     setLoading(false);
     if (result.ok) setDone(true);
-    else setError(result.error || "Failed to send message");
+    else {
+      setError(result.error || "Failed to send message");
+      setRecaptchaToken("");
+      setRecaptchaKey((k) => k + 1);
+    }
   };
 
   if (done) {
@@ -143,6 +165,7 @@ export function ContactMessageForm() {
           onChange={(e) => setMessage(e.target.value)}
         />
       </div>
+      <RecaptchaV2 key={recaptchaKey} onChange={setRecaptchaToken} />
       {error && <p className="text-sm text-red-600">{error}</p>}
       <Button type="submit" loading={loading}>Send Message</Button>
     </form>
@@ -163,6 +186,8 @@ export function WaitlistForm({
   variant?: "light" | "dark";
 }) {
   const [email, setEmail] = useState("");
+  const [recaptchaToken, setRecaptchaToken] = useState("");
+  const [recaptchaKey, setRecaptchaKey] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
@@ -170,11 +195,20 @@ export function WaitlistForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    const captchaError = requireCaptcha(recaptchaToken);
+    if (captchaError) {
+      setError(captchaError);
+      return;
+    }
     setLoading(true);
-    const result = await postJson("/api/contact/waitlist", { email, listType });
+    const result = await postJson("/api/contact/waitlist", { email, listType, recaptchaToken });
     setLoading(false);
     if (result.ok) setDone(true);
-    else setError(result.error || "Failed to join waitlist");
+    else {
+      setError(result.error || "Failed to join waitlist");
+      setRecaptchaToken("");
+      setRecaptchaKey((k) => k + 1);
+    }
   };
 
   if (done) {
@@ -189,26 +223,33 @@ export function WaitlistForm({
   const onDark = variant === "dark";
 
   return (
-    <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-end max-w-xl">
-      <div className="flex-1 w-full">
-        <Input
-          label="Email Address"
-          type="email"
-          placeholder="you@example.com"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          labelClassName={onDark ? "text-slate-200" : undefined}
-          className={
-            onDark
-              ? "border-slate-600 bg-white text-slate-900 placeholder:text-slate-400"
-              : inputClassName
-          }
-        />
+    <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3 max-w-xl">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <div className="flex-1 w-full">
+          <Input
+            label="Email Address"
+            type="email"
+            placeholder="you@example.com"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            labelClassName={onDark ? "text-slate-200" : undefined}
+            className={
+              onDark
+                ? "border-slate-600 bg-white text-slate-900 placeholder:text-slate-400"
+                : inputClassName
+            }
+          />
+        </div>
+        <Button type="submit" loading={loading} className={`w-full sm:w-auto sm:mb-0 h-11 shrink-0 ${buttonClassName ?? ""}`}>
+          {buttonLabel}
+        </Button>
       </div>
-      <Button type="submit" loading={loading} className={`w-full sm:w-auto sm:mb-0 h-11 shrink-0 ${buttonClassName ?? ""}`}>
-        {buttonLabel}
-      </Button>
+      <RecaptchaV2
+        key={recaptchaKey}
+        onChange={setRecaptchaToken}
+        theme={onDark ? "dark" : "light"}
+      />
       {error && (
         <p className={`text-sm w-full ${onDark ? "text-red-300" : "text-red-600"}`}>{error}</p>
       )}
@@ -222,6 +263,8 @@ export function AppointmentForm() {
   const [email, setEmail] = useState("");
   const [preferredDate, setPreferredDate] = useState("");
   const [topic, setTopic] = useState("Open an Account");
+  const [recaptchaToken, setRecaptchaToken] = useState("");
+  const [recaptchaKey, setRecaptchaKey] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
@@ -229,6 +272,11 @@ export function AppointmentForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    const captchaError = requireCaptcha(recaptchaToken);
+    if (captchaError) {
+      setError(captchaError);
+      return;
+    }
     setLoading(true);
     const result = await postJson("/api/contact/appointment", {
       fullName,
@@ -236,10 +284,15 @@ export function AppointmentForm() {
       email,
       preferredDate,
       topic,
+      recaptchaToken,
     });
     setLoading(false);
     if (result.ok) setDone(true);
-    else setError(result.error || "Failed to request appointment");
+    else {
+      setError(result.error || "Failed to request appointment");
+      setRecaptchaToken("");
+      setRecaptchaKey((k) => k + 1);
+    }
   };
 
   if (done) {
@@ -296,6 +349,9 @@ export function AppointmentForm() {
             onChange={(e) => setTopic(e.target.value)}
             options={APPOINTMENT_TOPICS}
           />
+        </div>
+        <div className="sm:col-span-2">
+          <RecaptchaV2 key={recaptchaKey} onChange={setRecaptchaToken} />
         </div>
         {error && <p className="text-sm text-red-600 sm:col-span-2">{error}</p>}
         <div className="sm:col-span-2">
