@@ -2,6 +2,7 @@
 import { SEO_GUIDES } from "@/lib/seo-guides";
 import { TEMPLATE_SERVICE_HUB_SLUGS, getServiceHub } from "@/lib/service-hubs";
 import { TEXAS_CITIES } from "@/lib/texas-cities";
+import { US_CITIES_ROUTABLE, US_STATES } from "@/lib/us-locations";
 
 export interface PageSeo {
   title: string;
@@ -482,6 +483,31 @@ for (const slug of TEMPLATE_SERVICE_HUB_SLUGS) {
     keywords: hub.keywords,
     priority: 0.93,
     changeFrequency: "weekly",
+  };
+}
+
+/** Sync U.S. state + major-city light pages (Texas cities stay on /serving-texas) */
+for (const state of US_STATES) {
+  const path = `/serving-united-states/${state.slug}`;
+  PAGE_SEO[path] = {
+    path,
+    title: `${state.name} Investment Accounts & Wealth | AWS Vision`,
+    description: state.intro.slice(0, 158),
+    keywords: state.keywords,
+    priority: state.slug === "texas" ? 0.9 : 0.8,
+    changeFrequency: "monthly",
+  };
+}
+
+for (const city of US_CITIES_ROUTABLE) {
+  const path = `/serving-united-states/${city.stateSlug}/${city.slug}`;
+  PAGE_SEO[path] = {
+    path,
+    title: `${city.name}, ${city.stateAbbr} Investment Accounts | AWS Vision`,
+    description: city.intro.slice(0, 158),
+    keywords: city.keywords,
+    priority: 0.72,
+    changeFrequency: "monthly",
   };
 }
 

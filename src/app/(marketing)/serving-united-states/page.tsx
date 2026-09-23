@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Globe2, Laptop, Shield } from "lucide-react";
 import { pageMetadata } from "@/lib/seo";
 import { SITE } from "@/lib/site-config";
+import { US_STATES } from "@/lib/us-locations";
 
 export const metadata = pageMetadata("/serving-united-states");
 
@@ -26,16 +27,16 @@ export default function ServingUnitedStatesPage() {
             Online financial services across the United States
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-slate-300">
-            AWS Vision Financial serves clients nationwide. Open an investment account from any
-            U.S. state with digital KYC, savings and fixed deposit products, and wealth management —
-            without needing a local branch.
+            AWS Vision Financial serves clients in all 50 states. Open an investment account with
+            digital KYC, savings and fixed deposit products, and wealth management — without needing
+            a local branch. Pick your state below for major-city pages.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/signup" className={btnPrimary}>
               Open an account
             </Link>
             <Link href="/serving-texas" className={btnOutlineLight}>
-              Texas residents
+              Texas city directory
             </Link>
           </div>
         </div>
@@ -70,6 +71,29 @@ export default function ServingUnitedStatesPage() {
       </section>
 
       <section className="border-t border-slate-200 bg-slate-50 py-16">
+        <div className="mx-auto max-w-7xl px-6">
+          <h2 className="text-2xl font-bold text-slate-900">All 50 states</h2>
+          <p className="mt-2 max-w-2xl text-slate-600">
+            Each state page links to major cities from our coverage list. Texas keeps its deeper
+            city set under /serving-texas — we do not duplicate those URLs.
+          </p>
+          <ul className="mt-8 grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {US_STATES.map((s) => (
+              <li key={s.slug}>
+                <Link
+                  href={`/serving-united-states/${s.slug}`}
+                  className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-800 transition hover:border-teal-300 hover:text-teal-800"
+                >
+                  <span>{s.name}</span>
+                  <span className="text-xs text-slate-400">{s.abbr}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <section className="border-t border-slate-200 py-16">
         <div className="mx-auto max-w-3xl px-6 text-center">
           <h2 className="text-2xl font-bold text-slate-900">Ready to get started?</h2>
           <p className="mt-3 text-slate-600">
@@ -89,24 +113,6 @@ export default function ServingUnitedStatesPage() {
               Contact
             </Link>
           </div>
-          <p className="mt-6 text-sm text-slate-500">
-            Texas focus:{" "}
-            <Link href="/serving-texas/dallas" className="text-teal-700 hover:underline">
-              Dallas
-            </Link>
-            {" · "}
-            <Link href="/serving-texas/houston" className="text-teal-700 hover:underline">
-              Houston
-            </Link>
-            {" · "}
-            <Link href="/serving-texas/austin" className="text-teal-700 hover:underline">
-              Austin
-            </Link>
-            {" · "}
-            <Link href="/guides" className="text-teal-700 hover:underline">
-              All guides
-            </Link>
-          </p>
         </div>
       </section>
     </div>

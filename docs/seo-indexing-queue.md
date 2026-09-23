@@ -11,6 +11,16 @@
 - **Request indexing quota exceeded** — **stop all further requests today**
 - Resume next calendar day from Pending list below
 
+## U.S. states + major cities (shipped 2026-09-24)
+
+- Hub: https://awsvision.com/serving-united-states
+- **50 state pages:** `/serving-united-states/{state}`
+- **~203 city pages:** `/serving-united-states/{state}/{city}` (CSV major cities)
+- **Texas cities from CSV** keep canonical URLs under `/serving-texas/...` (no duplicates)
+- Expanded Texas directory (~99 cities) unchanged
+
+Index in small daily batches after quota resets — do not request all states/cities in one day.
+
 ## Pending city pages (light Texas expansion — 2026-09-24)
 
 Many new `/serving-texas/{city}` URLs shipped for major Texas cities (≈90 light pages + featured).  
