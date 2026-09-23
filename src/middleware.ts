@@ -1,21 +1,63 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getRequestCountry, isGeoBlockedCountry } from "@/lib/geo-block";
+import {
+  DEFAULT_BLOCKED_COUNTRY_CODES,
+  getRequestCountry,
+  isCountryBlocked,
+  isGeoBlockExemptPath,
+} from "@/lib/geo-block";
 
-export function middleware(request: NextRequest) {
+type CacheEntry = { codes: string[]; exp: number };
+
+declare global {
+  // eslint-disable-next-line no-var
+  var __awsvisionGeoBlockCache: CacheEntry | undefined;
+}
+
+async function loadBlockedCodes(request: NextRequest): Promise<string[]> {
+  const cached = globalThis.__awsvisionGeoBlockCache;
+  if (cached && cached.exp > Date.now()) {
+    return cached.codes;
+  }
+
+  try {
+    const url = new URL("/api/geo-block/countries", request.url);
+    const res = await fetch(url, {
+      headers: { accept: "application/json" },
+      signal: AbortSignal.timeout(2000),
+    });
+    if (!res.ok) throw new Error(`geo list ${res.status}`);
+    const data = (await res.json()) as { codes?: string[] };
+    const codes = Array.isArray(data.codes)
+      ? data.codes.map((c) => String(c).toUpperCase())
+      : [...DEFAULT_BLOCKED_COUNTRY_CODES];
+    globalThis.__awsvisionGeoBlockCache = {
+      codes,
+      exp: Date.now() + 30_000,
+    };
+    return codes;
+  } catch {
+    return cached?.codes ?? [...DEFAULT_BLOCKED_COUNTRY_CODES];
+  }
+}
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Always allow the regional notice page + static assets (matcher also excludes most)
-  if (pathname === "/unavailable" || pathname.startsWith("/unavailable/")) {
+  if (isGeoBlockExemptPath(pathname)) {
     return NextResponse.next();
   }
 
   const country = getRequestCountry(request);
-  if (!isGeoBlockedCountry(country)) {
+  if (!country) {
     return NextResponse.next();
   }
 
-  // APIs / JSON endpoints
+  const blockedCodes = await loadBlockedCodes(request);
+  if (!isCountryBlocked(country, blockedCodes)) {
+    return NextResponse.next();
+  }
+
   if (pathname.startsWith("/api/")) {
     return NextResponse.json(
       { error: "This service is not available in your region." },
@@ -31,9 +73,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all paths except Next internals and common static files.
-     */
     "/((?!_next/static|_next/image|favicon.ico|icon.png|apple-icon.png|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml|webmanifest)$).*)",
   ],
 };

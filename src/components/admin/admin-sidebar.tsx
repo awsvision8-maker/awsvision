@@ -17,6 +17,7 @@ import {
   ScrollText,
   Shield,
   ShieldCheck,
+  Globe2,
   TrendingUp,
   Users,
   UserPlus,
@@ -46,6 +47,7 @@ const NAV_SECTIONS = [
       { href: "/admin/signup-logs", label: "Signup Logs", icon: ScrollText },
       { href: "/admin/notifications", label: "Notifications", icon: Bell },
       { href: "/admin/promo", label: "FD Promotion", icon: Megaphone },
+      { href: "/admin/geo-block", label: "Geo Block", icon: Globe2 },
     ],
   },
   {

@@ -514,3 +514,12 @@ model FdPromoConfig {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
+
+/** Singleton — ISO country codes blocked from viewing the public site */
+model GeoBlockConfig {
+  id               String   @id @default("default")
+  blockedCodes     String[]
+  updatedByAdminId String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
