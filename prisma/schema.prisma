@@ -341,6 +341,81 @@ model VisitorPresence {
   @@index([lastSeenAt])
 }
 
+/** Durable site visitor identity (cookie session) — visit history for admin */
+model SiteVisitor {
+  id            String         @id @default(cuid())
+  sessionToken  String         @unique
+  visitCount    Int            @default(0)
+  firstSeenAt   DateTime       @default(now())
+  lastSeenAt    DateTime       @default(now())
+  lastIp        String?
+  lastCity      String?
+  lastRegion    String?
+  lastCountry   String?
+  lastLatitude  Float?
+  lastLongitude Float?
+  lastLocation  String?
+  lastUserAgent String?
+  lastPath      String?
+  userId        String?
+  visits        SiteVisit[]
+  pageViews     SitePageView[]
+
+  @@index([lastSeenAt])
+  @@index([lastIp])
+  @@index([visitCount])
+}
+
+/** One browsing session (new visit after 30+ min idle) */
+model SiteVisit {
+  id            String         @id @default(cuid())
+  visitorId     String
+  visitor       SiteVisitor    @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+  startedAt     DateTime       @default(now())
+  endedAt       DateTime       @default(now())
+  durationMs    Int            @default(0)
+  entryPath     String         @default("/")
+  exitPath      String?
+  ipAddress     String?
+  city          String?
+  region        String?
+  country       String?
+  latitude      Float?
+  longitude     Float?
+  locationLabel String?
+  userAgent     String?
+  referrer      String?
+  pageViews     SitePageView[]
+
+  @@index([visitorId, startedAt])
+  @@index([startedAt])
+  @@index([ipAddress])
+}
+
+/** Per-page stay within a visit */
+model SitePageView {
+  id         String      @id @default(cuid())
+  visitorId  String
+  visitor    SiteVisitor @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+  visitId    String
+  visit      SiteVisit   @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  path       String
+  title      String?
+  enteredAt  DateTime    @default(now())
+  leftAt     DateTime?
+  durationMs Int         @default(0)
+  ipAddress  String?
+  city       String?
+  region     String?
+  country    String?
+  latitude   Float?
+  longitude  Float?
+
+  @@index([visitorId, enteredAt])
+  @@index([visitId, enteredAt])
+  @@index([path, enteredAt])
+}
+
 model ChatMessage {
   id             String           @id @default(cuid())
   conversationId String

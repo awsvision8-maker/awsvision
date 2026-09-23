@@ -3,6 +3,9 @@ export interface ClientGeo {
   city: string | null;
   region: string | null;
   country: string | null;
+  /** Approximate IP geolocation */
+  latitude: number | null;
+  longitude: number | null;
   locationLabel: string;
 }
 
@@ -20,16 +23,26 @@ export function formatLocation(city?: string | null, region?: string | null, cou
   return parts.length > 0 ? parts.join(", ") : "Unknown";
 }
 
+function parseCoord(value: string | null): number | null {
+  if (!value) return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
 export function getClientGeoFromRequest(request: Request): ClientGeo {
   const city = request.headers.get("x-vercel-ip-city");
   const region = request.headers.get("x-vercel-ip-country-region");
   const country = request.headers.get("x-vercel-ip-country");
+  const latitude = parseCoord(request.headers.get("x-vercel-ip-latitude"));
+  const longitude = parseCoord(request.headers.get("x-vercel-ip-longitude"));
 
   return {
     ipAddress: getClientIp(request),
     city,
     region,
     country,
+    latitude,
+    longitude,
     locationLabel: formatLocation(city, region, country),
   };
 }
@@ -42,20 +55,25 @@ export async function resolveGeoFromIp(ip: string | null): Promise<ClientGeo> {
       city: null,
       region: null,
       country: null,
+      latitude: null,
+      longitude: null,
       locationLabel: "Unknown",
     };
   }
 
   try {
-    const res = await fetch(`http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,city,regionName,country`, {
-      next: { revalidate: 3600 },
-    });
+    const res = await fetch(
+      `http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,city,regionName,country,lat,lon`,
+      { next: { revalidate: 3600 } }
+    );
     if (!res.ok) throw new Error("geo lookup failed");
     const data = (await res.json()) as {
       status?: string;
       city?: string;
       regionName?: string;
       country?: string;
+      lat?: number;
+      lon?: number;
     };
     if (data.status !== "success") {
       return {
@@ -63,6 +81,8 @@ export async function resolveGeoFromIp(ip: string | null): Promise<ClientGeo> {
         city: null,
         region: null,
         country: null,
+        latitude: null,
+        longitude: null,
         locationLabel: "Unknown",
       };
     }
@@ -71,6 +91,8 @@ export async function resolveGeoFromIp(ip: string | null): Promise<ClientGeo> {
       city: data.city ?? null,
       region: data.regionName ?? null,
       country: data.country ?? null,
+      latitude: typeof data.lat === "number" ? data.lat : null,
+      longitude: typeof data.lon === "number" ? data.lon : null,
       locationLabel: formatLocation(data.city, data.regionName, data.country),
     };
   } catch {
@@ -79,6 +101,8 @@ export async function resolveGeoFromIp(ip: string | null): Promise<ClientGeo> {
       city: null,
       region: null,
       country: null,
+      latitude: null,
+      longitude: null,
       locationLabel: "Unknown",
     };
   }
@@ -86,6 +110,23 @@ export async function resolveGeoFromIp(ip: string | null): Promise<ClientGeo> {
 
 export async function getClientGeo(request: Request): Promise<ClientGeo> {
   const fromHeaders = getClientGeoFromRequest(request);
-  if (fromHeaders.locationLabel !== "Unknown") return fromHeaders;
+  if (fromHeaders.locationLabel !== "Unknown" && fromHeaders.latitude != null) {
+    return fromHeaders;
+  }
+  if (fromHeaders.locationLabel !== "Unknown") {
+    const enriched = await resolveGeoFromIp(fromHeaders.ipAddress);
+    return {
+      ...fromHeaders,
+      latitude: enriched.latitude ?? fromHeaders.latitude,
+      longitude: enriched.longitude ?? fromHeaders.longitude,
+      city: fromHeaders.city ?? enriched.city,
+      region: fromHeaders.region ?? enriched.region,
+      country: fromHeaders.country ?? enriched.country,
+      locationLabel:
+        fromHeaders.locationLabel !== "Unknown"
+          ? fromHeaders.locationLabel
+          : enriched.locationLabel,
+    };
+  }
   return resolveGeoFromIp(fromHeaders.ipAddress);
 }
