@@ -80,9 +80,52 @@ export const SERVICE_HUBS: ServiceHub[] = [
       "Local Wealth Management Firm",
       "Long Term Wealth Management",
     ],
-    sections: [],
-    faqs: [],
-    related: [],
+    sections: [
+      {
+        heading: "Online wealth management without a Texas branch",
+        body: [
+          "AWS Vision Financial offers structured wealth management plans for Texas and nationwide U.S. clients who prefer remote enrollment over a retail storefront visit.",
+          "Choose a capital tier, complete KYC online, fund your account, and track statements in the client portal — the same process in Dallas, Houston, Austin, Fort Worth, San Antonio, and statewide.",
+        ],
+      },
+      {
+        heading: "What you get with each wealth tier",
+        body: [
+          "Published “up to” monthly program rates by plan (confirm current terms on a call before you enroll).",
+          "Portal access for balances, activity, and downloadable statements — so you can review progress anytime.",
+          "Support by phone and email for account questions. Educational guides explain how wealth management differs from basic savings or bank CDs.",
+        ],
+      },
+      {
+        heading: "How to compare before you enroll",
+        body: [
+          "Review /rates and /compare for program examples versus typical bank savings and CD APYs.",
+          "Read /guides/texas-online-wealth-management and /guides/wealth-management-vs-investment-management for plain-language context — not personalized investment advice.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        q: "Do you offer wealth management in Texas?",
+        a: "Yes. Texas residents can open wealth management plans online with remote KYC. We serve clients statewide and do not claim a public Texas retail branch.",
+      },
+      {
+        q: "Are program rates guaranteed?",
+        a: "No. Published rates are program terms that can change. Confirm current “up to” figures on the rates page and on a call before enrolling. Past results do not guarantee future performance.",
+      },
+      {
+        q: "How is this different from a local wealth advisor office?",
+        a: "We are an online, service-area firm. You enroll and monitor accounts remotely instead of visiting a storefront. If you need tax or estate planning, work with independent licensed professionals alongside your account.",
+      },
+    ],
+    related: [
+      { label: "Investment management", href: "/investment-management" },
+      { label: "Portfolio management", href: "/portfolio-management" },
+      { label: "Texas online wealth guide", href: "/guides/texas-online-wealth-management" },
+      { label: "Compare vs banks", href: "/compare" },
+      { label: "Rates", href: "/rates" },
+      { label: "Serving Texas", href: "/serving-texas" },
+    ],
   },
   {
     slug: "portfolio-management",

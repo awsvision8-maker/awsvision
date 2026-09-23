@@ -21,10 +21,26 @@ export function InvestmentPageContent() {
             <div className="mt-6 mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-teal-600/20 text-teal-400">
               <LineChart className="h-7 w-7" />
             </div>
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">{data.title}</h1>
+            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+              Wealth Management Texas — Online Investment Plans
+            </h1>
             <p className="mt-2 text-lg text-teal-300">{data.subtitle}</p>
             <p className="mt-6 text-slate-300 leading-relaxed">{INVESTMENT_MESSAGE}</p>
             <p className="mt-4 text-sm text-emerald-200/90">{OPEN_NOW_MESSAGE}</p>
+            <p className="mt-3 text-sm text-slate-400">
+              Serving{" "}
+              <Link href="/serving-texas" className="text-teal-300 underline-offset-2 hover:underline">
+                Texas
+              </Link>{" "}
+              clients online ·{" "}
+              <Link href="/compare" className="text-teal-300 underline-offset-2 hover:underline">
+                Compare vs banks
+              </Link>{" "}
+              ·{" "}
+              <Link href="/guides/texas-online-wealth-management" className="text-teal-300 underline-offset-2 hover:underline">
+                Wealth guide
+              </Link>
+            </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <Link href="/signup?account=investment">
                 <Button size="lg">
@@ -70,8 +86,8 @@ export function InvestmentPageContent() {
         <div className="page-container text-center">
           <h2 className="text-2xl font-bold text-white">Ready to select your plan?</h2>
           <p className="mt-2 text-teal-100 max-w-xl mx-auto">
-            Choose Silver through Executive tiers. Monthly profit from 2% to 7% based on capital
-            and term.
+            Choose Silver through Executive tiers. Program rates vary by capital and term —
+            see current “up to” figures on the rates page and confirm on a call.
           </p>
           <Link href="/signup?account=investment" className="mt-6 inline-block">
             <Button size="lg" className="bg-white text-teal-700 hover:bg-slate-100">

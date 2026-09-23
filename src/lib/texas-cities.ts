@@ -384,6 +384,62 @@ export const TEXAS_CITIES: TexasCity[] = [
       },
     ],
   },
+  {
+    slug: "frisco",
+    name: "Frisco",
+    metro: "Dallas–Fort Worth (DFW) · Collin / Denton County",
+    headline: "Investment firm & wealth management for Frisco, TX",
+    intro:
+      "AWS Vision Financial serves Frisco and North DFW clients online — investment management, wealth plans, savings, and fixed deposits with remote KYC. No Frisco retail branch required.",
+    localFocus: [
+      "Frisco professionals and families comparing online investment firms in Collin County",
+      "North DFW households who want wealth management without a branch appointment",
+      "Investors in Frisco, Prosper, and nearby communities seeking clear program rates",
+    ],
+    processSteps: [
+      {
+        title: "Apply from Frisco",
+        body: "Complete signup and identity verification online from Frisco or anywhere in North Texas — no in-person visit required.",
+      },
+      {
+        title: "Pick savings, FD, or wealth",
+        body: "Review published terms on the rates page, then choose the account type that matches your timeline.",
+      },
+      {
+        title: "Fund and monitor in the portal",
+        body: "After approval, fund your account and track balances and statements 24/7. Phone support: +1 (469) 754-2201.",
+      },
+    ],
+    whyLocal: [
+      "Frisco searches for financial advisors and investment firms often assume a storefront. We serve Frisco honestly as part of statewide online Texas coverage — clearer than inventing a local address for Maps.",
+      "Many Frisco and Collin County professionals prefer remote onboarding that fits hybrid schedules.",
+      "Compare /compare and /rates before you enroll, then review agreements in the portal.",
+    ],
+    keywords: [
+      "Investment Firm Frisco",
+      "Investment Advisor Frisco TX",
+      "Financial Advisor Frisco",
+      "Wealth Management Frisco",
+      "Investment Management Frisco",
+      "Financial Services Frisco TX",
+      "Wealth Management Frisco TX",
+      "Investment Firm Collin County",
+    ],
+    faqs: [
+      {
+        q: "Does AWS Vision serve Frisco, Texas?",
+        a: "Yes. Frisco and North DFW clients open savings, fixed deposit, and wealth management accounts online with remote KYC.",
+      },
+      {
+        q: "Do you have an office in Frisco?",
+        a: "No public Frisco retail storefront. Clients are served remotely by portal, phone, and email as part of our Texas service-area model.",
+      },
+      {
+        q: "Can I get wealth management from Frisco without visiting a branch?",
+        a: "Yes. Apply online, complete KYC, fund your plan, and track statements in the client portal.",
+      },
+    ],
+  },
 ];
 
 export function getTexasCity(slug: string) {

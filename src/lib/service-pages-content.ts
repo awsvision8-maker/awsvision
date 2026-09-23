@@ -335,17 +335,17 @@ export const SERVICE_PAGES = {
   },
 
   "wealth-management": {
-    title: "AWS Vision Investment Accounts",
-    subtitle: "Global sector investing with monthly profit — available now",
-    hero: "AWS Vision is an investment firm. We allocate your capital across sectors and regions worldwide — technology, energy, real estate, healthcare, and more — and credit monthly profit directly to your account.",
+    title: "Wealth Management Texas — Online Investment Plans",
+    subtitle: "Structured wealth tiers for Texas & U.S. clients — available online",
+    hero: "AWS Vision Financial is an online investment firm serving Texas and nationwide clients. We allocate capital across global sectors — technology, energy, real estate, healthcare, and more — with portal statements and published program terms.",
     icon: LineChart,
     features: [
-      { title: "Global Sector Diversification", desc: "Your funds are invested across multiple sectors and geographies — North America, Europe, Asia Pacific, Middle East, and emerging markets — managed by our quantitative investment team." },
-      { title: "Monthly Profit Distribution", desc: "Investment profits are calculated and paid to your account every month. View credits in your portal and download professional PDF profit statements." },
-      { title: "Real-Time Portfolio Monitoring", desc: "See exactly which sectors, regions, stocks, and funds hold your money. Allocation charts and performance data update in your client portal." },
-      { title: "Algorithmic Asset Management", desc: "Our fintech-driven models and AI-guided analytics aim for consistent outcomes across market conditions." },
-      { title: "Tiered Investment Programs", desc: "Starter through Platinum tiers based on capital level. Higher tiers unlock enhanced monthly profit rates and dedicated relationship managers." },
-      { title: "Deposit & Withdrawal Control", desc: "Place deposit and withdrawal requests from your portal. Track every transaction alongside monthly profit credits." },
+      { title: "Global Sector Diversification", desc: "Your funds are invested across multiple sectors and geographies — North America, Europe, Asia Pacific, Middle East, and emerging markets — managed by our investment team." },
+      { title: "Monthly Program Credits", desc: "Program credits follow your plan terms. View activity in your portal and download PDF statements." },
+      { title: "Portfolio Monitoring", desc: "See sector and region allocation in the client portal so you can review how capital is positioned." },
+      { title: "Fintech-Supported Process", desc: "Online KYC, funding requests, and statements — designed for remote clients who prefer not to visit a branch." },
+      { title: "Tiered Investment Programs", desc: "Silver through Executive tiers based on capital level. Higher tiers unlock different published program rates — confirm current terms before you enroll." },
+      { title: "Deposit & Withdrawal Control", desc: "Place deposit and withdrawal requests from your portal. Track every transaction alongside statement history." },
     ],
     products: [
       { name: "AWS Vision Managed Portfolio", rate: "Monthly profit", desc: "Fully managed global sector diversification.", features: ["Invested across global sectors", "Monthly profit to your account", "Automatic portfolio rebalancing", "24/7 portal access", "Monthly PDF statements"] },
