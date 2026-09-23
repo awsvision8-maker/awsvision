@@ -290,9 +290,9 @@ export async function listSiteVisitors(opts?: { limit?: number; q?: string }) {
     include: {
       visits: {
         orderBy: { startedAt: "desc" },
-        take: 8,
+        take: 3,
         include: {
-          pageViews: { orderBy: { enteredAt: "desc" }, take: 40 },
+          pageViews: { orderBy: { enteredAt: "desc" }, take: 12 },
         },
       },
       _count: { select: { visits: true, pageViews: true } },

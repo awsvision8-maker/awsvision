@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const q = searchParams.get("q") ?? undefined;
-    const limit = Number(searchParams.get("limit") ?? "100");
+    const limit = Number(searchParams.get("limit") ?? "50");
 
     const [visitors, summary] = await Promise.all([
       listSiteVisitors({ q, limit }),

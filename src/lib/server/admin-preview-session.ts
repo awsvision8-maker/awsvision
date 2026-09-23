@@ -85,14 +85,12 @@ export async function clearAdminUserPreview() {
 
 /**
  * Active admin preview of a specific user (requires valid admin session).
+ * Cookie is checked first so normal portal traffic skips the admin-session DB hit.
  */
 export async function getAdminUserPreview(): Promise<{
   adminId: string;
   userId: string;
 } | null> {
-  const adminSession = await getAdminSession();
-  if (!adminSession) return null;
-
   const jar = await cookies();
   const token = jar.get(ADMIN_PREVIEW_COOKIE)?.value;
   if (!token) return null;
@@ -102,6 +100,10 @@ export async function getAdminUserPreview(): Promise<{
     await clearAdminUserPreview();
     return null;
   }
+
+  const adminSession = await getAdminSession();
+  if (!adminSession) return null;
+
   if (payload.a !== adminSession.adminId) {
     await clearAdminUserPreview();
     return null;

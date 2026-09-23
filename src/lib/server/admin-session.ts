@@ -58,9 +58,25 @@ export async function getAdminSession() {
   return session;
 }
 
+/** Fast auth check — does not load Admin row */
 export async function getAdminId(): Promise<string | null> {
-  const session = await getAdminSession();
-  return session?.adminId ?? null;
+  const jar = await cookies();
+  const token = jar.get(ADMIN_SESSION_COOKIE)?.value;
+  if (!token) return null;
+
+  const session = await prisma.adminSession.findUnique({
+    where: { token },
+    select: { id: true, adminId: true, expiresAt: true },
+  });
+
+  if (!session || session.expiresAt < new Date()) {
+    if (session) {
+      await prisma.adminSession.delete({ where: { id: session.id } }).catch(() => {});
+    }
+    return null;
+  }
+
+  return session.adminId;
 }
 
 export async function deleteAdminSessionByToken(token: string) {

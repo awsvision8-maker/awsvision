@@ -51,7 +51,7 @@ export default function AdminDashboardPage() {
         .then(setStats)
         .catch(() => {});
     load();
-    const interval = setInterval(load, 15000);
+    const interval = setInterval(load, 60000);
     return () => clearInterval(interval);
   }, []);
 

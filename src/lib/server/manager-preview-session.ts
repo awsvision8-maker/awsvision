@@ -71,9 +71,6 @@ export async function getManagerUserPreview(): Promise<{
   ambassadorId: string;
   userId: string;
 } | null> {
-  const session = await getManagerSession();
-  if (!session) return null;
-
   const jar = await cookies();
   const token = jar.get(MANAGER_PREVIEW_COOKIE)?.value;
   if (!token) return null;
@@ -83,6 +80,10 @@ export async function getManagerUserPreview(): Promise<{
     await clearManagerUserPreview();
     return null;
   }
+
+  const session = await getManagerSession();
+  if (!session) return null;
+
   if (payload.m !== session.ambassadorId) {
     await clearManagerUserPreview();
     return null;

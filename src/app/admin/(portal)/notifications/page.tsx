@@ -69,22 +69,13 @@ export default function AdminNotificationsPage() {
   const load = useCallback(async () => {
     const [notifRes, usersRes] = await Promise.all([
       fetch("/api/admin/notifications"),
-      fetch("/api/admin/users"),
+      fetch("/api/admin/users/options"),
     ]);
     const notifData = await notifRes.json();
     const usersData = await usersRes.json();
     if (notifRes.ok) setBroadcasts(notifData.broadcasts ?? []);
     if (usersRes.ok) {
-      setUsers(
-        (usersData.users ?? []).map(
-          (u: { id: string; email: string; firstName: string; lastName: string }) => ({
-            id: u.id,
-            email: u.email,
-            firstName: u.firstName,
-            lastName: u.lastName,
-          })
-        )
-      );
+      setUsers(usersData.users ?? []);
     }
     setLoading(false);
   }, []);

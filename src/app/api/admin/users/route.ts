@@ -1,8 +1,6 @@
-import { listAllUsers } from "@/lib/server/admin-service";
+import { listUsersForAdminList } from "@/lib/server/admin-service";
 import { getAdminId } from "@/lib/server/admin-session";
 import { jsonError, jsonOk } from "@/lib/server/api";
-import { mapUser } from "@/lib/server/user-mapper";
-import { buildPortfolioSnapshot } from "@/lib/portfolio-engine";
 import {
   computeProfitFromAgreementDate,
   isPromoDailyStyleAccount,
@@ -14,60 +12,46 @@ export async function GET() {
   if (!adminId) return jsonError("Unauthorized", 401);
 
   try {
-    const users = await listAllUsers();
+    const { users, sentByAccount } = await listUsersForAdminList();
     const asOf = new Date();
 
     return jsonOk({
       users: users.map((u) => {
-        const mapped = mapUser(u);
-        const snapshot = buildPortfolioSnapshot(mapped, asOf);
-        const agreements = u.investmentAgreements ?? [];
-
-        const accounts = snapshot.portfolioAccounts.map((pa) => {
-          const display = snapshot.accounts.find((a) => a.id === pa.id);
-          const ledger = u.accounts.find((a) => a.id === pa.id);
-          const sent = u.transactions
-            .filter(
-              (t) =>
-                t.accountId === pa.id &&
-                t.type === "withdrawal" &&
-                t.status === "completed"
-            )
-            .reduce((sum, t) => sum + t.amount, 0);
-
+        const accounts = u.accounts.map((pa) => {
+          const sent = sentByAccount.get(pa.id) ?? 0;
           const promoStyle = isPromoDailyStyleAccount({
             investmentPlanId: pa.investmentPlanId,
-            dailyCompoundActive: ledger?.dailyCompoundActive,
+            dailyCompoundActive: pa.dailyCompoundActive,
           });
 
-          const agreement = pickEarliestAgreementForAccount(agreements, pa.id);
+          const agreement = pickEarliestAgreementForAccount(
+            u.investmentAgreements,
+            pa.id
+          );
           let profit = 0;
-          let balance = display?.balance ?? pa.principal;
+          let balance = pa.principal;
           let agreementIssuedAt: string | null = null;
           let profitSource: "promo" | "agreement" | "none" = "none";
+          let monthlyRatePercent = pa.monthlyRatePercent ?? 0;
 
           if (promoStyle) {
-            // Daily compound / promo FD — engine balance already includes profit
-            profit = Math.max(0, Math.round((balance - pa.principal) * 100) / 100);
+            // Live promo P&L needs full ledger — open user profile for exact figures
             profitSource = "promo";
           } else if (agreement) {
             agreementIssuedAt = new Date(agreement.issuedAt).toISOString();
-            const monthlyRate =
+            monthlyRatePercent =
               pa.monthlyRatePercent > 0
                 ? pa.monthlyRatePercent
                 : agreement.monthlyRatePercent ?? 0;
             profit = computeProfitFromAgreementDate({
               principal: pa.principal,
-              monthlyRatePercent: monthlyRate,
+              monthlyRatePercent,
               agreementIssuedAt: agreement.issuedAt,
               accountType: pa.type,
               asOf,
             });
             balance = Math.round((pa.principal + profit) * 100) / 100;
             profitSource = "agreement";
-          } else {
-            // Fallback: engine profit if any
-            profit = Math.max(0, Math.round((balance - pa.principal) * 100) / 100);
           }
 
           return {
@@ -81,7 +65,7 @@ export async function GET() {
             investmentPlanId: pa.investmentPlanId ?? null,
             agreementIssuedAt,
             profitSource,
-            monthlyRatePercent: pa.monthlyRatePercent,
+            monthlyRatePercent,
           };
         });
 

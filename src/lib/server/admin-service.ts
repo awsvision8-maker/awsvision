@@ -128,23 +128,92 @@ export async function listPendingDeposits() {
   });
 }
 
-export async function listAllUsers() {
-  return prisma.user.findMany({
+/**
+ * Lightweight admin users list — no full transaction history.
+ * Sent totals come from a single groupBy; profit uses agreements (promo detail on profile).
+ */
+export async function listUsersForAdminList() {
+  const users = await prisma.user.findMany({
     orderBy: { createdAt: "desc" },
-    include: {
-      nonprofitProfile: true,
-      accounts: { orderBy: { createdAt: "asc" } },
-      transactions: { orderBy: { date: "desc" } },
-      investmentAgreements: { orderBy: { issuedAt: "asc" } },
-      ambassador: {
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      phone: true,
+      onlineId: true,
+      kycStatus: true,
+      profileType: true,
+      createdAt: true,
+      accounts: {
+        orderBy: { createdAt: "asc" },
         select: {
           id: true,
+          type: true,
+          principal: true,
+          status: true,
+          investmentPlanId: true,
+          monthlyRatePercent: true,
+          dailyCompoundActive: true,
+        },
+      },
+      investmentAgreements: {
+        orderBy: { issuedAt: "asc" },
+        select: {
+          accountId: true,
+          issuedAt: true,
+          monthlyRatePercent: true,
+        },
+      },
+      nonprofitProfile: {
+        select: {
+          organizationLegalName: true,
+          ein: true,
+          fundCapital: true,
+          monthlyRate: true,
+        },
+      },
+      ambassador: {
+        select: {
           firstName: true,
           lastName: true,
           referralCode: true,
         },
       },
       _count: { select: { transactions: true, withdrawalRequests: true } },
+    },
+  });
+
+  const accountIds = users.flatMap((u) => u.accounts.map((a) => a.id));
+  const sentRows =
+    accountIds.length === 0
+      ? []
+      : await prisma.transaction.groupBy({
+          by: ["accountId"],
+          where: {
+            accountId: { in: accountIds },
+            type: "withdrawal",
+            status: "completed",
+          },
+          _sum: { amount: true },
+        });
+
+  const sentByAccount = new Map(
+    sentRows.map((r) => [r.accountId, r._sum.amount ?? 0] as const)
+  );
+
+  return { users, sentByAccount };
+}
+
+/** Minimal fields for notification recipient picker */
+export async function listUsersForNotificationOptions() {
+  return prisma.user.findMany({
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
     },
   });
 }
@@ -155,7 +224,7 @@ export async function getUserDetail(userId: string) {
     include: {
       nonprofitProfile: true,
       accounts: true,
-      transactions: { orderBy: { date: "desc" } },
+      transactions: { orderBy: { date: "desc" }, take: 100 },
       withdrawalRequests: { orderBy: { createdAt: "desc" }, take: 20 },
       kycDocumentRequests: {
         where: { status: "pending" },

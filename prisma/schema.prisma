@@ -36,6 +36,9 @@ model User {
 
   @@index([ambassadorId])
   @@index([dateOfBirth])
+  @@index([kycStatus])
+  @@index([createdAt])
+  @@index([profileType])
 }
 
 model NonprofitProfile {
@@ -95,6 +98,8 @@ model Transaction {
 
   @@index([userId])
   @@index([accountId])
+  @@index([type, status])
+  @@index([accountId, type, status])
 }
 
 model Session {
@@ -152,6 +157,8 @@ model WithdrawalRequest {
   createdAt DateTime @default(now())
 
   @@index([userId])
+  @@index([status])
+  @@index([status, createdAt])
 }
 
 model InvestmentAgreement {

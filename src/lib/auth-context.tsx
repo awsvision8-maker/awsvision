@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { usePathname } from "next/navigation";
 import type { KYCData, NonprofitSignupApplication, SignupApplication, User } from "@/types";
 
 interface AuthContextType {
@@ -49,6 +50,7 @@ type MeResponse = {
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isViewOnly, setIsViewOnly] = useState(false);
@@ -71,11 +73,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    // Admin panel uses AdminProvider — skip client portal /api/auth/me waterfall
+    if (pathname?.startsWith("/admin")) {
+      clearAuthFlags();
+      setIsLoading(false);
+      return;
+    }
+
+    let cancelled = false;
     fetch("/api/auth/me")
       .then((res) => parseResponse<MeResponse>(res))
-      .then((data) => applyMe(data))
-      .finally(() => setIsLoading(false));
-  }, []);
+      .then((data) => {
+        if (!cancelled) applyMe(data);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
 
   const login = async (identifier: string, password: string) => {
     const res = await fetch("/api/auth/login", {
