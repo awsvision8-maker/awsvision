@@ -14,7 +14,15 @@ const btnOutline =
   "inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50";
 
 export function TexasCityPageContent({ city }: { city: TexasCity }) {
-  const others = TEXAS_CITIES.filter((c) => c.slug !== city.slug);
+  const sameMetro = TEXAS_CITIES.filter(
+    (c) => c.slug !== city.slug && c.metro.split("·")[0].trim() === city.metro.split("·")[0].trim()
+  ).slice(0, 12);
+  const others = [
+    ...sameMetro,
+    ...TEXAS_CITIES.filter(
+      (c) => c.slug !== city.slug && !sameMetro.some((m) => m.slug === c.slug)
+    ).slice(0, Math.max(0, 24 - sameMetro.length)),
+  ];
 
   return (
     <div>
@@ -191,6 +199,14 @@ export function TexasCityPageContent({ city }: { city: TexasCity }) {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link
+                href="/serving-texas"
+                className="rounded-full border border-teal-200 bg-teal-50 px-4 py-2 text-sm font-medium text-teal-800 hover:border-teal-400"
+              >
+                All Texas cities
+              </Link>
+            </li>
             <li>
               <Link
                 href="/serving-united-states"

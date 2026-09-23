@@ -434,11 +434,13 @@ for (const city of TEXAS_CITIES) {
   const path = `/serving-texas/${city.slug}`;
   PAGE_SEO[path] = {
     path,
-    title: `${city.name} Investment Firm & Wealth Management | AWS Vision`,
+    title: city.light
+      ? `${city.name} TX Investment Accounts & Wealth | AWS Vision`
+      : `${city.name} Investment Firm & Wealth Management | AWS Vision`,
     description: city.intro.slice(0, 158),
     keywords: city.keywords,
-    priority: 0.88,
-    changeFrequency: "weekly",
+    priority: city.light ? 0.78 : 0.88,
+    changeFrequency: city.light ? "monthly" : "weekly",
   };
 }
 

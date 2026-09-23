@@ -16,8 +16,6 @@ const btnOutline =
 const btnTeal =
   "inline-flex h-11 items-center justify-center rounded-lg bg-teal-700 px-5 text-sm font-semibold text-white transition hover:bg-teal-800";
 
-const OTHER_CITIES = ["Irving"];
-
 const SERVICES = [
   {
     title: "Savings accounts",
@@ -123,10 +121,10 @@ export default function ServingTexasPage() {
 
       <section className="bg-slate-50 py-16">
         <div className="mx-auto max-w-7xl px-6">
-          <h2 className="text-2xl font-bold text-slate-900">Cities we commonly serve</h2>
+          <h2 className="text-2xl font-bold text-slate-900">Texas cities we serve online</h2>
           <p className="mt-2 text-slate-600">
-            Service-based coverage — not a list of physical storefronts. Open a city page for local
-            details.
+            Service-area pages for major Texas cities — not a list of physical storefronts. Each city
+            page has unique local copy; we do not claim retail branches we do not operate.
           </p>
           <ul className="mt-6 flex flex-wrap gap-2">
             {TEXAS_CITIES.map((city) => (
@@ -137,14 +135,6 @@ export default function ServingTexasPage() {
                 >
                   {city.name}
                 </Link>
-              </li>
-            ))}
-            {OTHER_CITIES.map((city) => (
-              <li
-                key={city}
-                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700"
-              >
-                {city}
               </li>
             ))}
           </ul>

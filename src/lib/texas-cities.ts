@@ -1,3 +1,5 @@
+import { getLightTexasCities } from "@/lib/texas-cities-light";
+
 export type TexasCity = {
   slug: string;
   name: string;
@@ -9,9 +11,11 @@ export type TexasCity = {
   whyLocal?: string[];
   keywords: string[];
   faqs: { q: string; a: string }[];
+  /** Compact pages for broader city coverage / indexing */
+  light?: boolean;
 };
 
-export const TEXAS_CITIES: TexasCity[] = [
+export const TEXAS_CITIES_FEATURED: TexasCity[] = [
   {
     slug: "dallas",
     name: "Dallas",
@@ -545,6 +549,14 @@ export const TEXAS_CITIES: TexasCity[] = [
     ],
   },
 ];
+
+/** Featured (richer) + light city pages — all served at /serving-texas/[slug] */
+export const TEXAS_CITIES: TexasCity[] = (() => {
+  const featured = TEXAS_CITIES_FEATURED;
+  const featuredSlugs = new Set(featured.map((c) => c.slug));
+  const light = getLightTexasCities().filter((c) => !featuredSlugs.has(c.slug));
+  return [...featured, ...light];
+})();
 
 export function getTexasCity(slug: string) {
   return TEXAS_CITIES.find((c) => c.slug === slug) ?? null;
