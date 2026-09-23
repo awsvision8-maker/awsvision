@@ -25,6 +25,17 @@ Priority order for next day:
 10. https://awsvision.com/guides/investment-advisor-vs-financial-advisor
 11. https://awsvision.com/guides/financial-planning-for-business-owners
 
+### New commercial guides (shipped 2026-09-23 — index after quota resets)
+
+12. https://awsvision.com/guides/investment-company-texas
+13. https://awsvision.com/guides/online-financial-advisor-texas
+14. https://awsvision.com/guides/wealth-management-houston
+15. https://awsvision.com/guides/investment-firm-fort-worth
+16. https://awsvision.com/guides/wealth-management-san-antonio
+17. https://awsvision.com/guides/wealth-advisor-dallas
+18. https://awsvision.com/guides/best-portfolio-management-texas
+19. https://awsvision.com/guides/financial-services-firm-texas
+
 Then continue any remaining sitemap URLs that still show **URL is not on Google** / Discovered – not indexed.
 
 ## Next-day agent steps

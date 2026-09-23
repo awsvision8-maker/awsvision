@@ -1673,6 +1673,427 @@ export const SEO_GUIDES: SeoGuide[] = [
       { label: "Locations", href: "/locations" },
     ],
   },
+  {
+    slug: "investment-company-texas",
+    title: "Investment Company Texas — What to Look For Before You Enroll",
+    description:
+      "Searching for an investment company in Texas? Here’s how to compare products, service model, and trust signals — and where AWS Vision Financial fits as an online option.",
+    keywords: [
+      "Investment Company Texas",
+      "investment company in Texas",
+      "Texas investment company",
+      "best investment company Texas",
+      "online investment company Texas",
+      "licensed investment company Texas",
+    ],
+    category: "Company",
+    readTime: "8 min",
+    sections: [
+      {
+        heading: "Start with what “investment company” means to you",
+        body: [
+          "People type investment company Texas for different reasons. Some want a managed portfolio. Others want a fixed deposit–style lockup. A few are really looking for a local advisor they can meet in person.",
+          "Before you compare brands, write down the job you need done: grow capital over years, park money for a known term, or keep savings liquid. That single note saves you from picking a firm that looks strong on paper but doesn’t match your timeline.",
+        ],
+      },
+      {
+        heading: "Branch office vs online — pick the model, not the marketing",
+        body: [
+          "A downtown Texas suite can feel reassuring. It also doesn’t guarantee clearer statements or better terms. Plenty of solid firms work remotely; plenty of storefronts still push you into products that fit their quota more than your plan.",
+          "AWS Vision Financial serves Texas clients online — Dallas through El Paso and everywhere in between — without claiming a retail branch we don’t operate. If you need a handshake appointment every month, we’re probably not the fit. If you want remote KYC, a portal, and published program terms, we might be.",
+        ],
+      },
+      {
+        heading: "A practical checklist for Texas investors",
+        body: [
+          "Can you see current rates or “up to” program ranges before you wire money?",
+          "Is support reachable by phone and email, or only a chatbot?",
+          "Do agreements spell out how credits work, when you can withdraw, and what isn’t guaranteed?",
+          "Does the website match the brand name you searched — for us, awsvision.com / AWS Vision Financial, not Amazon Web Services?",
+        ],
+      },
+      {
+        heading: "How we approach enrollment",
+        body: [
+          "Review /rates and /compare, then apply at /signup. Complete KYC online, choose savings, fixed deposit, or a wealth tier, and fund after approval. Statements live in the client portal.",
+          "This guide is educational — not personalized advice. Confirm terms on a call if anything is unclear: +1 (469) 754-2201.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Investment management", href: "/investment-management" },
+      { label: "Serving Texas", href: "/serving-texas" },
+      { label: "Best investment firm Texas", href: "/guides/best-investment-firm-texas" },
+      { label: "Compare", href: "/compare" },
+    ],
+  },
+  {
+    slug: "online-financial-advisor-texas",
+    title: "Online Financial Advisor Texas — When Remote Advice Makes Sense",
+    description:
+      "Considering an online financial advisor in Texas? Learn what remote advisory-style service can (and can’t) replace — and how AWS Vision supports Texas clients online.",
+    keywords: [
+      "online financial advisor Texas",
+      "online financial advisor in Texas",
+      "virtual financial advisor Texas",
+      "remote financial advisor Texas",
+      "online investment advisor Texas",
+      "digital financial advisor Texas",
+    ],
+    category: "Advisory",
+    readTime: "8 min",
+    sections: [
+      {
+        heading: "Why Texans search for online advisors",
+        body: [
+          "Traffic, travel, and busy careers make a lot of people prefer a video call or portal over a midweek drive across town. “Online financial advisor Texas” usually means: I want help with money decisions without living near the firm’s lobby.",
+          "That doesn’t mean every chat window labeled “advisor” is the same. Some firms sell software only. Others sell products with human support. A few offer full planning retainers. Know which lane you’re shopping.",
+        ],
+      },
+      {
+        heading: "What we can help with — and what we don’t replace",
+        body: [
+          "AWS Vision Financial offers online accounts: savings, fixed deposits, and wealth plans, plus education on how those pieces fit together. You enroll remotely, track activity in the portal, and reach support by phone or email.",
+          "We don’t pretend to be your CPA, estate attorney, or a guaranteed market-timing service. Tax and legal questions still belong with licensed professionals. If you need weekly comprehensive planning sessions, ask about that explicitly before you enroll anywhere — including with us.",
+        ],
+      },
+      {
+        heading: "Questions to ask any remote firm",
+        body: [
+          "Who actually answers when something breaks — and in what time zone?",
+          "Are rates and fees written down before funding?",
+          "Is the Texas service model honest (online / service-area), or are they implying a local office that doesn’t exist?",
+          "Can you download statements without calling a branch?",
+        ],
+      },
+      {
+        heading: "Next step if remote fits you",
+        body: [
+          "Browse /investment-advisory and /guides/how-to-choose-financial-advisor-texas, then open an account when you’re ready. Prefer a city page? Start with Dallas, Houston, or Austin under Serving Texas.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Investment advisory", href: "/investment-advisory" },
+      { label: "Choose a financial advisor", href: "/guides/how-to-choose-financial-advisor-texas" },
+      { label: "Serving Texas", href: "/serving-texas" },
+      { label: "Near me guide", href: "/guides/financial-advisor-near-me-texas" },
+    ],
+  },
+  {
+    slug: "wealth-management-houston",
+    title: "Wealth Management Houston — Online Options for Busy Households",
+    description:
+      "Looking for wealth management in Houston? Compare online vs local models, what to verify before you fund, and how AWS Vision serves Houston clients remotely.",
+    keywords: [
+      "Wealth Management Houston",
+      "wealth management Houston TX",
+      "wealth management firm Houston",
+      "best wealth management Houston",
+      "private wealth management Houston",
+      "online wealth management Houston",
+    ],
+    category: "Wealth",
+    readTime: "9 min",
+    sections: [
+      {
+        heading: "Houston wealth searches aren’t one-size-fits-all",
+        body: [
+          "Energy paychecks, medical careers, small-business owners, and transplants from other states all show up in Houston wealth management searches. Some want a private office in the Galleria corridor. Others just want a clean online plan they can check after a late shift.",
+          "If you’re comparing firms, separate “prestige address” from “does this product match my horizon.” Those are different problems.",
+        ],
+      },
+      {
+        heading: "Local office culture vs remote enrollment",
+        body: [
+          "Houston has no shortage of brick-and-mortar wealth shops. That’s fine if you value face-to-face reviews. It’s less useful if you travel constantly or simply don’t want another appointment on the calendar.",
+          "AWS Vision serves Houston clients statewide online. No claimed Houston retail storefront. You complete KYC remotely, pick a wealth tier, and follow statements in the portal. Phone support is available when you need a human.",
+        ],
+      },
+      {
+        heading: "What to review before you move capital",
+        body: [
+          "Read published “up to” rates and confirm them on a call — numbers on a homepage are not a personal guarantee.",
+          "Understand withdrawal timing and which products are investment risk vs deposit-style programs.",
+          "Skim /compare if you’re coming from a big bank savings or CD habit; the tradeoffs are clearer side by side.",
+        ],
+      },
+      {
+        heading: "Houston-specific next steps",
+        body: [
+          "Start at /serving-texas/houston, then /wealth-management. For retirement-focused reading, see our Houston retirement planning guide. Educational only — not personalized advice.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Houston service page", href: "/serving-texas/houston" },
+      { label: "Wealth management", href: "/wealth-management" },
+      { label: "Retirement Houston", href: "/guides/retirement-planning-houston" },
+      { label: "Best advisor Houston", href: "/guides/best-financial-advisor-houston" },
+    ],
+  },
+  {
+    slug: "investment-firm-fort-worth",
+    title: "Investment Firm Fort Worth — DFW Choices Without the Guesswork",
+    description:
+      "Searching for an investment firm in Fort Worth? Here’s a straight checklist for Tarrant County / DFW investors — and how AWS Vision works online for Fort Worth clients.",
+    keywords: [
+      "Investment Firm Fort Worth",
+      "investment firm Fort Worth TX",
+      "investment company Fort Worth",
+      "financial firm Fort Worth",
+      "wealth management Fort Worth",
+      "investment advisor Fort Worth",
+    ],
+    category: "Company",
+    readTime: "8 min",
+    sections: [
+      {
+        heading: "Fort Worth investors often shop the whole metro",
+        body: [
+          "A Fort Worth search still pulls Dallas and mid-cities options. That can be helpful — or noisy. Decide whether you need someone inside the Loop, or simply a firm that serves Tarrant County well online.",
+          "Culture matters too: some households want a traditional advisor relationship. Others want product clarity and a portal they can open on a phone between school drop-offs.",
+        ],
+      },
+      {
+        heading: "Our Fort Worth service model",
+        body: [
+          "AWS Vision Financial is available to Fort Worth and DFW clients through remote onboarding. We don’t invent a Fort Worth storefront for Maps. Coverage sits under our Texas service-area approach — same products whether you’re in Fort Worth, Arlington, or Frisco.",
+          "Savings, fixed deposits, and wealth tiers are the core lineup. Support is phone and email; tracking is portal-based.",
+        ],
+      },
+      {
+        heading: "Checklist before you enroll from Fort Worth",
+        body: [
+          "Match the product to the money’s job (emergency cash vs multi-year growth).",
+          "Confirm current terms on /rates — “up to” figures need a human confirmation for your situation.",
+          "Read the Fort Worth city page and Serving Texas so expectations about offices stay honest.",
+        ],
+      },
+      {
+        heading: "Where to go next",
+        body: [
+          "Visit /serving-texas/fort-worth, then /investment-management or /compare. Ready to apply? /signup takes most people through KYC without a branch visit.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Fort Worth page", href: "/serving-texas/fort-worth" },
+      { label: "Arlington", href: "/serving-texas/arlington" },
+      { label: "Investment management", href: "/investment-management" },
+      { label: "Compare", href: "/compare" },
+    ],
+  },
+  {
+    slug: "wealth-management-san-antonio",
+    title: "Wealth Management San Antonio — Clear Options for South Texas Clients",
+    description:
+      "Exploring wealth management in San Antonio? Learn how to compare local and online firms, what to verify first, and how AWS Vision serves San Antonio clients remotely.",
+    keywords: [
+      "Wealth Management San Antonio",
+      "wealth management San Antonio TX",
+      "wealth management firm San Antonio",
+      "investment firm San Antonio",
+      "financial advisor San Antonio",
+      "online wealth management San Antonio",
+    ],
+    category: "Wealth",
+    readTime: "8 min",
+    sections: [
+      {
+        heading: "San Antonio money goals look different household to household",
+        body: [
+          "Military families, healthcare workers, small-business owners, and long-time homeowners all search wealth management San Antonio — but they don’t all need the same plan. Some want capital preservation. Others are finally ready to put surplus cash to work after years of parking it.",
+          "A good comparison starts with your timeline, not a logo.",
+        ],
+      },
+      {
+        heading: "Online service for San Antonio clients",
+        body: [
+          "AWS Vision enrolls San Antonio clients online with remote KYC. We don’t claim a public San Antonio retail branch. If in-person meetings are non-negotiable for you, say so early when you evaluate any firm — including us.",
+          "What you do get: structured wealth tiers, portal statements, and statewide Texas support by phone.",
+        ],
+      },
+      {
+        heading: "Verify before you fund",
+        body: [
+          "Cross-check website, phone, and email against what you see on statements later.",
+          "Ask how monthly program credits work and what isn’t guaranteed.",
+          "Use /rates and /serving-texas/san-antonio as your starting bookmarks.",
+        ],
+      },
+      {
+        heading: "Next steps",
+        body: [
+          "Read the San Antonio city page, skim /wealth-management, then apply when the fit feels right. Guides are educational, not personalized advice.",
+        ],
+      },
+    ],
+    related: [
+      { label: "San Antonio page", href: "/serving-texas/san-antonio" },
+      { label: "Wealth management", href: "/wealth-management" },
+      { label: "Texas wealth guide", href: "/guides/texas-online-wealth-management" },
+      { label: "Rates", href: "/rates" },
+    ],
+  },
+  {
+    slug: "wealth-advisor-dallas",
+    title: "Wealth Advisor Dallas — How to Choose Without Getting Sold",
+    description:
+      "Looking for a wealth advisor in Dallas? Use this plain-language guide to compare styles of advice, online vs office models, and AWS Vision’s remote option for DFW clients.",
+    keywords: [
+      "Wealth Advisor Dallas",
+      "wealth advisor Dallas TX",
+      "Dallas wealth advisor",
+      "private wealth advisor Dallas",
+      "best wealth advisor Dallas",
+      "online wealth advisor Dallas",
+    ],
+    category: "Wealth",
+    readTime: "9 min",
+    sections: [
+      {
+        heading: "Dallas has no shortage of wealth titles",
+        body: [
+          "Walk Uptown or open a search for wealth advisor Dallas and you’ll see every flavor of title — advisor, planner, private banker, “wealth strategist.” Titles aren’t regulated the same way in every firm, so ask what the person actually does with your money day to day.",
+          "You want clarity on products, fees or program terms, and how often you’ll hear from someone when markets get loud.",
+        ],
+      },
+      {
+        heading: "Office meeting vs portal-first",
+        body: [
+          "Some Dallas households still prefer a conference room and coffee. Others want to skip traffic on the Tollway and handle enrollment from home. Neither choice is morally better — they’re preferences.",
+          "AWS Vision is built for the second group: DFW clients who are fine with remote KYC, phone support, and a portal. We don’t advertise a fake Dallas retail desk.",
+        ],
+      },
+      {
+        heading: "Questions that cut through sales fog",
+        body: [
+          "What happens in a down year — in writing?",
+          "How do I withdraw, and how long does it take?",
+          "Who do I call if a statement looks wrong?",
+          "Are you selling me a product today, or a long planning engagement?",
+        ],
+      },
+      {
+        heading: "If you’re ready to compare us",
+        body: [
+          "Start with /serving-texas/dallas and /wealth-management. Pair that with /guides/best-investment-firm-dallas if you’re still shopping brands. Then /signup when you want to move forward.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Dallas page", href: "/serving-texas/dallas" },
+      { label: "Best investment firm Dallas", href: "/guides/best-investment-firm-dallas" },
+      { label: "Wealth management", href: "/wealth-management" },
+      { label: "HNW advisor Texas", href: "/guides/high-net-worth-financial-advisor-texas" },
+    ],
+  },
+  {
+    slug: "best-portfolio-management-texas",
+    title: "Best Portfolio Management Texas — A Buyer’s Framework",
+    description:
+      "Searching for the best portfolio management in Texas? Skip vanity rankings. Use this framework to judge process, reporting, and fit — including AWS Vision’s online portfolio tools.",
+    keywords: [
+      "best portfolio management Texas",
+      "portfolio management Texas",
+      "portfolio management firm Texas",
+      "portfolio management services Texas",
+      "professional portfolio management Texas",
+      "investment portfolio management Texas",
+    ],
+    category: "Portfolio",
+    readTime: "8 min",
+    sections: [
+      {
+        heading: "“Best” is a process, not a trophy",
+        body: [
+          "Best portfolio management Texas searches spike when markets move or a bonus hits the account. Ranking articles will crown different winners every quarter. Your job is narrower: find a process you understand and reporting you can actually read.",
+          "If a firm can’t explain how your money is allocated in plain English, keep shopping.",
+        ],
+      },
+      {
+        heading: "What solid portfolio oversight usually includes",
+        body: [
+          "A written sense of risk — not just a colorful pie chart.",
+          "Statements you can download without begging.",
+          "A funding and withdrawal path that isn’t mysterious.",
+          "Honest limits: no one controls markets; they control process and communication.",
+        ],
+      },
+      {
+        heading: "How AWS Vision approaches portfolio visibility",
+        body: [
+          "Wealth tiers allocate across published sectors. After funding, the client portal is where you track balances and statements. Texas clients enroll online — no retail branch required.",
+          "We won’t claim magical outperformance. We will show you the account tools and program terms before you commit. Confirm current details on /rates and on a call.",
+        ],
+      },
+      {
+        heading: "Keep going",
+        body: [
+          "Read /portfolio-management and /guides/how-does-portfolio-management-work. For statewide context, use /serving-texas. Educational content only.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Portfolio management", href: "/portfolio-management" },
+      { label: "How portfolio management works", href: "/guides/how-does-portfolio-management-work" },
+      { label: "Diversified portfolio", href: "/guides/how-to-build-diversified-investment-portfolio" },
+      { label: "Wealth management", href: "/wealth-management" },
+    ],
+  },
+  {
+    slug: "financial-services-firm-texas",
+    title: "Financial Services Firm Texas — How to Narrow the Field",
+    description:
+      "Need a financial services firm in Texas? This guide helps you separate banking, investing, and planning needs — then points to AWS Vision’s online Texas service model.",
+    keywords: [
+      "Financial Services Firm Texas",
+      "financial services company Texas",
+      "Texas financial services firm",
+      "financial services Texas",
+      "best financial services firm Texas",
+      "online financial services Texas",
+    ],
+    category: "Company",
+    readTime: "7 min",
+    sections: [
+      {
+        heading: "Financial services is a huge umbrella",
+        body: [
+          "Banks, credit unions, brokerages, insurance agencies, and online investment firms all fall under “financial services.” If your search is financial services firm Texas, pause and name the outcome: grow invested capital, lock a term deposit, or keep cash available.",
+          "Mixing those goals in one shopping trip is how people end up with the wrong account.",
+        ],
+      },
+      {
+        heading: "Where AWS Vision sits",
+        body: [
+          "We’re an online financial services and investment firm for Texas and U.S. clients: savings, fixed deposits, and wealth plans. Not a full-service bank branch. Not a fake Texas storefront.",
+          "If you need checking-heavy daily banking plus a drive-through, keep a traditional bank in the mix. Use us for the investment and structured-return side when that matches your plan.",
+        ],
+      },
+      {
+        heading: "Due diligence that actually matters",
+        body: [
+          "Match the legal name on the site to the name on your agreements.",
+          "Call the published number once before you fund — see who picks up.",
+          "Read rates as “up to / discuss on call,” not as a promise carved in stone.",
+        ],
+      },
+      {
+        heading: "Next reads",
+        body: [
+          "Serving Texas, Investment management, and Compare vs banks. Apply at /signup when you’re ready.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Serving Texas", href: "/serving-texas" },
+      { label: "Investment company Texas", href: "/guides/investment-company-texas" },
+      { label: "Best financial firm Texas", href: "/guides/best-financial-firm-texas" },
+      { label: "Compare", href: "/compare" },
+    ],
+  },
 ];
 
 export function getSeoGuide(slug: string) {

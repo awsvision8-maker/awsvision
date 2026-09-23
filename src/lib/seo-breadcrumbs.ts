@@ -42,6 +42,9 @@ const SEGMENT_LABELS: Record<string, string> = {
   "fort-worth": "Fort Worth",
   plano: "Plano",
   "el-paso": "El Paso",
+  frisco: "Frisco",
+  mckinney: "McKinney",
+  arlington: "Arlington",
   "investment-management": "Investment Management",
   "portfolio-management": "Portfolio Management",
   "financial-planning": "Financial Planning",
@@ -79,6 +82,14 @@ const SEGMENT_LABELS: Record<string, string> = {
   "investment-strategies-high-net-worth": "High Net Worth Strategies",
   "preserve-wealth-market-volatility": "Wealth in Volatility",
   "retirement-planning-texas": "Retirement Planning Texas",
+  "investment-company-texas": "Investment Company Texas",
+  "online-financial-advisor-texas": "Online Financial Advisor Texas",
+  "wealth-management-houston": "Wealth Management Houston",
+  "investment-firm-fort-worth": "Investment Firm Fort Worth",
+  "wealth-management-san-antonio": "Wealth Management San Antonio",
+  "wealth-advisor-dallas": "Wealth Advisor Dallas",
+  "best-portfolio-management-texas": "Best Portfolio Management Texas",
+  "financial-services-firm-texas": "Financial Services Firm Texas",
 };
 
 /** Build breadcrumb trail for a marketing path */

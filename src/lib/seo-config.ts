@@ -443,6 +443,20 @@ for (const city of TEXAS_CITIES) {
 }
 
 /** Sync authority guides from SEO_GUIDES */
+const HIGH_PRIORITY_GUIDE_SLUGS = new Set([
+  "investment-company-texas",
+  "online-financial-advisor-texas",
+  "wealth-management-houston",
+  "investment-firm-fort-worth",
+  "wealth-management-san-antonio",
+  "wealth-advisor-dallas",
+  "best-portfolio-management-texas",
+  "financial-services-firm-texas",
+  "best-financial-firm-texas",
+  "best-investment-firm-texas",
+  "best-wealth-management-firm-texas",
+]);
+
 for (const guide of SEO_GUIDES) {
   const path = `/guides/${guide.slug}`;
   PAGE_SEO[path] = {
@@ -450,8 +464,8 @@ for (const guide of SEO_GUIDES) {
     title: `${guide.title} | AWS Vision`,
     description: guide.description,
     keywords: guide.keywords,
-    priority: 0.72,
-    changeFrequency: "monthly",
+    priority: HIGH_PRIORITY_GUIDE_SLUGS.has(guide.slug) ? 0.84 : 0.72,
+    changeFrequency: HIGH_PRIORITY_GUIDE_SLUGS.has(guide.slug) ? "weekly" : "monthly",
   };
 }
 
