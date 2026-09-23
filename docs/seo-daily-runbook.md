@@ -13,9 +13,9 @@
 2. **Search Console** (user’s logged-in Chrome via browser-use)
    - Open GSC for `https://awsvision.com/`.
    - **Pages / indexing:** note new errors.
-   - **URL inspection:** request indexing for up to **5** not-yet-indexed priority URLs (stop on quota).
-   - Priority order: hubs → Fort Worth/Dallas → new guides → homepage/Texas.
-   - Log results briefly in chat.
+   - **URL inspection:** follow `docs/seo-indexing-queue.md` — request indexing for pending URLs only (skip already “URL is on Google”). Stop on quota.
+   - Cap: respect daily Request indexing quota; never burn quota re-requesting indexed URLs.
+   - Log results in `docs/seo-indexing-queue.md`.
 
 3. **On-site micro-improvement** (one small change max unless broken)
    - Prefer: 1 missing internal link, title/meta tighten for a page with weak CTR intent, or refresh 1 FAQ sentence.
