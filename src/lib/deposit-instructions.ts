@@ -1,11 +1,26 @@
 /** Portal deposit instructions — wire, ACH, eCheck, and Zelle */
 
-export const DEPOSIT_BANK_DETAILS = {
-  accountTitle: "TEAMBASE TAX & ACCOUNTING SERVICES LLC",
+const ACCOUNT_TITLE = "TEAMBASE TAX & ACCOUNTING SERVICES LLC";
+const BANK_NAME = "AWS Vision Partner Bank";
+
+/** ACH (bank transfer) — existing partner-bank details */
+export const DEPOSIT_BANK_ACH = {
+  accountTitle: ACCOUNT_TITLE,
   accountNumber: "2915646531",
   routingNumber: "044000037",
-  bankName: "AWS Vision Partner Bank",
+  bankName: BANK_NAME,
 } as const;
+
+/** Domestic wire — separate routing */
+export const DEPOSIT_BANK_WIRE = {
+  accountTitle: ACCOUNT_TITLE,
+  accountNumber: "2915646531",
+  routingNumber: "021000021",
+  bankName: BANK_NAME,
+} as const;
+
+/** @deprecated Prefer DEPOSIT_BANK_ACH / DEPOSIT_BANK_WIRE */
+export const DEPOSIT_BANK_DETAILS = DEPOSIT_BANK_ACH;
 
 export const ZELLE_DEPOSIT = {
   email: "henry.james@awsvision.com",
@@ -14,10 +29,16 @@ export const ZELLE_DEPOSIT = {
 
 export const DEPOSIT_METHODS = [
   {
-    id: "wire_ach" as const,
-    label: "Wire / ACH Transfer",
-    desc: "Send funds from your bank using the account details below",
-    timing: "Wire: 1–2 business days · ACH: 3–5 business days · No fee",
+    id: "ach" as const,
+    label: "ACH Transfer",
+    desc: "Send an ACH / bank transfer using the ACH account details below",
+    timing: "3–5 business days · No fee",
+  },
+  {
+    id: "wire" as const,
+    label: "Wire Transfer",
+    desc: "Send a domestic wire using the wire account details below",
+    timing: "1–2 business days · No fee",
   },
   {
     id: "echeck" as const,

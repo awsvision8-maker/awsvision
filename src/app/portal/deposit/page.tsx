@@ -27,7 +27,8 @@ import { usePortfolio } from "@/lib/use-portfolio";
 import { formatCurrency } from "@/lib/utils";
 
 const METHOD_ICONS = {
-  wire_ach: Landmark,
+  ach: Landmark,
+  wire: Landmark,
   echeck: FileImage,
   zelle: Smartphone,
 } as const;
@@ -35,7 +36,7 @@ const METHOD_ICONS = {
 export default function DepositPage() {
   const { user, recordDeposit } = useAuth();
   const portfolio = usePortfolio();
-  const [method, setMethod] = useState<DepositMethodId>("wire_ach");
+  const [method, setMethod] = useState<DepositMethodId>("ach");
   const [accountId, setAccountId] = useState(portfolio.accounts[0]?.id ?? "");
   const [amount, setAmount] = useState("");
   const [checkFrontName, setCheckFrontName] = useState("");
@@ -81,11 +82,13 @@ export default function DepositPage() {
     if (!canSubmit()) return;
     const depositAmount = Number(amount);
     const methodLabel =
-      method === "wire_ach"
-        ? "Wire / ACH Transfer"
-        : method === "zelle"
-          ? `Zelle — ${ZELLE_DEPOSIT.email}`
-          : "eCheck Deposit";
+      method === "ach"
+        ? "ACH Transfer"
+        : method === "wire"
+          ? "Wire Transfer"
+          : method === "zelle"
+            ? `Zelle — ${ZELLE_DEPOSIT.email}`
+            : "eCheck Deposit";
     const ok = await recordDeposit(
       selectedAccountId,
       depositAmount,
@@ -117,8 +120,10 @@ export default function DepositPage() {
             <p className="mt-2 max-w-md text-slate-500 leading-relaxed">
               Your deposit of {formatCurrency(Number(amount))} has been submitted for admin review.
               It will <strong>not</strong> appear in your balance until approved.
-              {method === "wire_ach" &&
-                " Complete your wire or ACH transfer using the bank details below and include your reference."}
+              {method === "ach" &&
+                " Complete your ACH transfer using the ACH bank details below and include your reference."}
+              {method === "wire" &&
+                " Complete your wire transfer using the wire bank details below and include your reference."}
               {method === "echeck" &&
                 " Your check images are attached. Funds will be credited after admin verification and approval."}
               {method === "zelle" &&
@@ -126,7 +131,9 @@ export default function DepositPage() {
             </p>
           </div>
 
-          {method === "wire_ach" && <DepositBankDetails reference={reference} />}
+          {(method === "ach" || method === "wire") && (
+            <DepositBankDetails variant={method} reference={reference} />
+          )}
 
           {method === "zelle" && (
             <Card>
@@ -192,7 +199,7 @@ export default function DepositPage() {
             <CardTitle>Select Deposit Method</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {DEPOSIT_METHODS.map((pm) => {
                 const Icon = METHOD_ICONS[pm.id];
                 return (
@@ -217,8 +224,8 @@ export default function DepositPage() {
           </CardContent>
         </Card>
 
-        {method === "wire_ach" && (
-          <DepositBankDetails reference={reference} />
+        {(method === "ach" || method === "wire") && (
+          <DepositBankDetails variant={method} reference={reference} />
         )}
 
         {method === "zelle" && (
@@ -304,12 +311,21 @@ export default function DepositPage() {
                 required
               />
 
-              {method === "wire_ach" && (
+              {method === "ach" && (
                 <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
                   After submitting, send {amount ? formatCurrency(Number(amount)) : "your deposit"}{" "}
-                  via wire or ACH to <strong>TEAMBASE TAX & ACCOUNTING SERVICES LLC</strong> using
-                  account <strong>2915646531</strong> and routing <strong>044000037</strong>. Reference:{" "}
-                  <strong className="font-mono">{reference}</strong>
+                  via <strong>ACH</strong> to <strong>TEAMBASE TAX & ACCOUNTING SERVICES LLC</strong>{" "}
+                  using account <strong>2915646531</strong> and routing <strong>044000037</strong>.
+                  Reference: <strong className="font-mono">{reference}</strong>
+                </p>
+              )}
+
+              {method === "wire" && (
+                <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                  After submitting, send {amount ? formatCurrency(Number(amount)) : "your deposit"}{" "}
+                  via <strong>wire</strong> to <strong>TEAMBASE TAX & ACCOUNTING SERVICES LLC</strong>{" "}
+                  using account <strong>2915646531</strong> and routing <strong>021000021</strong>.
+                  Reference: <strong className="font-mono">{reference}</strong>
                 </p>
               )}
 

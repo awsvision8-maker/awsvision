@@ -153,7 +153,7 @@ export default function ContactPage() {
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             {[
               { q: "How do I open an investment account?", a: `Click Get Started or email ${SITE.email}. Complete signup, KYC verification, and fund your account online.` },
-              { q: "How long do deposits take?", a: "Wire: 1–2 business days. ACH: 3–5 business days. Zelle: typically same day. eCheck: 2–4 business days after image verification. Use the portal Deposit page for wire/ACH details, Zelle address, or eCheck upload." },
+              { q: "How long do deposits take?", a: "Wire: 1–2 business days (use the wire routing number). ACH: 3–5 business days (use the ACH routing number). Zelle: typically same day. eCheck: 2–4 business days after image verification. Use the portal Deposit page for the correct account details for each method." },
               { q: "How do I download my monthly statement?", a: "Sign in to the client portal → Statements → Download PDF." },
               { q: "How do I request a withdrawal?", a: "Log in to the portal → Withdraw → submit your request. Processing typically takes 2–3 business days." },
             ].map((item) => (
