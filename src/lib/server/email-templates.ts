@@ -464,3 +464,25 @@ export function passwordResetEmail(
     text: `Hello ${user.firstName}, reset your password: ${resetUrl} (expires in 1 hour). If you did not request this, ignore this email.`,
   };
 }
+
+export function adminPasswordSetEmail(
+  user: { firstName: string; email: string },
+  temporaryPassword: string
+) {
+  const loginUrl = `${SITE.url}/login`;
+  const body = [
+    p(`Hello ${user.firstName},`),
+    p(
+      "An AWS Vision administrator has reset the password for your client portal account. Use the temporary password below to sign in, then change it after login if you prefer."
+    ),
+    p(`<strong>Temporary password:</strong> <code style="background:#f1f5f9;padding:4px 8px;border-radius:4px;">${temporaryPassword}</code>`),
+    btn(loginUrl, "Sign In"),
+    p(`Login email: ${user.email}`),
+    p(`Support: ${SITE.email} · ${formatSitePhones()}`),
+  ].join("");
+  return {
+    subject: "Your AWS Vision password was reset",
+    html: layout("Password Reset by Admin", body),
+    text: `Hello ${user.firstName}, an administrator reset your password. Temporary password: ${temporaryPassword}. Sign in at ${loginUrl}`,
+  };
+}

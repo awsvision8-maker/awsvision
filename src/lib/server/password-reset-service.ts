@@ -1,7 +1,10 @@
 import { createHash, randomBytes } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { findUserByLoginIdentifier, hashPassword } from "@/lib/server/auth-service";
-import { passwordResetEmail } from "@/lib/server/email-templates";
+import {
+  adminPasswordSetEmail,
+  passwordResetEmail,
+} from "@/lib/server/email-templates";
 import { sendMailAsync } from "@/lib/server/mail";
 import { SITE } from "@/lib/site-config";
 
@@ -94,4 +97,89 @@ export async function resetPasswordWithToken(rawToken: string, newPassword: stri
   ]);
 
   return { ok: true as const };
+}
+
+/**
+ * Admin: set a customer's password directly (e.g. support request).
+ * Clears active sessions and unused reset tokens.
+ */
+export async function adminSetUserPassword(
+  userId: string,
+  newPassword: string,
+  options?: { emailPassword?: boolean }
+) {
+  const passwordError = validateNewPassword(newPassword);
+  if (passwordError) {
+    throw new Error(passwordError);
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, email: true, firstName: true },
+  });
+  if (!user) throw new Error("User not found");
+
+  const passwordHash = await hashPassword(newPassword);
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    }),
+    prisma.passwordResetToken.deleteMany({
+      where: { userId },
+    }),
+    prisma.session.deleteMany({
+      where: { userId },
+    }),
+  ]);
+
+  if (options?.emailPassword) {
+    const mail = adminPasswordSetEmail(
+      { firstName: user.firstName, email: user.email },
+      newPassword
+    );
+    sendMailAsync({ to: user.email, ...mail });
+  }
+
+  return {
+    ok: true as const,
+    email: user.email,
+    emailed: Boolean(options?.emailPassword),
+  };
+}
+
+/**
+ * Admin: email the customer a self-serve reset link (same as forgot-password).
+ */
+export async function adminSendPasswordResetLink(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, email: true, firstName: true },
+  });
+  if (!user) throw new Error("User not found");
+
+  await prisma.passwordResetToken.deleteMany({
+    where: { userId: user.id, usedAt: null },
+  });
+
+  const rawToken = randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + TOKEN_TTL_MS);
+
+  await prisma.passwordResetToken.create({
+    data: {
+      userId: user.id,
+      tokenHash: hashToken(rawToken),
+      expiresAt,
+    },
+  });
+
+  const resetUrl = `${SITE.url}/reset-password?token=${rawToken}`;
+  const mail = passwordResetEmail(
+    { firstName: user.firstName, email: user.email },
+    resetUrl
+  );
+  sendMailAsync({ to: user.email, ...mail });
+
+  return { ok: true as const, email: user.email };
 }

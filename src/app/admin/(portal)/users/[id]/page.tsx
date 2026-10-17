@@ -11,6 +11,7 @@ import { AdminKycControls } from "@/components/admin/admin-kyc-controls";
 import { KycDocumentViewer } from "@/components/admin/kyc-document-viewer";
 import { AdminInvestmentAgreementsPanel } from "@/components/admin/admin-investment-agreements-panel";
 import { AdminDeleteUserPanel } from "@/components/admin/admin-delete-user-panel";
+import { AdminPasswordResetPanel } from "@/components/admin/admin-password-reset-panel";
 import { AdminProfitAmendmentPanel } from "@/components/admin/admin-profit-amendment-panel";
 import { AdminReferralAssignPanel } from "@/components/admin/admin-referral-assign-panel";
 import {
@@ -207,6 +208,14 @@ export default function AdminUserDetailPage() {
         <AdminDepositAlertPanel
           userId={userId}
           userName={`${user.firstName} ${user.lastName}`}
+        />
+      </section>
+
+      <section className="mt-6">
+        <AdminPasswordResetPanel
+          userId={userId}
+          userName={`${user.firstName} ${user.lastName}`}
+          userEmail={user.email}
         />
       </section>
 
