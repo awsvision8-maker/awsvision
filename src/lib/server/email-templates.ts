@@ -445,3 +445,22 @@ export const WAITLIST_LABELS: Record<string, string> = {
   credit_cards: "Credit Card Launch",
   loans: "Loan Facility Launch",
 };
+
+export function passwordResetEmail(
+  user: { firstName: string; email: string },
+  resetUrl: string
+) {
+  const body = [
+    p(`Hello ${user.firstName},`),
+    p("We received a request to reset the password for your AWS Vision client portal account."),
+    p("Click the button below to choose a new password. This link expires in <strong>1 hour</strong>."),
+    btn(resetUrl, "Reset Password"),
+    p("If you did not request this, you can ignore this email — your password will stay the same."),
+    p(`Support: ${SITE.email} · ${formatSitePhones()}`),
+  ].join("");
+  return {
+    subject: "Reset your AWS Vision password",
+    html: layout("Password Reset", body),
+    text: `Hello ${user.firstName}, reset your password: ${resetUrl} (expires in 1 hour). If you did not request this, ignore this email.`,
+  };
+}

@@ -61,7 +61,7 @@ const PORTAL_RULES: BotKnowledgeEntry[] = [
     id: "logout-inactivity",
     keywords: ["logout", "session", "timeout", "inactive", "auto logout"],
     answer:
-      "For your security, the client portal signs you out after a short period of inactivity. Simply log in again at awsvision.com/login to continue.",
+      "For your security, the client portal signs you out after a short period of inactivity. Simply log in again at awsvision.com/login to continue. If you forgot your password, use Forgot password on the login page — we email a reset link that expires in one hour.",
   },
 ];
 

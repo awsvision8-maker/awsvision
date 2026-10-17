@@ -32,6 +32,7 @@ model User {
   notifications          UserNotification[]
   birthdayWishes         BirthdayWish[]
   kycDocumentRequests    KycDocumentRequest[]
+  passwordResetTokens    PasswordResetToken[]
   ambassador             BrandAmbassador? @relation(fields: [ambassadorId], references: [id], onDelete: SetNull)
 
   @@index([ambassadorId])
@@ -39,6 +40,20 @@ model User {
   @@index([kycStatus])
   @@index([createdAt])
   @@index([profileType])
+}
+
+/** One-time email password reset tokens for customer portal */
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model NonprofitProfile {
