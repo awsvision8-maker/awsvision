@@ -20,7 +20,7 @@ interface AdminContextValue {
   admin: AdminUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string, recaptchaToken?: string) => Promise<boolean>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -51,14 +51,17 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     void refresh();
   }, [refresh]);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, recaptchaToken?: string) => {
     const res = await fetch("/api/admin/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, recaptchaToken }),
     });
-    if (!res.ok) return false;
-    const data = await res.json();
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      if (data?.error) throw new Error(data.error as string);
+      return false;
+    }
     setAdmin(data.admin);
     return true;
   };

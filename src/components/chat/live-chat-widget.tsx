@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { MessageCircle, Send, X, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getRecaptchaSiteKey, RecaptchaV2 } from "@/components/security/recaptcha-v2";
 import { useAuth } from "@/lib/auth-context";
 import { isStaffSenderType } from "@/lib/chat-agents";
 import { cn } from "@/lib/utils";
@@ -30,6 +31,8 @@ export function LiveChatWidget() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [recaptchaToken, setRecaptchaToken] = useState("");
+  const [recaptchaKey, setRecaptchaKey] = useState(0);
   const bottomRef = useRef<HTMLDivElement>(null);
   const lastPollRef = useRef<string | null>(null);
 
@@ -110,16 +113,26 @@ export function LiveChatWidget() {
   const handleStart = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    if (getRecaptchaSiteKey() && !recaptchaToken) {
+      setError("Please complete the reCAPTCHA checkbox");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/chat/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ visitorName: name, visitorEmail: email }),
+        body: JSON.stringify({
+          visitorName: name,
+          visitorEmail: email,
+          recaptchaToken,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "Failed to start chat");
+        setRecaptchaToken("");
+        setRecaptchaKey((k) => k + 1);
         return;
       }
       setConversationId(data.conversationId);
@@ -127,6 +140,8 @@ export function LiveChatWidget() {
       await pollMessages(data.conversationId, true);
     } catch {
       setError("Failed to start chat");
+      setRecaptchaToken("");
+      setRecaptchaKey((k) => k + 1);
     } finally {
       setLoading(false);
     }
@@ -215,6 +230,7 @@ export function LiveChatWidget() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
+              <RecaptchaV2 key={recaptchaKey} onChange={setRecaptchaToken} className="scale-90 origin-left" />
               {error && <p className="text-sm text-red-600">{error}</p>}
               <Button type="submit" className="w-full" loading={loading}>
                 Start Chat

@@ -8,6 +8,7 @@ import { PageJsonLd } from "@/components/seo/page-json-ld";
 import { BreadcrumbNav } from "@/components/seo/breadcrumb-nav";
 import { SiteVisitorTracker } from "@/components/analytics/site-visitor-tracker";
 import { ContentProtection } from "@/components/security/content-protection";
+import { VisitorHumanGate } from "@/components/security/visitor-human-gate";
 
 /** Refresh marketing pages daily so month-specific promo copy stays current */
 export const revalidate = 86400;
@@ -28,6 +29,7 @@ export default function MarketingLayout({
       <SitePromoFooter />
       <SiteFooter />
       <LiveChatWidget />
+      <VisitorHumanGate />
       <Suspense fallback={null}>
         <SiteVisitorTracker />
       </Suspense>

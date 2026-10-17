@@ -18,9 +18,16 @@ interface AuthContextType {
   isViewOnly: boolean;
   adminPreview: boolean;
   managerPreview: boolean;
-  login: (identifier: string, password: string) => Promise<boolean>;
-  signup: (data: SignupApplication) => Promise<void>;
-  signupNonprofit: (data: NonprofitSignupApplication) => Promise<void>;
+  login: (
+    identifier: string,
+    password: string,
+    recaptchaToken?: string
+  ) => Promise<boolean>;
+  signup: (data: SignupApplication, recaptchaToken?: string) => Promise<void>;
+  signupNonprofit: (
+    data: NonprofitSignupApplication,
+    recaptchaToken?: string
+  ) => Promise<void>;
   recordDeposit: (accountId: string, amount: number, description: string) => Promise<boolean>;
   logout: () => Promise<void>;
   /** Exit admin or BA preview; returns target userId when known */
@@ -94,28 +101,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [pathname]);
 
-  const login = async (identifier: string, password: string) => {
+  const login = async (
+    identifier: string,
+    password: string,
+    recaptchaToken?: string
+  ) => {
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ identifier, password }),
+      body: JSON.stringify({ identifier, password, recaptchaToken }),
     });
-    const data = await parseResponse<{ user: User }>(res);
-    if (data?.user) {
-      setUser(data.user);
+    const result = (await res.json().catch(() => null)) as
+      | { user?: User; error?: string }
+      | null;
+    if (res.ok && result?.user) {
+      setUser(result.user);
       setIsViewOnly(false);
       setAdminPreview(false);
       setManagerPreview(false);
       return true;
     }
+    if (result?.error) throw new Error(result.error);
     return false;
   };
 
-  const signup = async (data: SignupApplication) => {
+  const signup = async (data: SignupApplication, recaptchaToken?: string) => {
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ ...data, recaptchaToken }),
     });
     const result = (await res.json().catch(() => null)) as { user?: User; error?: string } | null;
     if (!res.ok) {
@@ -131,11 +145,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     throw new Error("Application submission failed. Please try again.");
   };
 
-  const signupNonprofit = async (data: NonprofitSignupApplication) => {
+  const signupNonprofit = async (
+    data: NonprofitSignupApplication,
+    recaptchaToken?: string
+  ) => {
     const res = await fetch("/api/auth/signup/nonprofit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ ...data, recaptchaToken }),
     });
     const result = (await res.json().catch(() => null)) as { user?: User; error?: string } | null;
     if (!res.ok) {

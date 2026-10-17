@@ -23,7 +23,7 @@ interface ManagerContextValue {
   manager: ManagerUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (username: string, password: string) => Promise<boolean>;
+  login: (username: string, password: string, recaptchaToken?: string) => Promise<boolean>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -54,14 +54,21 @@ export function ManagerProvider({ children }: { children: ReactNode }) {
     void refresh();
   }, [refresh]);
 
-  const login = async (username: string, password: string) => {
+  const login = async (
+    username: string,
+    password: string,
+    recaptchaToken?: string
+  ) => {
     const res = await fetch("/api/manager/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username, password, recaptchaToken }),
     });
-    if (!res.ok) return false;
-    const data = await res.json();
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      if (data?.error) throw new Error(data.error as string);
+      return false;
+    }
     setManager(data.manager);
     return true;
   };

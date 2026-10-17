@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getRecaptchaSiteKey, RecaptchaV2 } from "@/components/security/recaptcha-v2";
 import { AdminProvider, useAdmin } from "@/lib/admin-context";
 
 function AdminLoginForm() {
@@ -15,6 +16,8 @@ function AdminLoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState("");
+  const [recaptchaKey, setRecaptchaKey] = useState(0);
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
@@ -25,11 +28,26 @@ function AdminLoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    if (getRecaptchaSiteKey() && !recaptchaToken) {
+      setError("Please complete the reCAPTCHA checkbox");
+      return;
+    }
     setLoading(true);
-    const ok = await login(email, password);
-    setLoading(false);
-    if (ok) router.push("/admin/dashboard");
-    else setError("Invalid admin credentials");
+    try {
+      const ok = await login(email, password, recaptchaToken);
+      if (ok) router.push("/admin/dashboard");
+      else {
+        setError("Invalid admin credentials");
+        setRecaptchaToken("");
+        setRecaptchaKey((k) => k + 1);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Invalid admin credentials");
+      setRecaptchaToken("");
+      setRecaptchaKey((k) => k + 1);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -63,6 +81,11 @@ function AdminLoginForm() {
             required
             labelClassName="text-slate-300"
             className="border-slate-700 bg-slate-800 text-white"
+          />
+          <RecaptchaV2
+            key={recaptchaKey}
+            onChange={setRecaptchaToken}
+            theme="dark"
           />
           {error && <p className="text-sm text-red-400">{error}</p>}
           <Button type="submit" className="w-full" loading={loading}>

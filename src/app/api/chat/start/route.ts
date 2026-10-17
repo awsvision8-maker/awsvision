@@ -15,6 +15,7 @@ import { getClientGeo } from "@/lib/request-geo";
 import { getSessionUserId } from "@/lib/server/session";
 import { rejectIfAdminPreview } from "@/lib/server/admin-preview-session";
 import { jsonError, jsonOk } from "@/lib/server/api";
+import { clientIpFromRequest, verifyRecaptchaToken } from "@/lib/server/verify-recaptcha";
 
 export async function POST(request: Request) {
   const blocked = await rejectIfAdminPreview();
@@ -25,7 +26,14 @@ export async function POST(request: Request) {
       visitorName?: string;
       visitorEmail?: string;
       message?: string;
+      recaptchaToken?: string;
     };
+
+    const captcha = await verifyRecaptchaToken(
+      body.recaptchaToken,
+      clientIpFromRequest(request)
+    );
+    if (!captcha.ok) return jsonError(captcha.error, 400);
 
     if (!body.visitorName?.trim() || !body.visitorEmail?.trim()) {
       return jsonError("Name and email are required", 400);

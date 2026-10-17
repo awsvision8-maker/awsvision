@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { getClientGeo } from "@/lib/request-geo";
 import { jsonError, jsonOk } from "@/lib/server/api";
+import { isHumanVerified } from "@/lib/server/human-verify";
 import { VISITOR_PRESENCE_COOKIE } from "@/lib/server/presence-service";
 import {
   trackHeartbeat,
@@ -43,6 +44,11 @@ export async function POST(request: Request) {
       });
       if (!result) return jsonError("Not found", 404);
       return jsonOk(result);
+    }
+
+    // Pageviews require completed site-visit reCAPTCHA (blocks bot visit spam)
+    if (!(await isHumanVerified())) {
+      return jsonOk({ skipped: true, reason: "human_verify_required" });
     }
 
     const path = (body.path ?? "/").trim() || "/";

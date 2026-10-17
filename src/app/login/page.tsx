@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/ui/logo";
 import { DeveloperCredit } from "@/components/marketing/developer-credit";
 import { WealthPromoBanner } from "@/components/marketing/wealth-promo-banner";
+import { getRecaptchaSiteKey, RecaptchaV2 } from "@/components/security/recaptcha-v2";
 import { useAuth } from "@/lib/auth-context";
 import { useActiveFdPromo } from "@/lib/use-active-fd-promo";
 
@@ -19,6 +20,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [recaptchaToken, setRecaptchaToken] = useState("");
+  const [recaptchaKey, setRecaptchaKey] = useState(0);
 
   useEffect(() => {
     if (user?.kycStatus === "verified") {
@@ -39,16 +42,26 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    if (getRecaptchaSiteKey() && !recaptchaToken) {
+      setError("Please complete the reCAPTCHA checkbox");
+      return;
+    }
     setLoading(true);
     try {
-      const ok = await login(loginId, password);
+      const ok = await login(loginId, password, recaptchaToken);
       if (ok) {
         router.push("/kyc");
       } else {
         setError("Invalid email, Online ID, or password.");
+        setRecaptchaToken("");
+        setRecaptchaKey((k) => k + 1);
       }
-    } catch {
-      setError("Invalid email, Online ID, or password.");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Invalid email, Online ID, or password."
+      );
+      setRecaptchaToken("");
+      setRecaptchaKey((k) => k + 1);
     } finally {
       setLoading(false);
     }
@@ -114,6 +127,7 @@ export default function LoginPage() {
                 </Link>
               </div>
             </div>
+            <RecaptchaV2 key={recaptchaKey} onChange={setRecaptchaToken} />
             {error && (
               <p className="text-sm text-red-600">{error}</p>
             )}

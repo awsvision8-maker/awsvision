@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { HUMAN_VERIFIED_EVENT } from "@/lib/human-verify-client";
 
 const HEARTBEAT_MS = 15_000;
 const SKIP_PREFIXES = ["/admin", "/api", "/portal"];
@@ -26,7 +27,7 @@ async function postTrack(body: Record<string, unknown>, keepalive = false) {
 
 /**
  * Records page path, dwell time, and ties visits to the visitor session cookie.
- * Geo/IP are resolved server-side from request headers.
+ * Only runs after the visitor completes the site-visit reCAPTCHA gate.
  */
 export function SiteVisitorTracker() {
   const pathname = usePathname();
@@ -34,9 +35,27 @@ export function SiteVisitorTracker() {
   const pageViewIdRef = useRef<string | null>(null);
   const enteredAtRef = useRef<number>(Date.now());
   const pathKey = `${pathname}${searchParams?.toString() ? `?${searchParams.toString()}` : ""}`;
+  const [humanOk, setHumanOk] = useState(false);
 
   useEffect(() => {
-    if (shouldSkip(pathname)) return;
+    let cancelled = false;
+    fetch("/api/analytics/human", { credentials: "same-origin" })
+      .then((r) => r.json())
+      .then((data: { verified?: boolean }) => {
+        if (!cancelled && data.verified) setHumanOk(true);
+      })
+      .catch(() => {});
+
+    const onVerified = () => setHumanOk(true);
+    window.addEventListener(HUMAN_VERIFIED_EVENT, onVerified);
+    return () => {
+      cancelled = true;
+      window.removeEventListener(HUMAN_VERIFIED_EVENT, onVerified);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!humanOk || shouldSkip(pathname)) return;
 
     let cancelled = false;
     let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
@@ -93,7 +112,7 @@ export function SiteVisitorTracker() {
       window.removeEventListener("pagehide", onLeave);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [pathname, pathKey]);
+  }, [pathname, pathKey, humanOk]);
 
   return null;
 }

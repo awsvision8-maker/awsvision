@@ -6,6 +6,7 @@ import {
   createSession,
   setSessionCookie,
 } from "@/lib/server/session";
+import { clientIpFromRequest, verifyRecaptchaToken } from "@/lib/server/verify-recaptcha";
 
 export async function POST(request: Request) {
   try {
@@ -13,7 +14,14 @@ export async function POST(request: Request) {
       email?: string;
       identifier?: string;
       password?: string;
+      recaptchaToken?: string;
     };
+
+    const captcha = await verifyRecaptchaToken(
+      body.recaptchaToken,
+      clientIpFromRequest(request)
+    );
+    if (!captcha.ok) return jsonError(captcha.error, 400);
 
     const identifier = (body.identifier ?? body.email)?.trim();
     const password = body.password;

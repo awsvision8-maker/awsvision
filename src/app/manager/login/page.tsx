@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getRecaptchaSiteKey, RecaptchaV2 } from "@/components/security/recaptcha-v2";
 import { ManagerProvider, useManager } from "@/lib/manager-context";
 
 function ManagerLoginForm() {
@@ -15,6 +16,8 @@ function ManagerLoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState("");
+  const [recaptchaKey, setRecaptchaKey] = useState(0);
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
@@ -25,11 +28,26 @@ function ManagerLoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    if (getRecaptchaSiteKey() && !recaptchaToken) {
+      setError("Please complete the reCAPTCHA checkbox");
+      return;
+    }
     setLoading(true);
-    const ok = await login(username, password);
-    setLoading(false);
-    if (ok) router.push("/manager/dashboard");
-    else setError("Invalid username or password");
+    try {
+      const ok = await login(username, password, recaptchaToken);
+      if (ok) router.push("/manager/dashboard");
+      else {
+        setError("Invalid username or password");
+        setRecaptchaToken("");
+        setRecaptchaKey((k) => k + 1);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Invalid username or password");
+      setRecaptchaToken("");
+      setRecaptchaKey((k) => k + 1);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -66,6 +84,11 @@ function ManagerLoginForm() {
             autoComplete="current-password"
             labelClassName="text-slate-300"
             className="border-slate-700 bg-slate-800 text-white"
+          />
+          <RecaptchaV2
+            key={recaptchaKey}
+            onChange={setRecaptchaToken}
+            theme="dark"
           />
           {error && <p className="text-sm text-red-400">{error}</p>}
           <Button type="submit" className="w-full bg-violet-600 hover:bg-violet-500" loading={loading}>

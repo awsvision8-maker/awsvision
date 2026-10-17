@@ -10,6 +10,7 @@ import {
   createSession,
   setSessionCookie,
 } from "@/lib/server/session";
+import { clientIpFromRequest, verifyRecaptchaToken } from "@/lib/server/verify-recaptcha";
 import type { NonprofitSignupApplication } from "@/types";
 
 async function logFailed(
@@ -38,7 +39,20 @@ export async function POST(request: Request) {
   let data: NonprofitSignupApplication | null = null;
 
   try {
-    data = (await request.json()) as NonprofitSignupApplication;
+    const parsed = (await request.json()) as NonprofitSignupApplication & {
+      recaptchaToken?: string;
+    };
+    const { recaptchaToken, ...signupFields } = parsed;
+    data = signupFields;
+
+    const captcha = await verifyRecaptchaToken(
+      recaptchaToken,
+      clientIpFromRequest(request)
+    );
+    if (!captcha.ok) {
+      await logFailed(meta, data, captcha.error, "recaptcha_failed");
+      return jsonError(captcha.error, 400);
+    }
 
     if (!data.repEmail || !data.password || !data.organizationLegalName) {
       const message = "Missing required fields";

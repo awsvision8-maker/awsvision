@@ -10,6 +10,7 @@ import {
 } from "@/lib/server/signup-log-service";
 import { createSession, setSessionCookie } from "@/lib/server/session";
 import { isFdPromoPlanId } from "@/lib/promotions";
+import { clientIpFromRequest, verifyRecaptchaToken } from "@/lib/server/verify-recaptcha";
 import type { SignupApplication } from "@/types";
 
 async function logFailed(
@@ -49,7 +50,18 @@ export async function POST(request: Request) {
       return jsonError(message, 413);
     }
 
-    data = JSON.parse(raw) as SignupApplication;
+    const parsed = JSON.parse(raw) as SignupApplication & { recaptchaToken?: string };
+    const { recaptchaToken, ...signupFields } = parsed;
+    data = signupFields;
+
+    const captcha = await verifyRecaptchaToken(
+      recaptchaToken,
+      clientIpFromRequest(request)
+    );
+    if (!captcha.ok) {
+      await logFailed(meta, data, captcha.error, "recaptcha_failed", payloadKb);
+      return jsonError(captcha.error, 400);
+    }
 
     if (!data.email || !data.password || !data.firstName || !data.lastName) {
       const message = "Missing required fields";

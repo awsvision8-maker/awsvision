@@ -36,6 +36,7 @@ import {
   isFdPromoPlanId,
 } from "@/lib/promotions";
 import { useActiveFdPromo } from "@/lib/use-active-fd-promo";
+import { getRecaptchaSiteKey, RecaptchaV2 } from "@/components/security/recaptcha-v2";
 
 const US_STATES = [
   "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA",
@@ -55,6 +56,8 @@ export default function SignupPageContent() {
   const [submitted, setSubmitted] = useState(false);
   const [mediaBusy, setMediaBusy] = useState(false);
   const [onlineIdAvailable, setOnlineIdAvailable] = useState<boolean | null>(null);
+  const [recaptchaToken, setRecaptchaToken] = useState("");
+  const [recaptchaKey, setRecaptchaKey] = useState(0);
   const errorRef = useRef<HTMLDivElement>(null);
   const uploadBusyKeys = useRef(new Set<string>());
 
@@ -185,16 +188,23 @@ export default function SignupPageContent() {
       return;
     }
 
+    if (getRecaptchaSiteKey() && !recaptchaToken) {
+      showErrors(["Please complete the reCAPTCHA checkbox"]);
+      return;
+    }
+
     setLoading(true);
     setErrors([]);
     try {
-      await signup(form);
+      await signup(form, recaptchaToken);
       setSubmitted(true);
       setTimeout(() => router.push("/kyc"), 2500);
     } catch (err) {
       showErrors([
         err instanceof Error ? err.message : "Application submission failed. Please try again.",
       ]);
+      setRecaptchaToken("");
+      setRecaptchaKey((k) => k + 1);
     } finally {
       setLoading(false);
     }
@@ -629,6 +639,10 @@ export default function SignupPageContent() {
               <p className="text-xs text-slate-500">
                 Questions? Contact us at {SITE.email} or {SITE.phone}.
               </p>
+
+              <div className="pt-2">
+                <RecaptchaV2 key={recaptchaKey} onChange={setRecaptchaToken} />
+              </div>
             </div>
           )}
 

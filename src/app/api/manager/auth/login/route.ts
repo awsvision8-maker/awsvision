@@ -1,13 +1,21 @@
 import { authenticateManager } from "@/lib/server/ambassador-service";
 import { jsonError, jsonOk } from "@/lib/server/api";
 import { createManagerSession, setManagerSessionCookie } from "@/lib/server/manager-session";
+import { clientIpFromRequest, verifyRecaptchaToken } from "@/lib/server/verify-recaptcha";
 
 export async function POST(request: Request) {
   try {
-    const { username, password } = (await request.json()) as {
+    const { username, password, recaptchaToken } = (await request.json()) as {
       username?: string;
       password?: string;
+      recaptchaToken?: string;
     };
+
+    const captcha = await verifyRecaptchaToken(
+      recaptchaToken,
+      clientIpFromRequest(request)
+    );
+    if (!captcha.ok) return jsonError(captcha.error, 400);
 
     if (!username?.trim() || !password) {
       return jsonError("Username and password are required", 400);
