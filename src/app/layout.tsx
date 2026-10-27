@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/lib/auth-context";
+import { FloatingLanguageTranslator } from "@/components/marketing/language-translator";
 import { rootMetadata } from "@/lib/seo";
 import "./globals.css";
 
@@ -27,7 +28,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          {children}
+          <FloatingLanguageTranslator />
+        </AuthProvider>
       </body>
     </html>
   );

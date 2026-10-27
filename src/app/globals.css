@@ -25,6 +25,7 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
   overflow-x: hidden;
+  top: 0 !important; /* Google Translate injects top offset otherwise */
 }
 
 /* Consistent page gutters: tighter on phones */
@@ -126,4 +127,31 @@ body {
   -webkit-user-drag: none;
   user-drag: none;
   pointer-events: auto;
+}
+
+/* Google Translate — hide default banner/frame; keep our custom language control */
+.goog-te-banner-frame,
+.goog-te-balloon-frame,
+#goog-gt-tt,
+.goog-te-spinner-pos,
+.skiptranslate iframe.skiptranslate {
+  display: none !important;
+}
+
+.goog-logo-link,
+.goog-te-gadget span {
+  display: none !important;
+}
+
+.goog-te-gadget {
+  font-size: 0 !important;
+}
+
+.google-translate-host,
+.goog-te-combo {
+  position: absolute !important;
+  left: -9999px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
 }

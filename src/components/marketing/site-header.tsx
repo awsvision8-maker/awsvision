@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PromoTopBar } from "@/components/marketing/promo-top-bar";
+import { LanguageTranslator } from "@/components/marketing/language-translator";
 import { SiteSearchButton } from "@/components/marketing/site-search";
 import { Logo } from "@/components/ui/logo";
 import { MAIN_NAV, SITE, formatSitePhones } from "@/lib/site-data";
@@ -53,6 +54,8 @@ export function SiteHeader() {
             <span className="text-slate-300">|</span>
             <Link href="/rates" className="hover:text-teal-700">Rates</Link>
             <Link href="/help" className="hover:text-teal-700">Help Center</Link>
+            <span className="text-slate-300">|</span>
+            <LanguageTranslator variant="header" />
           </div>
         </div>
       </div>
@@ -142,6 +145,9 @@ export function SiteHeader() {
           </nav>
 
           <div className="flex items-center gap-2">
+            <div className="lg:hidden">
+              <LanguageTranslator variant="compact" />
+            </div>
             <SiteSearchButton className="hidden md:flex" />
             <Link href="/login" className="shrink-0">
               <Button variant="outline" size="sm" className="border-teal-700 px-2.5 text-xs text-teal-700 hover:bg-teal-50 sm:px-3 sm:text-sm">
