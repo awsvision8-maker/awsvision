@@ -1,17 +1,35 @@
 "use client";
 
 import { useState } from "react";
-import { X } from "lucide-react";
+import { AlertTriangle, X } from "lucide-react";
 
 interface DepositProofThumbsProps {
   proofFront?: string | null;
   proofBack?: string | null;
+  description?: string;
 }
 
-export function DepositProofThumbs({ proofFront, proofBack }: DepositProofThumbsProps) {
-  const [preview, setPreview] = useState<string | null>(null);
+function looksLikeEcheck(description?: string) {
+  return Boolean(description && /echeck|e-check|cheque/i.test(description));
+}
 
-  if (!proofFront && !proofBack) return null;
+export function DepositProofThumbs({
+  proofFront,
+  proofBack,
+  description,
+}: DepositProofThumbsProps) {
+  const [preview, setPreview] = useState<string | null>(null);
+  const isEcheck = looksLikeEcheck(description);
+
+  if (!proofFront && !proofBack) {
+    if (!isEcheck) return null;
+    return (
+      <p className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-900">
+        <AlertTriangle className="h-3.5 w-3.5" />
+        No cheque screenshots on file — ask client to re-upload on Deposit page
+      </p>
+    );
+  }
 
   return (
     <>

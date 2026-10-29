@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { PortalHeader } from "@/components/portal/sidebar";
 import { DepositBankDetails } from "@/components/portal/deposit-bank-details";
+import { EcheckProofCompleter } from "@/components/portal/echeck-proof-completer";
 import { DocumentUpload } from "@/components/signup/document-upload";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -227,6 +228,7 @@ export default function DepositPage() {
             </p>
           </div>
         )}
+        <EcheckProofCompleter />
         <Card>
           <CardHeader>
             <CardTitle>Select Deposit Method</CardTitle>

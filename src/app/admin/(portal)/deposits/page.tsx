@@ -124,7 +124,11 @@ export default function AdminDepositsPage() {
                   </td>
                   <td className="px-6 py-4 max-w-xs text-slate-600">
                     <p>{d.description}</p>
-                    <DepositProofThumbs proofFront={d.proofFront} proofBack={d.proofBack} />
+                    <DepositProofThumbs
+                      proofFront={d.proofFront}
+                      proofBack={d.proofBack}
+                      description={d.description}
+                    />
                   </td>
                   <td className="px-6 py-4 text-slate-500">{formatDate(d.date)}</td>
                   <td className="px-6 py-4">

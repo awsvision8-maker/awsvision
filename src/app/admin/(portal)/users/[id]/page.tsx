@@ -248,7 +248,11 @@ export default function AdminUserDetailPage() {
                   <p className="font-semibold text-slate-900">{formatCurrency(d.amount)}</p>
                   <p className="text-sm text-slate-600">{d.description}</p>
                   <p className="text-xs text-slate-400">Submitted {formatDate(d.date)}</p>
-                  <DepositProofThumbs proofFront={d.proofFront} proofBack={d.proofBack} />
+                  <DepositProofThumbs
+                    proofFront={d.proofFront}
+                    proofBack={d.proofBack}
+                    description={d.description}
+                  />
                 </div>
                 <div className="flex gap-2">
                   <AdminActionButton
