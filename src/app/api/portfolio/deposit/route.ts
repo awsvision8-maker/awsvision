@@ -23,23 +23,39 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { accountId, amount, description } = (await request.json()) as {
+    const body = (await request.json()) as {
       accountId?: string;
       amount?: number;
       description?: string;
+      method?: string;
+      proofFront?: string;
+      proofBack?: string;
     };
+
+    const { accountId, amount, description, method, proofFront, proofBack } = body;
 
     if (!accountId || !amount || amount < 100 || !description) {
       return jsonError("Invalid deposit request", 400);
     }
 
-    const user = await recordDeposit(userId, accountId, amount, description);
+    const user = await recordDeposit(userId, accountId, amount, description, {
+      method,
+      proofFront,
+      proofBack,
+    });
     if (user) notifyDeposit(user, amount, description, accountId);
     return jsonOk({ user });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Deposit failed";
     if (message === "Account not found") {
       return jsonError(message, 404);
+    }
+    if (
+      message.includes("eCheck") ||
+      message.includes("cheque") ||
+      message.includes("too large")
+    ) {
+      return jsonError(message, 400);
     }
     console.error("Deposit error:", err);
     return jsonError("Deposit failed", 500);

@@ -192,11 +192,20 @@ export async function createNonprofitUser(data: NonprofitSignupApplication) {
   return mapUser(user);
 }
 
+function isDataImage(value: string | undefined | null): value is string {
+  return Boolean(value && /^data:image\/(jpeg|jpg|png|webp);base64,/i.test(value));
+}
+
 export async function submitDepositRequest(
   userId: string,
   accountId: string,
   amount: number,
-  description: string
+  description: string,
+  options?: {
+    method?: string;
+    proofFront?: string;
+    proofBack?: string;
+  }
 ) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -206,6 +215,30 @@ export async function submitDepositRequest(
 
   const account = user.accounts.find((a) => a.id === accountId);
   if (!account) throw new Error("Account not found");
+
+  const method = (options?.method ?? "").toLowerCase();
+  const isEcheck =
+    method === "echeck" ||
+    method === "cheque" ||
+    method === "check" ||
+    /echeck|e-check|cheque/i.test(description);
+
+  let proofFront: string | null = null;
+  let proofBack: string | null = null;
+
+  if (isEcheck) {
+    if (!isDataImage(options?.proofFront) || !isDataImage(options?.proofBack)) {
+      throw new Error(
+        "eCheck / cheque deposits require clear screenshots of both the front and back of the check"
+      );
+    }
+    // Cap ~4MB each encoded (compressed client-side already)
+    if (options!.proofFront!.length > 5_500_000 || options!.proofBack!.length > 5_500_000) {
+      throw new Error("Check images are too large. Please upload smaller screenshots.");
+    }
+    proofFront = options!.proofFront!;
+    proofBack = options!.proofBack!;
+  }
 
   const portfolio = {
     accounts: user.accounts.map((a) => ({
@@ -250,6 +283,8 @@ export async function submitDepositRequest(
       description: newTx.description,
       status: "pending",
       date: new Date(newTx.date),
+      proofFront,
+      proofBack,
     },
   });
 

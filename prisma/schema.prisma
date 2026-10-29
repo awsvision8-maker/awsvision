@@ -110,6 +110,10 @@ model Transaction {
   description String
   status      String           @default("completed")
   date        DateTime         @default(now())
+  /// eCheck / cheque deposit — front image (data URL), required for echeck
+  proofFront  String?
+  /// eCheck / cheque deposit — back image (data URL), required for echeck
+  proofBack   String?
 
   @@index([userId])
   @@index([accountId])

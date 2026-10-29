@@ -43,7 +43,7 @@ export const DEPOSIT_METHODS = [
   {
     id: "echeck" as const,
     label: "eCheck Deposit",
-    desc: "Upload clear images of the front and back of your check",
+    desc: "Screenshots of front and back of your check are required to submit",
     timing: "Processing: 2–4 business days after verification",
   },
   {

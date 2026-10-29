@@ -14,6 +14,8 @@ export async function GET() {
         amount: d.amount,
         description: d.description,
         date: d.date.toISOString(),
+        proofFront: d.proofFront,
+        proofBack: d.proofBack,
         user: d.user,
         account: d.account,
       })),

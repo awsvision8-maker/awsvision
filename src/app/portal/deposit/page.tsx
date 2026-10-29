@@ -44,6 +44,8 @@ export default function DepositPage() {
   const [checkBackName, setCheckBackName] = useState("");
   const [checkBackPreview, setCheckBackPreview] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [reference] = useState(() => buildDepositReference(Date.now().toString().slice(-8)));
 
   const isNonprofit = user?.profileType === "nonprofit" && !!user.nonprofitProfile;
@@ -79,7 +81,15 @@ export default function DepositPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canSubmit()) return;
+    setSubmitError(null);
+    if (!canSubmit()) {
+      if (method === "echeck") {
+        setSubmitError(
+          "eCheck / cheque deposits require screenshots of both the front and back of the check."
+        );
+      }
+      return;
+    }
     const depositAmount = Number(amount);
     const methodLabel =
       method === "ach"
@@ -89,12 +99,35 @@ export default function DepositPage() {
           : method === "zelle"
             ? `Zelle — ${ZELLE_DEPOSIT.email}`
             : "eCheck Deposit";
-    const ok = await recordDeposit(
-      selectedAccountId,
-      depositAmount,
-      `${methodLabel} · Ref ${reference}`
-    );
-    if (ok) setSubmitted(true);
+    setSubmitting(true);
+    try {
+      const ok = await recordDeposit(
+        selectedAccountId,
+        depositAmount,
+        `${methodLabel} · Ref ${reference}`,
+        method === "echeck"
+          ? {
+              method: "echeck",
+              proofFront: checkFrontPreview,
+              proofBack: checkBackPreview,
+            }
+          : { method }
+      );
+      if (ok) setSubmitted(true);
+      else {
+        setSubmitError(
+          method === "echeck"
+            ? "Could not submit eCheck. Make sure both check screenshots are uploaded and try again."
+            : "Could not submit deposit. Please try again."
+        );
+      }
+    } catch (err) {
+      setSubmitError(
+        err instanceof Error ? err.message : "Could not submit deposit. Please try again."
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -245,24 +278,28 @@ export default function DepositPage() {
         )}
 
         {method === "echeck" && (
-          <Card>
+          <Card className="border-amber-200">
             <CardHeader>
-              <CardTitle>eCheck Images</CardTitle>
+              <CardTitle>eCheck / Cheque Screenshots (Required)</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
+              <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+                Screenshots of <strong>both sides</strong> of the check are mandatory. You cannot
+                submit an eCheck deposit without uploading the front and back images.
+              </p>
               <p className="text-sm text-slate-600">
-                Upload clear, well-lit photos of both sides of your check. Ensure the MICR line,
-                amount, payee, and signature are visible on the front, and the endorsement is visible
-                on the back.
+                Upload clear, well-lit photos. Ensure the MICR line, amount, payee, and signature are
+                visible on the front, and the endorsement is visible on the back.
               </p>
               <DocumentUpload
-                label="Check — Front Side"
+                label="Check — Front Side (screenshot required)"
                 fileName={checkFrontName}
                 preview={checkFrontPreview}
                 required
                 onChange={(file, preview) => {
                   setCheckFrontName(file.name);
                   setCheckFrontPreview(preview);
+                  setSubmitError(null);
                 }}
                 onClear={() => {
                   setCheckFrontName("");
@@ -270,13 +307,14 @@ export default function DepositPage() {
                 }}
               />
               <DocumentUpload
-                label="Check — Back Side"
+                label="Check — Back Side (screenshot required)"
                 fileName={checkBackName}
                 preview={checkBackPreview}
                 required
                 onChange={(file, preview) => {
                   setCheckBackName(file.name);
                   setCheckBackPreview(preview);
+                  setSubmitError(null);
                 }}
                 onClear={() => {
                   setCheckBackName("");
@@ -337,7 +375,13 @@ export default function DepositPage() {
                 </p>
               )}
 
-              <Button type="submit" className="w-full" disabled={!canSubmit()}>
+              {method === "echeck" && !canSubmit() && (
+                <p className="text-xs text-amber-800">
+                  Upload both check screenshots above before submitting.
+                </p>
+              )}
+              {submitError && <p className="text-sm text-red-600">{submitError}</p>}
+              <Button type="submit" className="w-full" disabled={!canSubmit() || submitting} loading={submitting}>
                 {method === "echeck" ? "Submit eCheck Deposit" : "Submit Deposit Request"}
               </Button>
             </form>

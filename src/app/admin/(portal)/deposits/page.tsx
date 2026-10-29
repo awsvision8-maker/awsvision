@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { CheckCircle2, Clock, ExternalLink, XCircle } from "lucide-react";
+import { DepositProofThumbs } from "@/components/admin/deposit-proof-thumbs";
 import { getAccountLabel } from "@/lib/portfolio-engine";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
@@ -11,6 +12,8 @@ interface PendingDeposit {
   amount: number;
   description: string;
   date: string;
+  proofFront?: string | null;
+  proofBack?: string | null;
   user: {
     id: string;
     email: string;
@@ -119,7 +122,10 @@ export default function AdminDepositsPage() {
                   <td className="px-6 py-4 font-semibold text-slate-900">
                     {formatCurrency(d.amount)}
                   </td>
-                  <td className="px-6 py-4 max-w-xs text-slate-600">{d.description}</td>
+                  <td className="px-6 py-4 max-w-xs text-slate-600">
+                    <p>{d.description}</p>
+                    <DepositProofThumbs proofFront={d.proofFront} proofBack={d.proofBack} />
+                  </td>
                   <td className="px-6 py-4 text-slate-500">{formatDate(d.date)}</td>
                   <td className="px-6 py-4">
                     <div className="flex gap-2">

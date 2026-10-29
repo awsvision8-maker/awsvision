@@ -14,6 +14,7 @@ import { AdminDeleteUserPanel } from "@/components/admin/admin-delete-user-panel
 import { AdminPasswordResetPanel } from "@/components/admin/admin-password-reset-panel";
 import { AdminProfitAmendmentPanel } from "@/components/admin/admin-profit-amendment-panel";
 import { AdminReferralAssignPanel } from "@/components/admin/admin-referral-assign-panel";
+import { DepositProofThumbs } from "@/components/admin/deposit-proof-thumbs";
 import {
   AdminActionButton,
   AdminLoading,
@@ -71,6 +72,8 @@ interface UserDetail {
     description: string;
     date: string;
     accountId: string;
+    proofFront?: string | null;
+    proofBack?: string | null;
   }[];
   transactions: {
     id: string;
@@ -245,6 +248,7 @@ export default function AdminUserDetailPage() {
                   <p className="font-semibold text-slate-900">{formatCurrency(d.amount)}</p>
                   <p className="text-sm text-slate-600">{d.description}</p>
                   <p className="text-xs text-slate-400">Submitted {formatDate(d.date)}</p>
+                  <DepositProofThumbs proofFront={d.proofFront} proofBack={d.proofBack} />
                 </div>
                 <div className="flex gap-2">
                   <AdminActionButton

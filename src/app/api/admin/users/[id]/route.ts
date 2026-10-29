@@ -68,8 +68,15 @@ function serializeUserDetail(user: NonNullable<Awaited<ReturnType<typeof getUser
       dailyCompoundRatePercent: a.dailyCompoundRatePercent,
     })),
     transactions: user.transactions.map((t) => ({
-      ...t,
+      id: t.id,
+      userId: t.userId,
+      accountId: t.accountId,
+      type: t.type,
+      amount: t.amount,
+      description: t.description,
+      status: t.status,
       date: t.date.toISOString(),
+      hasProof: Boolean(t.proofFront || t.proofBack),
     })),
     pendingDeposits: user.transactions
       .filter((t) => t.type === "deposit" && t.status === "pending")
@@ -79,6 +86,8 @@ function serializeUserDetail(user: NonNullable<Awaited<ReturnType<typeof getUser
         description: t.description,
         date: t.date.toISOString(),
         accountId: t.accountId,
+        proofFront: t.proofFront,
+        proofBack: t.proofBack,
       })),
     withdrawals: user.withdrawalRequests.map((w) => ({
       ...w,

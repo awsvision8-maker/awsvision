@@ -28,7 +28,16 @@ interface AuthContextType {
     data: NonprofitSignupApplication,
     recaptchaToken?: string
   ) => Promise<void>;
-  recordDeposit: (accountId: string, amount: number, description: string) => Promise<boolean>;
+  recordDeposit: (
+    accountId: string,
+    amount: number,
+    description: string,
+    options?: {
+      method?: string;
+      proofFront?: string;
+      proofBack?: string;
+    }
+  ) => Promise<boolean>;
   logout: () => Promise<void>;
   /** Exit admin or BA preview; returns target userId when known */
   exitPortalPreview: () => Promise<{
@@ -168,18 +177,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     throw new Error("Application submission failed. Please try again.");
   };
 
-  const recordDeposit = async (accountId: string, amount: number, description: string) => {
+  const recordDeposit = async (
+    accountId: string,
+    amount: number,
+    description: string,
+    options?: {
+      method?: string;
+      proofFront?: string;
+      proofBack?: string;
+    }
+  ) => {
     if (isViewOnly) return false;
     const res = await fetch("/api/portfolio/deposit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ accountId, amount, description }),
+      body: JSON.stringify({
+        accountId,
+        amount,
+        description,
+        method: options?.method,
+        proofFront: options?.proofFront,
+        proofBack: options?.proofBack,
+      }),
     });
-    const data = await parseResponse<{ user: User }>(res);
-    if (data?.user) {
-      setUser(data.user);
+    const result = (await res.json().catch(() => null)) as
+      | { user?: User; error?: string }
+      | null;
+    if (res.ok && result?.user) {
+      setUser(result.user);
       return true;
     }
+    if (result?.error) throw new Error(result.error);
     return false;
   };
 
