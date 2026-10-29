@@ -75,6 +75,16 @@ interface UserDetail {
     hasProofFront?: boolean;
     hasProofBack?: boolean;
   }[];
+  depositProofs?: {
+    id: string;
+    amount: number;
+    description: string;
+    status: string;
+    date: string;
+    accountId: string;
+    hasProofFront?: boolean;
+    hasProofBack?: boolean;
+  }[];
   transactions: {
     id: string;
     type: string;
@@ -82,6 +92,8 @@ interface UserDetail {
     description: string;
     status: string;
     date: string;
+    hasProofFront?: boolean;
+    hasProofBack?: boolean;
   }[];
   withdrawals: {
     id: string;
@@ -352,6 +364,42 @@ export default function AdminUserDetailPage() {
       </section>
 
       <section className="mt-8">
+        <h2 className="text-lg font-semibold text-slate-900">Deposit proofs</h2>
+        <p className="mt-1 text-sm text-slate-500">
+          Screenshots the client uploaded with eCheck / cheque deposits. Click to open full size.
+        </p>
+        {(user.depositProofs?.length ?? 0) === 0 ? (
+          <p className="mt-3 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
+            No deposits on this account yet.
+          </p>
+        ) : (
+          <ul className="mt-3 space-y-3">
+            {user.depositProofs!.map((d) => (
+              <li
+                key={d.id}
+                className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-slate-900">{formatCurrency(d.amount)}</p>
+                    <p className="text-sm text-slate-600">{d.description}</p>
+                    <p className="text-xs text-slate-400">{formatDate(d.date)}</p>
+                  </div>
+                  <AdminStatusBadge status={d.status} />
+                </div>
+                <DepositProofThumbs
+                  depositId={d.id}
+                  description={d.description}
+                  hasProofFront={d.hasProofFront}
+                  hasProofBack={d.hasProofBack}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="mt-8">
         <h2 className="text-lg font-semibold text-slate-900">Recent transactions</h2>
         <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white">
           <table className="w-full text-sm">
@@ -361,7 +409,7 @@ export default function AdminUserDetailPage() {
                 <th className="px-4 py-2">Type</th>
                 <th className="px-4 py-2">Amount</th>
                 <th className="px-4 py-2">Status</th>
-                <th className="px-4 py-2">Description</th>
+                <th className="px-4 py-2">Description / proof</th>
               </tr>
             </thead>
             <tbody>
@@ -373,14 +421,24 @@ export default function AdminUserDetailPage() {
                 </tr>
               ) : (
                 user.transactions.map((t) => (
-                  <tr key={t.id} className="border-b border-slate-50">
+                  <tr key={t.id} className="border-b border-slate-50 align-top">
                     <td className="px-4 py-2">{formatDate(t.date)}</td>
                     <td className="px-4 py-2 capitalize">{t.type}</td>
                     <td className="px-4 py-2 font-medium">{formatCurrency(t.amount)}</td>
                     <td className="px-4 py-2">
                       <AdminStatusBadge status={t.status} />
                     </td>
-                    <td className="px-4 py-2 text-slate-600">{t.description}</td>
+                    <td className="px-4 py-2 text-slate-600">
+                      <p>{t.description}</p>
+                      {t.type === "deposit" && (
+                        <DepositProofThumbs
+                          depositId={t.id}
+                          description={t.description}
+                          hasProofFront={t.hasProofFront}
+                          hasProofBack={t.hasProofBack}
+                        />
+                      )}
+                    </td>
                   </tr>
                 ))
               )}

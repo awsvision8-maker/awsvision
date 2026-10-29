@@ -31,10 +31,9 @@ async function serializeUserDetail(
 ) {
   const mapped = mapUser(user);
   const snapshot = buildPortfolioSnapshot(mapped);
-  const pending = user.transactions.filter(
-    (t) => t.type === "deposit" && t.status === "pending"
-  );
-  const flagMap = await proofFlagsForIds(pending.map((t) => t.id));
+  const deposits = user.transactions.filter((t) => t.type === "deposit");
+  const pending = deposits.filter((t) => t.status === "pending");
+  const flagMap = await proofFlagsForIds(deposits.map((t) => t.id));
 
   return {
     id: user.id,
@@ -89,16 +88,34 @@ async function serializeUserDetail(
       dailyCompoundEndDate: a.dailyCompoundEndDate?.toISOString() ?? null,
       dailyCompoundRatePercent: a.dailyCompoundRatePercent,
     })),
-    transactions: user.transactions.map((t) => ({
-      id: t.id,
-      userId: t.userId,
-      accountId: t.accountId,
-      type: t.type,
-      amount: t.amount,
-      description: t.description,
-      status: t.status,
-      date: t.date.toISOString(),
-    })),
+    transactions: user.transactions.map((t) => {
+      const f = t.type === "deposit" ? flagMap.get(t.id) : undefined;
+      return {
+        id: t.id,
+        userId: t.userId,
+        accountId: t.accountId,
+        type: t.type,
+        amount: t.amount,
+        description: t.description,
+        status: t.status,
+        date: t.date.toISOString(),
+        hasProofFront: Boolean(f?.hasProofFront),
+        hasProofBack: Boolean(f?.hasProofBack),
+      };
+    }),
+    depositProofs: deposits.map((t) => {
+      const f = flagMap.get(t.id);
+      return {
+        id: t.id,
+        amount: t.amount,
+        description: t.description,
+        status: t.status,
+        date: t.date.toISOString(),
+        accountId: t.accountId,
+        hasProofFront: Boolean(f?.hasProofFront),
+        hasProofBack: Boolean(f?.hasProofBack),
+      };
+    }),
     pendingDeposits: pending.map((t) => {
       const f = flagMap.get(t.id);
       return {
