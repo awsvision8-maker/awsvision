@@ -12,8 +12,8 @@ interface PendingDeposit {
   amount: number;
   description: string;
   date: string;
-  proofFront?: string | null;
-  proofBack?: string | null;
+  hasProofFront?: boolean;
+  hasProofBack?: boolean;
   user: {
     id: string;
     email: string;
@@ -125,9 +125,10 @@ export default function AdminDepositsPage() {
                   <td className="px-6 py-4 max-w-xs text-slate-600">
                     <p>{d.description}</p>
                     <DepositProofThumbs
-                      proofFront={d.proofFront}
-                      proofBack={d.proofBack}
+                      depositId={d.id}
                       description={d.description}
+                      hasProofFront={d.hasProofFront}
+                      hasProofBack={d.hasProofBack}
                     />
                   </td>
                   <td className="px-6 py-4 text-slate-500">{formatDate(d.date)}</td>

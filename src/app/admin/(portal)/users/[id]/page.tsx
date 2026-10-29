@@ -72,8 +72,8 @@ interface UserDetail {
     description: string;
     date: string;
     accountId: string;
-    proofFront?: string | null;
-    proofBack?: string | null;
+    hasProofFront?: boolean;
+    hasProofBack?: boolean;
   }[];
   transactions: {
     id: string;
@@ -249,9 +249,10 @@ export default function AdminUserDetailPage() {
                   <p className="text-sm text-slate-600">{d.description}</p>
                   <p className="text-xs text-slate-400">Submitted {formatDate(d.date)}</p>
                   <DepositProofThumbs
-                    proofFront={d.proofFront}
-                    proofBack={d.proofBack}
+                    depositId={d.id}
                     description={d.description}
+                    hasProofFront={d.hasProofFront}
+                    hasProofBack={d.hasProofBack}
                   />
                 </div>
                 <div className="flex gap-2">

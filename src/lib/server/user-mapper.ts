@@ -11,7 +11,12 @@ import type { NonprofitProfile as DbNonprofitProfile, PortfolioAccount as DbAcco
 type UserWithRelations = DbUser & {
   nonprofitProfile: DbNonprofitProfile | null;
   accounts: DbAccount[];
-  transactions: DbTransaction[];
+  transactions: Array<
+    Pick<
+      DbTransaction,
+      "id" | "accountId" | "type" | "amount" | "description" | "status" | "date"
+    >
+  >;
 };
 
 export function mapPortfolioAccount(row: DbAccount): PortfolioAccount {

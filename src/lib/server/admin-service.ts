@@ -103,10 +103,16 @@ export async function getAdminStats() {
 }
 
 export async function listPendingDeposits() {
-  return prisma.transaction.findMany({
+  // Do NOT select proofFront/proofBack here — base64 images make the admin page hang.
+  // Flags come from a light length check; full images load via /api/admin/deposits/[id]/proof.
+  const deposits = await prisma.transaction.findMany({
     where: { type: "deposit", status: "pending" },
     orderBy: { date: "desc" },
-    include: {
+    select: {
+      id: true,
+      amount: true,
+      description: true,
+      date: true,
       user: {
         select: {
           id: true,
@@ -125,6 +131,32 @@ export async function listPendingDeposits() {
         },
       },
     },
+  });
+
+  if (deposits.length === 0) return [];
+
+  const flags = await prisma.$queryRawUnsafe<
+    { id: string; hasProofFront: boolean; hasProofBack: boolean }[]
+  >(
+    `SELECT id,
+      (COALESCE(length("proofFront"), 0) > 10) AS "hasProofFront",
+      (COALESCE(length("proofBack"), 0) > 10) AS "hasProofBack"
+     FROM "Transaction"
+     WHERE id IN (${deposits.map((_, i) => `$${i + 1}`).join(",")})`,
+    ...deposits.map((d) => d.id)
+  );
+
+  const flagMap = new Map(flags.map((f) => [f.id, f]));
+
+  return deposits.map((d) => {
+    const f = flagMap.get(d.id);
+    return {
+      ...d,
+      proofFront: null as string | null,
+      proofBack: null as string | null,
+      hasProofFront: Boolean(f?.hasProofFront),
+      hasProofBack: Boolean(f?.hasProofBack),
+    };
   });
 }
 
@@ -224,7 +256,22 @@ export async function getUserDetail(userId: string) {
     include: {
       nonprofitProfile: true,
       accounts: true,
-      transactions: { orderBy: { date: "desc" }, take: 100 },
+      // Omit proofFront/proofBack — huge base64 payloads freeze admin user detail.
+      // hasProof flags come from a light length query below in the API mapper.
+      transactions: {
+        orderBy: { date: "desc" },
+        take: 100,
+        select: {
+          id: true,
+          userId: true,
+          accountId: true,
+          type: true,
+          amount: true,
+          description: true,
+          status: true,
+          date: true,
+        },
+      },
       withdrawalRequests: { orderBy: { createdAt: "desc" }, take: 20 },
       kycDocumentRequests: {
         where: { status: "pending" },

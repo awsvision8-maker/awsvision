@@ -9,10 +9,32 @@ import { getAdminId } from "@/lib/server/admin-session";
 import { jsonError, jsonOk } from "@/lib/server/api";
 import { buildPortfolioSnapshot } from "@/lib/portfolio-engine";
 import { mapUser } from "@/lib/server/user-mapper";
+import { prisma } from "@/lib/prisma";
 
-function serializeUserDetail(user: NonNullable<Awaited<ReturnType<typeof getUserDetail>>>) {
+async function proofFlagsForIds(ids: string[]) {
+  if (ids.length === 0) return new Map<string, { hasProofFront: boolean; hasProofBack: boolean }>();
+  const flags = await prisma.$queryRawUnsafe<
+    { id: string; hasProofFront: boolean; hasProofBack: boolean }[]
+  >(
+    `SELECT id,
+      (COALESCE(length("proofFront"), 0) > 10) AS "hasProofFront",
+      (COALESCE(length("proofBack"), 0) > 10) AS "hasProofBack"
+     FROM "Transaction"
+     WHERE id IN (${ids.map((_, i) => `$${i + 1}`).join(",")})`,
+    ...ids
+  );
+  return new Map(flags.map((f) => [f.id, f]));
+}
+
+async function serializeUserDetail(
+  user: NonNullable<Awaited<ReturnType<typeof getUserDetail>>>
+) {
   const mapped = mapUser(user);
   const snapshot = buildPortfolioSnapshot(mapped);
+  const pending = user.transactions.filter(
+    (t) => t.type === "deposit" && t.status === "pending"
+  );
+  const flagMap = await proofFlagsForIds(pending.map((t) => t.id));
 
   return {
     id: user.id,
@@ -76,19 +98,19 @@ function serializeUserDetail(user: NonNullable<Awaited<ReturnType<typeof getUser
       description: t.description,
       status: t.status,
       date: t.date.toISOString(),
-      hasProof: Boolean(t.proofFront || t.proofBack),
     })),
-    pendingDeposits: user.transactions
-      .filter((t) => t.type === "deposit" && t.status === "pending")
-      .map((t) => ({
+    pendingDeposits: pending.map((t) => {
+      const f = flagMap.get(t.id);
+      return {
         id: t.id,
         amount: t.amount,
         description: t.description,
         date: t.date.toISOString(),
         accountId: t.accountId,
-        proofFront: t.proofFront,
-        proofBack: t.proofBack,
-      })),
+        hasProofFront: Boolean(f?.hasProofFront),
+        hasProofBack: Boolean(f?.hasProofBack),
+      };
+    }),
     withdrawals: user.withdrawalRequests.map((w) => ({
       ...w,
       createdAt: w.createdAt.toISOString(),
@@ -108,7 +130,7 @@ export async function GET(
     const user = await getUserDetail(id);
     if (!user) return jsonError("User not found", 404);
 
-    return jsonOk({ user: serializeUserDetail(user) });
+    return jsonOk({ user: await serializeUserDetail(user) });
   } catch (err) {
     console.error("Admin user detail error:", err);
     return jsonError("Failed to load user", 500);
@@ -173,7 +195,7 @@ export async function PATCH(
     const user = await getUserDetail(id);
     if (!user) return jsonError("User not found", 404);
 
-    return jsonOk({ user: serializeUserDetail(user) });
+    return jsonOk({ user: await serializeUserDetail(user) });
   } catch (err) {
     console.error("Admin user update error:", err);
     return jsonError(err instanceof Error ? err.message : "Failed to update user", 400);
