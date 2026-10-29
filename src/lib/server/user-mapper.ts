@@ -35,7 +35,12 @@ export function mapPortfolioAccount(row: DbAccount): PortfolioAccount {
   };
 }
 
-export function mapTransaction(row: DbTransaction): Transaction {
+export function mapTransaction(
+  row: Pick<
+    DbTransaction,
+    "id" | "accountId" | "type" | "amount" | "description" | "status" | "date"
+  >
+): Transaction {
   return {
     id: row.id,
     accountId: row.accountId,
