@@ -26,7 +26,8 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
 
   useInactivityLogout(logout, isAuthenticated && !isLoading && !inPreview);
 
-  const locked = Boolean(user?.accountRestricted) && !inPreview;
+  // Show lock for real clients AND admin/manager preview of a restricted account
+  const locked = Boolean(user?.accountRestricted);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -79,7 +80,7 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
       >
         <PortalSidebar />
         <main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto lg:ml-0">
-          {isViewOnly && (
+          {isViewOnly && !locked && (
             <div className="sticky top-0 z-40 flex flex-wrap items-center justify-between gap-3 border-b border-amber-300 bg-amber-50 px-4 py-2.5 text-amber-950 sm:px-6">
               <div className="flex items-center gap-2 text-sm font-medium">
                 <Eye className="h-4 w-4 shrink-0" />
@@ -106,7 +107,12 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
           {!isViewOnly && !locked && <LiveChatWidget />}
         </main>
       </div>
-      {locked && <AccountRestrictedOverlay />}
+      {locked && (
+        <AccountRestrictedOverlay
+          previewMode={inPreview}
+          onExitPreview={inPreview ? () => void exitPreview() : undefined}
+        />
+      )}
     </div>
   );
 }
