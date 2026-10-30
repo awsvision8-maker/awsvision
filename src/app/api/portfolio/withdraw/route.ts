@@ -1,6 +1,7 @@
 import { requireVerifiedKyc } from "@/lib/server/kyc-guard";
 import { saveWithdrawal } from "@/lib/server/form-service";
 import { jsonError, jsonOk } from "@/lib/server/api";
+import { rejectIfAccountRestricted } from "@/lib/server/account-restriction";
 import { rejectIfAdminPreview } from "@/lib/server/admin-preview-session";
 import { notifyWithdrawal } from "@/lib/server/notifications";
 import { getSessionUserId } from "@/lib/server/session";
@@ -14,6 +15,9 @@ export async function POST(request: Request) {
   if (!userId) {
     return jsonError("Not authenticated", 401);
   }
+
+  const restricted = await rejectIfAccountRestricted(userId);
+  if (restricted) return restricted;
 
   const user = await requireVerifiedKyc(userId);
   if (!user) {

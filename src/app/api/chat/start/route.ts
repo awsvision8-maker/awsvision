@@ -13,6 +13,7 @@ import {
 } from "@/lib/server/presence-service";
 import { getClientGeo } from "@/lib/request-geo";
 import { getSessionUserId } from "@/lib/server/session";
+import { rejectIfAccountRestricted } from "@/lib/server/account-restriction";
 import { rejectIfAdminPreview } from "@/lib/server/admin-preview-session";
 import { jsonError, jsonOk } from "@/lib/server/api";
 import { clientIpFromRequest, verifyRecaptchaToken } from "@/lib/server/verify-recaptcha";
@@ -20,6 +21,12 @@ import { clientIpFromRequest, verifyRecaptchaToken } from "@/lib/server/verify-r
 export async function POST(request: Request) {
   const blocked = await rejectIfAdminPreview();
   if (blocked) return blocked;
+
+  const sessionUserId = await getSessionUserId();
+  if (sessionUserId) {
+    const restricted = await rejectIfAccountRestricted(sessionUserId);
+    if (restricted) return restricted;
+  }
 
   try {
     const body = (await request.json()) as {
@@ -43,7 +50,7 @@ export async function POST(request: Request) {
       return jsonError("Enter a valid email", 400);
     }
 
-    const userId = await getSessionUserId();
+    const userId = sessionUserId;
     const geo = await getClientGeo(request);
     const sessionToken = await getVisitorSessionToken();
     const existingId = await getVisitorConversationId();

@@ -20,6 +20,10 @@ model User {
   profileType  String   @default("individual")
   kycData      String?
   ambassadorId String?
+  /// When true, client portal is locked — non-dismissible restricted overlay only
+  accountRestricted     Boolean   @default(false)
+  accountRestrictedAt   DateTime?
+  accountRestrictedNote String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

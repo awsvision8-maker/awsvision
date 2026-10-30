@@ -94,6 +94,9 @@ export function mapUser(row: UserWithRelations): User {
       : undefined,
     portfolio,
     createdAt: row.createdAt.toISOString(),
+    accountRestricted: Boolean(row.accountRestricted),
+    accountRestrictedAt: row.accountRestrictedAt?.toISOString(),
+    accountRestrictedNote: row.accountRestrictedNote ?? undefined,
   };
 }
 

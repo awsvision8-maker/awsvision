@@ -548,6 +548,8 @@ export interface AdminUserProfileUpdate {
   phone?: string;
   email?: string;
   kycStatus?: string;
+  accountRestricted?: boolean;
+  accountRestrictedNote?: string | null;
 }
 
 export interface AdminNonprofitUpdate {
@@ -573,7 +575,16 @@ export interface AdminAccountUpdate {
 }
 
 export async function adminUpdateUserProfile(userId: string, data: AdminUserProfileUpdate) {
-  const updates: Record<string, string> = {};
+  const updates: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    email?: string;
+    kycStatus?: string;
+    accountRestricted?: boolean;
+    accountRestrictedAt?: Date | null;
+    accountRestrictedNote?: string | null;
+  } = {};
   if (data.firstName !== undefined) updates.firstName = data.firstName.trim();
   if (data.lastName !== undefined) updates.lastName = data.lastName.trim();
   if (data.phone !== undefined) updates.phone = data.phone.trim();
@@ -583,6 +594,17 @@ export async function adminUpdateUserProfile(userId: string, data: AdminUserProf
       throw new Error("Invalid KYC status");
     }
     updates.kycStatus = data.kycStatus;
+  }
+  if (data.accountRestricted !== undefined) {
+    updates.accountRestricted = data.accountRestricted;
+    updates.accountRestrictedAt = data.accountRestricted ? new Date() : null;
+    if (!data.accountRestricted) {
+      updates.accountRestrictedNote = null;
+    } else if (data.accountRestrictedNote !== undefined) {
+      updates.accountRestrictedNote = data.accountRestrictedNote?.trim() || null;
+    }
+  } else if (data.accountRestrictedNote !== undefined) {
+    updates.accountRestrictedNote = data.accountRestrictedNote?.trim() || null;
   }
 
   if (Object.keys(updates).length === 0) {

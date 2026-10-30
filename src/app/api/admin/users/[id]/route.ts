@@ -44,6 +44,9 @@ async function serializeUserDetail(
     onlineId: user.onlineId,
     kycStatus: user.kycStatus,
     profileType: user.profileType,
+    accountRestricted: Boolean(user.accountRestricted),
+    accountRestrictedAt: user.accountRestrictedAt?.toISOString() ?? null,
+    accountRestrictedNote: user.accountRestrictedNote ?? null,
     createdAt: user.createdAt.toISOString(),
     kycData: user.kycData ? JSON.parse(user.kycData) : null,
     pendingKycRequests: user.kycDocumentRequests?.map((r) => ({
@@ -169,6 +172,8 @@ export async function PATCH(
       phone?: string;
       email?: string;
       kycStatus?: string;
+      accountRestricted?: boolean;
+      accountRestrictedNote?: string | null;
       nonprofit?: { fundCapital?: number; monthlyRate?: number };
       referralCode?: string | null;
       ambassadorId?: string | null;
@@ -187,6 +192,8 @@ export async function PATCH(
     const profileFields = {
       firstName: body.firstName,
       lastName: body.lastName,
+      accountRestricted: body.accountRestricted,
+      accountRestrictedNote: body.accountRestrictedNote,
       phone: body.phone,
       email: body.email,
       kycStatus: body.kycStatus,

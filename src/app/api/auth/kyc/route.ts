@@ -1,6 +1,7 @@
 import { updateUserKyc } from "@/lib/server/auth-service";
 import { jsonError, jsonOk } from "@/lib/server/api";
 import { rejectIfAdminPreview } from "@/lib/server/admin-preview-session";
+import { rejectIfAccountRestricted } from "@/lib/server/account-restriction";
 import { getSessionUserId } from "@/lib/server/session";
 import type { KYCData } from "@/types";
 
@@ -12,6 +13,9 @@ export async function POST(request: Request) {
   if (!userId) {
     return jsonError("Not authenticated", 401);
   }
+
+  const restricted = await rejectIfAccountRestricted(userId);
+  if (restricted) return restricted;
 
   try {
     const kycData = (await request.json()) as KYCData;

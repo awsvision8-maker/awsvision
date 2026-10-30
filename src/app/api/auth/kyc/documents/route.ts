@@ -1,5 +1,6 @@
 import { fetchUserById } from "@/lib/server/auth-service";
 import { jsonError, jsonOk } from "@/lib/server/api";
+import { rejectIfAccountRestricted } from "@/lib/server/account-restriction";
 import { rejectIfAdminPreview } from "@/lib/server/admin-preview-session";
 import { submitKycDocumentUpdate } from "@/lib/server/kyc-service";
 import { getSessionUserId } from "@/lib/server/session";
@@ -10,6 +11,9 @@ export async function POST(request: Request) {
 
   const userId = await getSessionUserId();
   if (!userId) return jsonError("Not authenticated", 401);
+
+  const restricted = await rejectIfAccountRestricted(userId);
+  if (restricted) return restricted;
 
   try {
     const body = (await request.json()) as {

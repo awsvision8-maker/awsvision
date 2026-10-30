@@ -1,4 +1,5 @@
 import { jsonError, jsonOk } from "@/lib/server/api";
+import { rejectIfAccountRestricted } from "@/lib/server/account-restriction";
 import { rejectIfAdminPreview } from "@/lib/server/admin-preview-session";
 import { requireVerifiedKyc } from "@/lib/server/kyc-guard";
 import { prisma } from "@/lib/prisma";
@@ -18,6 +19,9 @@ export async function POST(
 
   const userId = await getSessionUserId();
   if (!userId) return jsonError("Not authenticated", 401);
+
+  const restricted = await rejectIfAccountRestricted(userId);
+  if (restricted) return restricted;
 
   const verifiedUser = await requireVerifiedKyc(userId);
   if (!verifiedUser) {

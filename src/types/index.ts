@@ -32,6 +32,10 @@ export interface User {
   profileType?: ProfileType;
   nonprofitProfile?: NonprofitProfile;
   portfolio?: UserPortfolio;
+  /** Admin lock — portal shows only non-dismissible restricted notice */
+  accountRestricted?: boolean;
+  accountRestrictedAt?: string;
+  accountRestrictedNote?: string;
 }
 
 /** Ledger account — principal is deposits; balance is computed with monthly program rate */

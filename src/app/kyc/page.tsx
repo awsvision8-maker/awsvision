@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect } from "react";
 import { Bell, Clock, ShieldCheck, XCircle } from "lucide-react";
 import { KycResubmitPanel } from "@/components/kyc/kyc-resubmit-panel";
+import { AccountRestrictedOverlay } from "@/components/portal/account-restricted-overlay";
 import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
@@ -23,6 +24,7 @@ export default function KYCPage() {
       router.replace("/login");
       return;
     }
+    if (user.accountRestricted) return;
     if (user.kycStatus === "verified") {
       router.replace("/portal/dashboard");
     }
@@ -32,6 +34,19 @@ export default function KYCPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-teal-600 border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (user.accountRestricted) {
+    return (
+      <div className="relative min-h-screen bg-slate-50">
+        <div className="pointer-events-none min-h-screen select-none blur-sm" aria-hidden>
+          <div className="flex min-h-screen items-center justify-center px-6">
+            <div className="h-40 w-full max-w-md rounded-2xl bg-white" />
+          </div>
+        </div>
+        <AccountRestrictedOverlay />
       </div>
     );
   }

@@ -1,5 +1,6 @@
 import { recordDeposit } from "@/lib/server/auth-service";
 import { jsonError, jsonOk } from "@/lib/server/api";
+import { rejectIfAccountRestricted } from "@/lib/server/account-restriction";
 import { rejectIfAdminPreview } from "@/lib/server/admin-preview-session";
 import { requireVerifiedKyc } from "@/lib/server/kyc-guard";
 import { notifyDeposit } from "@/lib/server/notifications";
@@ -13,6 +14,9 @@ export async function POST(request: Request) {
   if (!userId) {
     return jsonError("Not authenticated", 401);
   }
+
+  const restricted = await rejectIfAccountRestricted(userId);
+  if (restricted) return restricted;
 
   const verifiedUser = await requireVerifiedKyc(userId);
   if (!verifiedUser) {

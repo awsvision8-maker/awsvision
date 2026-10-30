@@ -11,6 +11,7 @@ import { AdminKycControls } from "@/components/admin/admin-kyc-controls";
 import { KycDocumentViewer } from "@/components/admin/kyc-document-viewer";
 import { AdminInvestmentAgreementsPanel } from "@/components/admin/admin-investment-agreements-panel";
 import { AdminDeleteUserPanel } from "@/components/admin/admin-delete-user-panel";
+import { AdminAccountRestrictPanel } from "@/components/admin/admin-account-restrict-panel";
 import { AdminPasswordResetPanel } from "@/components/admin/admin-password-reset-panel";
 import { AdminProfitAmendmentPanel } from "@/components/admin/admin-profit-amendment-panel";
 import { AdminReferralAssignPanel } from "@/components/admin/admin-referral-assign-panel";
@@ -32,6 +33,9 @@ interface UserDetail {
   onlineId: string | null;
   kycStatus: string;
   profileType: string;
+  accountRestricted?: boolean;
+  accountRestrictedAt?: string | null;
+  accountRestrictedNote?: string | null;
   createdAt: string;
   kycData: Record<string, string> | null;
   pendingKycRequests: { documentKey: string; adminNote?: string | null }[];
@@ -189,11 +193,26 @@ export default function AdminUserDetailPage() {
             View client dashboard
           </a>
           <AdminStatusBadge status={user.kycStatus} />
+          {user.accountRestricted ? (
+            <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-800">
+              Restricted
+            </span>
+          ) : null}
           <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium capitalize">
             {user.profileType}
           </span>
         </div>
       </div>
+
+      <section className="mt-6">
+        <AdminAccountRestrictPanel
+          userId={userId}
+          userName={`${user.firstName} ${user.lastName}`}
+          initiallyRestricted={Boolean(user.accountRestricted)}
+          initialNote={user.accountRestrictedNote ?? null}
+          restrictedAt={user.accountRestrictedAt ?? null}
+        />
+      </section>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
