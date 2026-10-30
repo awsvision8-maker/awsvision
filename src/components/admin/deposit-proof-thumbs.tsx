@@ -17,6 +17,12 @@ function looksLikeEcheck(description?: string) {
   return Boolean(description && /echeck|e-check|cheque/i.test(description));
 }
 
+function looksLikePaymentSlip(description?: string) {
+  return Boolean(
+    description && /ach transfer|wire transfer|zelle/i.test(description)
+  );
+}
+
 export function DepositProofThumbs({
   depositId,
   description,
@@ -33,6 +39,11 @@ export function DepositProofThumbs({
   const [error, setError] = useState<string | null>(null);
 
   const isEcheck = looksLikeEcheck(description);
+  const isSlip = looksLikePaymentSlip(description);
+  const expectsProof = isEcheck || isSlip;
+  const frontLabel = isEcheck ? "Front" : "Slip";
+  const backLabel = isEcheck ? "Back" : "Extra";
+  const viewLabel = isEcheck ? "View cheque screenshots" : "View payment slip";
   const hasAny =
     Boolean(hasProofFront || hasProofBack || front || back || inlineFront || inlineBack);
 
@@ -55,11 +66,13 @@ export function DepositProofThumbs({
   };
 
   if (!hasAny) {
-    if (!isEcheck) return null;
+    if (!expectsProof) return null;
     return (
       <p className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-900">
         <AlertTriangle className="h-3.5 w-3.5" />
-        No cheque screenshots on file — ask client to re-upload on Deposit page
+        {isEcheck
+          ? "No cheque screenshots on file — ask client to re-upload on Deposit page"
+          : "No payment slip on file — ask client to re-upload on Deposit page"}
       </p>
     );
   }
@@ -78,7 +91,7 @@ export function DepositProofThumbs({
           ) : (
             <Eye className="h-3.5 w-3.5" />
           )}
-          {loading ? "Loading…" : "View cheque screenshots"}
+          {loading ? "Loading…" : viewLabel}
         </button>
         {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
       </div>
@@ -93,12 +106,12 @@ export function DepositProofThumbs({
             type="button"
             onClick={() => setPreview(front)}
             className="overflow-hidden rounded-lg border border-slate-200 bg-white cursor-pointer hover:ring-2 hover:ring-teal-500/40"
-            title="View check front"
+            title={`View ${frontLabel.toLowerCase()}`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={front} alt="Check front" className="h-16 w-24 object-cover" />
+            <img src={front} alt={frontLabel} className="h-16 w-24 object-cover" />
             <span className="block bg-slate-50 px-1 py-0.5 text-center text-[10px] text-slate-500">
-              Front
+              {frontLabel}
             </span>
           </button>
         )}
@@ -107,12 +120,12 @@ export function DepositProofThumbs({
             type="button"
             onClick={() => setPreview(back)}
             className="overflow-hidden rounded-lg border border-slate-200 bg-white cursor-pointer hover:ring-2 hover:ring-teal-500/40"
-            title="View check back"
+            title={`View ${backLabel.toLowerCase()}`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={back} alt="Check back" className="h-16 w-24 object-cover" />
+            <img src={back} alt={backLabel} className="h-16 w-24 object-cover" />
             <span className="block bg-slate-50 px-1 py-0.5 text-center text-[10px] text-slate-500">
-              Back
+              {backLabel}
             </span>
           </button>
         )}
@@ -136,7 +149,7 @@ export function DepositProofThumbs({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={preview}
-            alt="Check screenshot"
+            alt="Deposit proof screenshot"
             className="max-h-[90vh] max-w-[95vw] rounded-lg object-contain shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           />

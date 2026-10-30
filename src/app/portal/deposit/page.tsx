@@ -21,6 +21,7 @@ import {
   DEPOSIT_METHODS,
   ZELLE_DEPOSIT,
   buildDepositReference,
+  depositMethodNeedsSlip,
   type DepositMethodId,
 } from "@/lib/deposit-instructions";
 import { getAccountLabel } from "@/lib/portfolio-engine";
@@ -44,12 +45,15 @@ export default function DepositPage() {
   const [checkFrontPreview, setCheckFrontPreview] = useState("");
   const [checkBackName, setCheckBackName] = useState("");
   const [checkBackPreview, setCheckBackPreview] = useState("");
+  const [slipName, setSlipName] = useState("");
+  const [slipPreview, setSlipPreview] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [reference] = useState(() => buildDepositReference(Date.now().toString().slice(-8)));
 
   const isNonprofit = user?.profileType === "nonprofit" && !!user.nonprofitProfile;
+  const needsSlip = depositMethodNeedsSlip(method);
 
   const accountOptions = useMemo(
     () =>
@@ -68,6 +72,9 @@ export default function DepositPage() {
     if (method === "echeck") {
       return Boolean(checkFrontPreview && checkBackPreview);
     }
+    if (needsSlip) {
+      return Boolean(slipPreview);
+    }
     return true;
   };
 
@@ -78,6 +85,19 @@ export default function DepositPage() {
     setCheckFrontPreview("");
     setCheckBackName("");
     setCheckBackPreview("");
+    setSlipName("");
+    setSlipPreview("");
+  };
+
+  const handleMethodChange = (next: DepositMethodId) => {
+    setMethod(next);
+    setSubmitError(null);
+    setCheckFrontName("");
+    setCheckFrontPreview("");
+    setCheckBackName("");
+    setCheckBackPreview("");
+    setSlipName("");
+    setSlipPreview("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -87,6 +107,10 @@ export default function DepositPage() {
       if (method === "echeck") {
         setSubmitError(
           "eCheck / cheque deposits require screenshots of both the front and back of the check."
+        );
+      } else if (needsSlip) {
+        setSubmitError(
+          "Upload a screenshot of your payment confirmation slip before submitting this deposit."
         );
       }
       return;
@@ -112,14 +136,21 @@ export default function DepositPage() {
               proofFront: checkFrontPreview,
               proofBack: checkBackPreview,
             }
-          : { method }
+          : needsSlip
+            ? {
+                method,
+                proofFront: slipPreview,
+              }
+            : { method }
       );
       if (ok) setSubmitted(true);
       else {
         setSubmitError(
           method === "echeck"
             ? "Could not submit eCheck. Make sure both check screenshots are uploaded and try again."
-            : "Could not submit deposit. Please try again."
+            : needsSlip
+              ? "Could not submit deposit. Make sure your payment slip screenshot is uploaded and try again."
+              : "Could not submit deposit. Please try again."
         );
       }
     } catch (err) {
@@ -154,14 +185,10 @@ export default function DepositPage() {
             <p className="mt-2 max-w-md text-slate-500 leading-relaxed">
               Your deposit of {formatCurrency(Number(amount))} has been submitted for admin review.
               It will <strong>not</strong> appear in your balance until approved.
-              {method === "ach" &&
-                " Complete your ACH transfer using the ACH bank details below and include your reference."}
-              {method === "wire" &&
-                " Complete your wire transfer using the wire bank details below and include your reference."}
               {method === "echeck" &&
                 " Your check images are attached. Funds will be credited after admin verification and approval."}
-              {method === "zelle" &&
-                ` Send ${formatCurrency(Number(amount))} via Zelle to ${ZELLE_DEPOSIT.email} and include reference ${reference} in the memo.`}
+              {needsSlip &&
+                " Your payment confirmation slip is attached for admin verification."}
             </p>
           </div>
 
@@ -174,18 +201,18 @@ export default function DepositPage() {
               <CardContent className="space-y-3 pt-6 text-sm">
                 <div className="flex items-center gap-2 text-teal-700">
                   <Smartphone className="h-5 w-5" />
-                  <span className="font-semibold">Zelle payment instructions</span>
+                  <span className="font-semibold">Zelle payment details on file</span>
                 </div>
                 <div className="flex flex-col gap-1 border-b border-slate-100 pb-3 sm:flex-row sm:justify-between sm:gap-3">
                   <span className="text-slate-500">Zelle email</span>
                   <span className="font-medium text-slate-900 break-all">{ZELLE_DEPOSIT.email}</span>
                 </div>
                 <div className="flex flex-col gap-1 border-b border-slate-100 pb-3 sm:flex-row sm:justify-between sm:gap-3">
-                  <span className="text-slate-500">Amount to send</span>
+                  <span className="text-slate-500">Amount</span>
                   <span className="font-bold text-slate-900">{formatCurrency(Number(amount))}</span>
                 </div>
                 <div className="flex flex-col gap-1 sm:flex-row sm:justify-between sm:gap-3">
-                  <span className="text-slate-500">Memo / note</span>
+                  <span className="text-slate-500">Reference</span>
                   <span className="font-mono text-sm font-medium break-all">{reference}</span>
                 </div>
               </CardContent>
@@ -199,6 +226,17 @@ export default function DepositPage() {
                   Check images received: <strong>{checkFrontName}</strong> (front) and{" "}
                   <strong>{checkBackName}</strong> (back). You will receive a confirmation email when
                   funds are posted.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {needsSlip && slipName && (
+            <Card>
+              <CardContent className="pt-6 text-sm text-slate-600">
+                <p>
+                  Payment slip received: <strong>{slipName}</strong>. Admin will verify and credit
+                  your account after review.
                 </p>
               </CardContent>
             </Card>
@@ -241,7 +279,7 @@ export default function DepositPage() {
                   <button
                     key={pm.id}
                     type="button"
-                    onClick={() => setMethod(pm.id)}
+                    onClick={() => handleMethodChange(pm.id)}
                     className={`rounded-lg border p-4 text-left transition-all cursor-pointer ${
                       method === pm.id
                         ? "border-teal-500 bg-teal-50 ring-2 ring-teal-500/20"
@@ -272,8 +310,9 @@ export default function DepositPage() {
               </div>
               <p className="text-2xl font-bold text-slate-900 break-all">{ZELLE_DEPOSIT.email}</p>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Open Zelle in your banking app, send your deposit amount to this email, and include
-                your AWS Vision account reference in the payment note after submitting below.
+                Open Zelle in your banking app, send your deposit amount to this email with reference{" "}
+                <strong className="font-mono">{reference}</strong> in the memo, then upload the
+                confirmation screenshot below before submitting.
               </p>
             </CardContent>
           </Card>
@@ -327,6 +366,45 @@ export default function DepositPage() {
           </Card>
         )}
 
+        {needsSlip && (
+          <Card className="border-amber-200">
+            <CardHeader>
+              <CardTitle>Payment Confirmation Slip (Required)</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+                Complete your{" "}
+                {method === "ach" ? "ACH transfer" : method === "wire" ? "wire transfer" : "Zelle payment"}{" "}
+                first, then upload a clear screenshot of the confirmation / receipt. You cannot
+                submit this deposit without the slip.
+              </p>
+              <p className="text-sm text-slate-600">
+                The screenshot should show amount, date, recipient, and your reference{" "}
+                <strong className="font-mono">{reference}</strong> when possible.
+              </p>
+              <DocumentUpload
+                label={
+                  method === "zelle"
+                    ? "Zelle confirmation screenshot (required)"
+                    : `${method === "ach" ? "ACH" : "Wire"} payment slip / confirmation (required)`
+                }
+                fileName={slipName}
+                preview={slipPreview}
+                required
+                onChange={(file, preview) => {
+                  setSlipName(file.name);
+                  setSlipPreview(preview);
+                  setSubmitError(null);
+                }}
+                onClear={() => {
+                  setSlipName("");
+                  setSlipPreview("");
+                }}
+              />
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle>Deposit Details</CardTitle>
@@ -353,27 +431,29 @@ export default function DepositPage() {
 
               {method === "ach" && (
                 <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
-                  After submitting, send {amount ? formatCurrency(Number(amount)) : "your deposit"}{" "}
-                  via <strong>ACH</strong> to <strong>TEAMBASE TAX & ACCOUNTING SERVICES LLC</strong>{" "}
+                  Send {amount ? formatCurrency(Number(amount)) : "your deposit"} via{" "}
+                  <strong>ACH</strong> to <strong>TEAMBASE TAX & ACCOUNTING SERVICES LLC</strong>{" "}
                   using account <strong>2915646531</strong> and routing <strong>044000037</strong>.
-                  Reference: <strong className="font-mono">{reference}</strong>
+                  Reference: <strong className="font-mono">{reference}</strong>. Then upload the
+                  confirmation slip above before submitting.
                 </p>
               )}
 
               {method === "wire" && (
                 <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
-                  After submitting, send {amount ? formatCurrency(Number(amount)) : "your deposit"}{" "}
-                  via <strong>wire</strong> to <strong>TEAMBASE TAX & ACCOUNTING SERVICES LLC</strong>{" "}
+                  Send {amount ? formatCurrency(Number(amount)) : "your deposit"} via{" "}
+                  <strong>wire</strong> to <strong>TEAMBASE TAX & ACCOUNTING SERVICES LLC</strong>{" "}
                   using account <strong>2915646531</strong> and routing <strong>021000021</strong>.
-                  Reference: <strong className="font-mono">{reference}</strong>
+                  Reference: <strong className="font-mono">{reference}</strong>. Then upload the
+                  confirmation slip above before submitting.
                 </p>
               )}
 
               {method === "zelle" && (
                 <p className="rounded-lg bg-violet-50 px-3 py-2 text-xs text-violet-900">
-                  Send to <strong>{ZELLE_DEPOSIT.email}</strong> via Zelle after submitting this
-                  request. Use reference <strong className="font-mono">{reference}</strong> in the Zelle
-                  memo so we can match your payment.
+                  Send to <strong>{ZELLE_DEPOSIT.email}</strong> via Zelle with reference{" "}
+                  <strong className="font-mono">{reference}</strong> in the memo, then upload the
+                  confirmation screenshot above before submitting.
                 </p>
               )}
 
@@ -382,9 +462,18 @@ export default function DepositPage() {
                   Upload both check screenshots above before submitting.
                 </p>
               )}
+              {needsSlip && !canSubmit() && (
+                <p className="text-xs text-amber-800">
+                  Upload your payment confirmation slip above before submitting.
+                </p>
+              )}
               {submitError && <p className="text-sm text-red-600">{submitError}</p>}
               <Button type="submit" className="w-full" disabled={!canSubmit() || submitting} loading={submitting}>
-                {method === "echeck" ? "Submit eCheck Deposit" : "Submit Deposit Request"}
+                {method === "echeck"
+                  ? "Submit eCheck Deposit"
+                  : needsSlip
+                    ? "Submit Deposit with Slip"
+                    : "Submit Deposit Request"}
               </Button>
             </form>
           </CardContent>

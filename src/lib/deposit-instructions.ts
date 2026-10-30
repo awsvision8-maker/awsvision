@@ -31,14 +31,14 @@ export const DEPOSIT_METHODS = [
   {
     id: "ach" as const,
     label: "ACH Transfer",
-    desc: "Send an ACH / bank transfer using the ACH account details below",
-    timing: "3–5 business days · No fee",
+    desc: "Send ACH, then upload your payment confirmation slip to submit",
+    timing: "3–5 business days · No fee · Slip screenshot required",
   },
   {
     id: "wire" as const,
     label: "Wire Transfer",
-    desc: "Send a domestic wire using the wire account details below",
-    timing: "1–2 business days · No fee",
+    desc: "Send wire, then upload your payment confirmation slip to submit",
+    timing: "1–2 business days · No fee · Slip screenshot required",
   },
   {
     id: "echeck" as const,
@@ -49,12 +49,17 @@ export const DEPOSIT_METHODS = [
   {
     id: "zelle" as const,
     label: "Zelle Payment",
-    desc: `Send to ${ZELLE_DEPOSIT.email}`,
-    timing: "Typically available within minutes during business hours",
+    desc: `Send to ${ZELLE_DEPOSIT.email}, then upload your Zelle confirmation screenshot`,
+    timing: "Typically minutes · Confirmation screenshot required",
   },
 ] as const;
 
 export type DepositMethodId = (typeof DEPOSIT_METHODS)[number]["id"];
+
+/** Methods that require a payment-slip / confirmation screenshot (single image). */
+export function depositMethodNeedsSlip(method: DepositMethodId) {
+  return method === "ach" || method === "wire" || method === "zelle";
+}
 
 export function buildDepositReference(suffix: string) {
   return `DEP-${suffix}`;

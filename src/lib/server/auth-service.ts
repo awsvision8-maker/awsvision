@@ -222,6 +222,11 @@ export async function submitDepositRequest(
     method === "cheque" ||
     method === "check" ||
     /echeck|e-check|cheque/i.test(description);
+  const needsPaymentSlip =
+    method === "ach" ||
+    method === "wire" ||
+    method === "zelle" ||
+    /ach transfer|wire transfer|zelle/i.test(description);
 
   let proofFront: string | null = null;
   let proofBack: string | null = null;
@@ -238,6 +243,23 @@ export async function submitDepositRequest(
     }
     proofFront = options!.proofFront!;
     proofBack = options!.proofBack!;
+  } else if (needsPaymentSlip) {
+    if (!isDataImage(options?.proofFront)) {
+      throw new Error(
+        "ACH, wire, and Zelle deposits require a screenshot of your payment confirmation slip"
+      );
+    }
+    if (options!.proofFront!.length > 5_500_000) {
+      throw new Error("Payment slip image is too large. Please upload a smaller screenshot.");
+    }
+    proofFront = options!.proofFront!;
+    // Optional second image (e.g. extra confirmation page)
+    if (isDataImage(options?.proofBack)) {
+      if (options!.proofBack!.length > 5_500_000) {
+        throw new Error("Payment slip image is too large. Please upload a smaller screenshot.");
+      }
+      proofBack = options!.proofBack!;
+    }
   }
 
   const portfolio = {
