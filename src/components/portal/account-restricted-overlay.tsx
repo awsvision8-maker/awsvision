@@ -1,12 +1,13 @@
 "use client";
 
-import { Ban, Mail, X } from "lucide-react";
+import Link from "next/link";
+import { ArrowDownToLine, Ban, Mail, X } from "lucide-react";
 import { SITE } from "@/lib/site-config";
 import { useAuth } from "@/lib/auth-context";
 
 /**
- * Non-dismissible full-portal lock when admin has restricted the account.
- * Blurs the dashboard behind; only support contact (and sign out / exit preview) remain.
+ * Non-dismissible portal lock when admin has restricted the account.
+ * Deposit Funds remains available; everything else stays blocked.
  */
 export function AccountRestrictedOverlay({
   previewMode = false,
@@ -46,12 +47,19 @@ export function AccountRestrictedOverlay({
           id="account-restricted-desc"
           className="mt-3 text-center text-sm leading-relaxed text-slate-600"
         >
-          Your AWS Vision account has been restricted. You cannot access portal features while this
-          status is active. Please contact support for assistance.
+          Your AWS Vision account has been restricted. Most portal features are unavailable. You can
+          still deposit funds, or contact support for help.
         </p>
+        <Link
+          href="/portal/deposit"
+          className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-teal-600 px-4 py-3 text-sm font-semibold text-white hover:bg-teal-700"
+        >
+          <ArrowDownToLine className="h-4 w-4" />
+          Deposit Funds
+        </Link>
         <a
           href={`mailto:${SITE.email}?subject=${encodeURIComponent("Account restricted — support request")}`}
-          className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-teal-600 px-4 py-3 text-sm font-semibold text-white hover:bg-teal-700"
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50"
         >
           <Mail className="h-4 w-4" />
           Contact support — {SITE.email}

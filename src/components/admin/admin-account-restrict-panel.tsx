@@ -101,8 +101,9 @@ export function AdminAccountRestrictPanel({
                 : "mt-1 text-sm text-slate-600"
             }
           >
-            Restrict this client so they cannot use the portal. On login they only see a locked notice
-            to contact <strong>{SITE.email}</strong> — dashboard stays blurred and no actions work.
+            Restrict this client so most portal features are locked. On login they see a notice to
+            contact <strong>{SITE.email}</strong>. <strong>Deposit Funds</strong> stays available;
+            withdraw and other actions stay blocked.
           </p>
 
           {restricted && (

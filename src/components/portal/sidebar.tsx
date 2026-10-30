@@ -40,7 +40,12 @@ const navItems = [
   { href: "/portal/mortgage", label: "Mortgage", icon: Home, soon: true },
 ];
 
-export function PortalSidebar() {
+export function PortalSidebar({
+  restrictedDepositOnly = false,
+}: {
+  /** When account is restricted, only Deposit remains in the nav. */
+  restrictedDepositOnly?: boolean;
+}) {
   const pathname = usePathname();
   const {
     user,
@@ -54,14 +59,19 @@ export function PortalSidebar() {
   const [unreadCount, setUnreadCount] = useState(0);
   const inPreview = adminPreview || managerPreview;
 
+  const visibleNav = restrictedDepositOnly
+    ? navItems.filter((item) => item.href === "/portal/deposit")
+    : navItems;
+
   const loadUnread = useCallback(() => {
+    if (restrictedDepositOnly) return;
     fetch("/api/notifications")
       .then((r) => r.json())
       .then((d) => {
         if (typeof d.unreadCount === "number") setUnreadCount(d.unreadCount);
       })
       .catch(() => {});
-  }, []);
+  }, [restrictedDepositOnly]);
 
   useEffect(() => {
     loadUnread();
@@ -74,7 +84,12 @@ export function PortalSidebar() {
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto p-4">
-        {navItems.map((item) => {
+        {restrictedDepositOnly && (
+          <p className="mb-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-[11px] leading-relaxed text-red-200">
+            Account restricted — Deposit Funds only
+          </p>
+        )}
+        {visibleNav.map((item) => {
           const active = pathname === item.href;
           return (
             <Link
