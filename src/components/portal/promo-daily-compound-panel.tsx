@@ -248,7 +248,7 @@ export function PromoDailyCompoundPanel({
           <div>
             <div className="inline-flex items-center gap-1.5 rounded-full border border-teal-400/20 bg-teal-400/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-teal-300">
               <Sparkles className="h-3 w-3" />
-              Wealth Accelerator · Bank treasury book
+              Wealth Accelerator · Multi-bank network
             </div>
             <CardTitle className="mt-2.5 text-xl font-semibold tracking-tight text-white sm:text-2xl">
               {accountLabel ?? "Promo FD"}
@@ -258,12 +258,12 @@ export function PromoDailyCompoundPanel({
             </CardTitle>
             <p className="mt-1.5 max-w-xl text-sm text-slate-400">
               {waiting
-                ? `First mark on ${formatDate(live.program.firstProfitDate)} — capital staged like a bank book (yields, Treasuries, bonds, indices, RE).`
+                ? `First mark on ${formatDate(live.program.firstProfitDate)} — your capital is allocated across our connected partner-bank network (yields, Treasuries, bonds, indices, RE).`
                 : `Day ${live.program.dayNumber}${
                     live.program.totalProgramDays
                       ? ` of ${live.program.totalProgramDays}`
                       : ""
-                  } · Auto buy/sell on yields · Treasuries · bonds · indices · RE · settles to ${live.programReturnPercent}%`}
+                  } · Live buy/sell across connected banks · yields · Treasuries · bonds · indices · RE · settles to ${live.programReturnPercent}%`}
               {live.program.endDate ? ` · Ends ${formatDate(live.program.endDate)}` : ""}
             </p>
           </div>
@@ -427,11 +427,11 @@ export function PromoDailyCompoundPanel({
         <div>
           <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-100">
             <Landmark className="h-4 w-4 text-teal-400" />
-            How banks deploy this capital
+            Connected banks investing this capital
           </div>
           <p className="mb-3 text-xs text-slate-500">
-            Live marks across yields, government securities, bonds, equity indices, and real
-            estate — the same sleeves large banks use for treasury investment books.
+            Live allocations across our multi-bank network — yields, government securities, bonds,
+            equity indices, and real estate desks working your capital in parallel.
           </p>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
             {live.sleeves.map((s) => (
@@ -484,7 +484,7 @@ export function PromoDailyCompoundPanel({
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-sm font-semibold text-slate-100">
               <Bot className="h-4 w-4 text-violet-300" />
-              Automation desk — live buy &amp; sell
+              Bank desks — live buy &amp; sell
               <span className="relative ml-1 flex h-1.5 w-1.5">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-violet-400 opacity-60" />
                 <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-violet-400" />
@@ -500,9 +500,10 @@ export function PromoDailyCompoundPanel({
             </p>
           </div>
           <p className="mb-3 text-xs text-slate-500">
-            Random automated purchases and sales across yields, Treasuries, bonds, indices, and
-            real estate — priced from live rates. Book mark rises/falls with each fill; program
-            path still settles to +{live.programReturnPercent}% by month {live.termMonths}.
+            Live buy &amp; sell flowing through connected partner banks across yields, Treasuries,
+            bonds, indices, and real estate — priced from live market rates. Your mark moves with
+            each fill; program path settles to +{live.programReturnPercent}% by month{" "}
+            {live.termMonths}.
           </p>
           <div className="overflow-hidden rounded-xl border border-violet-500/20 bg-black/30">
             <div className="grid grid-cols-[52px_1fr_72px_88px_72px] gap-1 border-b border-white/10 px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500 sm:grid-cols-[56px_1fr_80px_100px_88px]">
@@ -515,7 +516,7 @@ export function PromoDailyCompoundPanel({
             <div className="max-h-64 overflow-y-auto">
               {live.trades.length === 0 ? (
                 <p className="px-3 py-6 text-center text-xs text-slate-500">
-                  Waiting for next automated fill…
+                  Waiting for next fill from connected bank desks…
                 </p>
               ) : (
                 live.trades.map((t, i) => (
