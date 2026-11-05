@@ -10,18 +10,25 @@
 
 | Cluster | Primary page | Support |
 |--------|--------------|---------|
+| AWS Vision / AWS banking / AWS capital | `/` + `/about` | `/guides/aws-vision-banking-and-capital` |
+| Investment services / firms / companies | `/investment-management` | `/guides/investment-services-companies`, `/guides/best-investment-firms` |
 | Investment Firm Texas | `/` + `/serving-texas` + `/investment-management` | Guides |
 | Investment Advisor Texas | `/investment-advisory` | `/guides/how-to-choose-investment-advisor-texas` |
-| Investment Management Texas | `/investment-management` | `/guides/what-does-investment-management-firm-do` |
-| Financial Advisor Texas | `/investment-advisory` + `/financial-planning` | `/guides/how-to-choose-financial-advisor-texas` |
-| Wealth Management Texas | `/wealth-management` | `/guides/texas-online-wealth-management` |
+| Investment Management Texas / Dallas | `/investment-management` + `/serving-texas/dallas` | `/guides/investment-management-dallas` |
+| Financial Advisor Texas / Plano | `/investment-advisory` + `/serving-texas/plano` | `/guides/financial-advisor-plano-tx` |
+| Wealth Management Texas / Frisco | `/wealth-management` + `/serving-texas/frisco` | `/guides/wealth-management-frisco-tx` |
+| Wealth vs investment management | `/wealth-management` | `/guides/wealth-management-vs-investment-management` |
+| Retirement planning Dallas / DFW income | `/financial-planning` + `/serving-texas/dallas` | `/guides/retirement-planning-dallas` |
+| Online investment advisor | `/investment-advisory` | `/guides/online-investment-advisor` |
 | Portfolio Management Texas | `/portfolio-management` | `/guides/how-does-portfolio-management-work` |
 | Financial Advisor Dallas | `/serving-texas/dallas` | Dallas guides links |
 | Investment Advisor Dallas | `/serving-texas/dallas` | `/investment-advisory` |
 | Wealth Management Dallas | `/serving-texas/dallas` | `/wealth-management` |
 | Investment Firm Dallas | `/serving-texas/dallas` | `/investment-management` |
 
-Then expand: Houston → Austin → Fort Worth → San Antonio (same pattern).
+Then expand: Houston → Austin → Fort Worth → San Antonio → El Paso → Plano → Frisco → McKinney (same pattern).
+
+**Out-of-Texas long-tails** (Bismarck, Detroit, Milwaukee, Laramie, Scottsdale, etc.): map to `/serving-united-states/[state]` + matching US city pages — do not create thin Texas-clone city spam.
 
 ## “Best financial firm” keywords
 

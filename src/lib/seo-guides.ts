@@ -997,31 +997,48 @@ export const SEO_GUIDES: SeoGuide[] = [
     slug: "wealth-management-vs-investment-management",
     title: "Wealth Management vs Investment Management",
     description:
-      "Compare wealth management and investment management — how Texas clients use each concept when evaluating online firms like AWS Vision.",
+      "What is the difference between wealth management and investment management? Clear comparison for Texas and U.S. clients evaluating AWS Vision and other firms.",
     keywords: [
       "Wealth Management vs Investment Management",
+      "wealth management vs investment management",
+      "what is the difference between wealth management investment management",
+      "difference between wealth management and investment management",
+      "difference between investment management and wealth management",
+      "investment vs wealth management",
+      "wealth vs investment management",
+      "wealth and investment management",
       "Wealth Management Texas",
       "Investment Management Texas",
     ],
     category: "Wealth",
-    readTime: "6 min",
+    readTime: "8 min",
     sections: [
       {
         heading: "Investment management focus",
         body: [
-          "Usually centers on how capital is allocated and tracked across products or portfolios.",
+          "Investment management usually centers on how capital is allocated and tracked across products or portfolios — savings, fixed deposits, wealth tiers, and statements.",
+          "Searchers comparing investment management dallas or investment management texas often want this product-and-portfolio layer first.",
         ],
       },
       {
         heading: "Wealth management focus",
         body: [
-          "Often broader — plan tiers, statements, and long-term capital growth alongside related education.",
+          "Wealth management is often broader — plan tiers, long-term capital growth, education, and ongoing portal monitoring alongside related planning questions.",
+          "Queries like wealth and investment management or wealth management and investment management usually want both layers explained clearly.",
+        ],
+      },
+      {
+        heading: "How AWS Vision presents both",
+        body: [
+          "At awsvision.com we offer online investment services and wealth plans for Texas and U.S. clients. Read /investment-management and /wealth-management, then compare published rates before you enroll.",
+          "Educational only — not personalized investment, tax, or legal advice.",
         ],
       },
     ],
     related: [
       { label: "Investment management", href: "/investment-management" },
       { label: "Wealth management", href: "/wealth-management" },
+      { label: "Dallas", href: "/serving-texas/dallas" },
       { label: "Austin", href: "/serving-texas/austin" },
     ],
   },
@@ -1293,26 +1310,49 @@ export const SEO_GUIDES: SeoGuide[] = [
     slug: "retirement-planning-dallas",
     title: "Retirement Planning Dallas — Online Options for DFW",
     description:
-      "Retirement planning in Dallas / DFW: how to combine savings, fixed deposits, and wealth plans online with AWS Vision Financial.",
+      "Retirement planning Dallas TX and DFW retirement income planning: combine savings, fixed deposits, and wealth plans online with AWS Vision Financial.",
     keywords: [
       "Retirement Planning Dallas",
+      "retirement planning dallas tx",
+      "dallas retirement planning",
+      "dallas retirement income planning",
+      "retirement income planning dallas",
+      "retirement income planning dallas tx",
+      "retirement income planning dfw",
+      "dallas retirement planner",
+      "retirement planning for federal employees in dallas",
+      "fers retirement planner dallas",
+      "dallas tax focused retirement planning",
+      "dallas financial planning for retirees",
       "Retirement Advisor Dallas",
       "Retirement Financial Advisor Dallas",
       "retirement investing Dallas TX",
     ],
     category: "Retirement",
-    readTime: "7 min",
+    readTime: "8 min",
     sections: [
       {
         heading: "Dallas retirement basics",
         body: [
-          "Map when you need income, then choose flexible savings vs locked FD terms vs longer wealth plans. Coordinate tax questions with a CPA.",
+          "Map when you need income, then choose flexible savings vs locked FD terms vs longer wealth plans. Coordinate tax questions with a CPA — especially for Dallas tax-focused retirement planning.",
+        ],
+      },
+      {
+        heading: "Retirement income planning in DFW",
+        body: [
+          "Searchers for dallas retirement income planning or retirement income planning dfw usually want a clear path from capital to scheduled withdrawals or monthly program income. Review /rates and /financial-planning before you enroll.",
+        ],
+      },
+      {
+        heading: "Federal employees in Dallas",
+        body: [
+          "Queries like retirement planning for federal employees in dallas or fers retirement planner dallas often need benefits coordination beyond any single investment firm. Use AWS Vision for online savings, FD, and wealth accounts; confirm FERS/TSP decisions with your agency benefits office or a licensed specialist.",
         ],
       },
       {
         heading: "DFW remote enrollment",
         body: [
-          "Dallas residents can open accounts online — see our Dallas page and retirement Texas guide.",
+          "Dallas residents can open accounts online — see our Dallas page and retirement Texas guide. Educational only — not personalized advice.",
         ],
       },
     ],
@@ -1320,6 +1360,7 @@ export const SEO_GUIDES: SeoGuide[] = [
       { label: "Dallas", href: "/serving-texas/dallas" },
       { label: "Retirement Texas", href: "/guides/retirement-planning-texas" },
       { label: "Financial planning", href: "/financial-planning" },
+      { label: "Investment management Dallas", href: "/guides/investment-management-dallas" },
     ],
   },
   {
@@ -2092,6 +2133,332 @@ export const SEO_GUIDES: SeoGuide[] = [
       { label: "Investment company Texas", href: "/guides/investment-company-texas" },
       { label: "Best financial firm Texas", href: "/guides/best-financial-firm-texas" },
       { label: "Compare", href: "/compare" },
+    ],
+  },
+  {
+    slug: "investment-management-dallas",
+    title: "Investment Management Dallas TX — Online Options for DFW",
+    description:
+      "Investment management Dallas TX and Dallas investment management services: how DFW clients use AWS Vision online for portfolios, savings, and wealth plans.",
+    keywords: [
+      "investment management dallas",
+      "investment management dallas tx",
+      "dallas investment management",
+      "dallas investment management services",
+      "investment firm dallas",
+      "investment firms in dallas",
+      "investment firms in dallas tx",
+      "dallas investment firms",
+      "asset management companies in dallas",
+      "dallas asset management firms",
+      "Investment Management Dallas",
+    ],
+    category: "Investing",
+    readTime: "7 min",
+    sections: [
+      {
+        heading: "What Dallas searchers usually want",
+        body: [
+          "Queries for investment management dallas or dallas investment management services typically mean: clear products, portal tracking, honest rates, and support you can reach by phone.",
+          "AWS Vision serves Dallas and DFW online — no invented retail storefront for Maps.",
+        ],
+      },
+      {
+        heading: "How to compare Dallas investment firms",
+        body: [
+          "Match the legal name on the site to your agreements.",
+          "Ask whether service is branch, hybrid, or fully remote.",
+          "Review /rates and /compare before you fund.",
+        ],
+      },
+      {
+        heading: "Next steps",
+        body: [
+          "Start at /serving-texas/dallas and /investment-management, then apply at /signup when ready. Educational only.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Dallas", href: "/serving-texas/dallas" },
+      { label: "Investment management", href: "/investment-management" },
+      { label: "Best investment firm Dallas", href: "/guides/best-investment-firm-dallas" },
+      { label: "Retirement planning Dallas", href: "/guides/retirement-planning-dallas" },
+    ],
+  },
+  {
+    slug: "financial-advisor-plano-tx",
+    title: "Financial Advisor Plano TX — Online Wealth & Investing",
+    description:
+      "Looking for a financial advisor in Plano TX? Compare online investment and wealth options from AWS Vision for Plano, Frisco, and Collin County.",
+    keywords: [
+      "financial advisor plano tx",
+      "financial advisor plano",
+      "plano financial advisor",
+      "wealth management plano tx",
+      "investment management plano tx",
+      "portfolio management plano tx",
+      "investment planning plano tx",
+      "financial planners plano tx",
+      "wealth advisor plano tx",
+      "financial advisors in plano tx",
+    ],
+    category: "Advisors",
+    readTime: "7 min",
+    sections: [
+      {
+        heading: "Plano / Collin County reality check",
+        body: [
+          "Many “financial advisor Plano TX” results assume a storefront. AWS Vision serves Plano and North DFW remotely with savings, FD, and wealth plans.",
+        ],
+      },
+      {
+        heading: "What to verify before you enroll",
+        body: [
+          "Products that match your timeline, published terms, real contact details, and clear online vs branch language.",
+        ],
+      },
+      {
+        heading: "Next steps",
+        body: [
+          "Visit /serving-texas/plano, /investment-advisory, and /signup. Educational content only — not personalized advice.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Plano", href: "/serving-texas/plano" },
+      { label: "Frisco", href: "/serving-texas/frisco" },
+      { label: "Investment advisory", href: "/investment-advisory" },
+      { label: "Choose a financial advisor", href: "/guides/how-to-choose-financial-advisor-texas" },
+    ],
+  },
+  {
+    slug: "wealth-management-frisco-tx",
+    title: "Wealth Management Frisco TX — North DFW Online Options",
+    description:
+      "Wealth management Frisco TX and Frisco investment management: online wealth plans, savings, and remote KYC for Collin County with AWS Vision Financial.",
+    keywords: [
+      "wealth management frisco",
+      "wealth management frisco tx",
+      "wealth management frisco texas",
+      "frisco investment management",
+      "financial advisor frisco",
+      "financial advisor frisco tx",
+      "frisco financial advisor",
+      "investments frisco",
+      "digital banking services frisco texas",
+    ],
+    category: "Wealth",
+    readTime: "7 min",
+    sections: [
+      {
+        heading: "Frisco wealth searches",
+        body: [
+          "Frisco and Prosper households often compare local advisors with online firms. We serve Frisco as part of statewide Texas coverage — portal, phone, and email — without a fake storefront.",
+        ],
+      },
+      {
+        heading: "Products Frisco clients use",
+        body: [
+          "Savings, fixed deposits, and wealth tiers with statements in the client portal. Review /rates before you enroll.",
+        ],
+      },
+      {
+        heading: "Next steps",
+        body: [
+          "See /serving-texas/frisco and /wealth-management, then /signup when ready.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Frisco", href: "/serving-texas/frisco" },
+      { label: "Plano", href: "/serving-texas/plano" },
+      { label: "Wealth management", href: "/wealth-management" },
+      { label: "McKinney", href: "/serving-texas/mckinney" },
+    ],
+  },
+  {
+    slug: "online-investment-advisor",
+    title: "Online Investment Advisor & Advisory Services — What to Expect",
+    description:
+      "Online investment advisor and online investment advisory services explained — how remote firms like AWS Vision serve Texas and U.S. clients.",
+    keywords: [
+      "online investment advisor",
+      "online investment advisory services",
+      "online wealth manager",
+      "online wealth management services",
+      "online wealth management companies",
+      "online investment management services",
+      "online financial advisor",
+      "online financial planning services",
+      "advisor financial online",
+      "finance advisor online",
+    ],
+    category: "Advisors",
+    readTime: "7 min",
+    sections: [
+      {
+        heading: "What “online investment advisor” usually means",
+        body: [
+          "Remote onboarding, digital statements, and phone/email support instead of a required branch visit. Confirm whether the firm is product-led, advice-led, or both.",
+        ],
+      },
+      {
+        heading: "How AWS Vision fits",
+        body: [
+          "AWS Vision Financial provides online investment services and wealth plans at awsvision.com for Texas and nationwide clients — remote KYC, portal tracking, published program terms.",
+        ],
+      },
+      {
+        heading: "Due diligence",
+        body: [
+          "Verify legal name, contact details, and agreements. Educational guides are not personalized investment advice.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Investment advisory", href: "/investment-advisory" },
+      { label: "Open account online", href: "/guides/open-investment-account-online-usa" },
+      { label: "Wealth management", href: "/wealth-management" },
+      { label: "Compare", href: "/compare" },
+    ],
+  },
+  {
+    slug: "best-investment-firms",
+    title: "Best Investment Firms & Companies — How to Compare (2026)",
+    description:
+      "Best investment firms, best investment companies, and highly rated investment solutions — a practical checklist, then how AWS Vision compares as an online option.",
+    keywords: [
+      "best investment firms",
+      "best investment companies",
+      "best investment company",
+      "best investment firm",
+      "top rated investment firms",
+      "top-rated investment firms for building wealth now and later",
+      "highly rated investment solutions",
+      "good investment firms",
+      "good investment companies",
+      "reputable investment companies",
+      "best rated investment companies",
+      "what are the top rated investment firms",
+    ],
+    category: "Company",
+    readTime: "8 min",
+    sections: [
+      {
+        heading: "“Best” is a checklist, not a crown",
+        body: [
+          "Rankings change weekly. Use transparency, products, support, and honest service-area language — then verify the firm’s live site and agreements.",
+        ],
+      },
+      {
+        heading: "Where AWS Vision sits",
+        body: [
+          "We are an online investment services company for Texas and U.S. clients: savings, FD, and wealth plans at awsvision.com. Not Amazon Web Services.",
+        ],
+      },
+      {
+        heading: "Next reads",
+        body: [
+          "/guides/best-financial-firm-texas, /compare, and /rates. Apply at /signup when ready.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Best financial firm Texas", href: "/guides/best-financial-firm-texas" },
+      { label: "Investment services companies", href: "/guides/investment-services-companies" },
+      { label: "Compare", href: "/compare" },
+      { label: "Serving Texas", href: "/serving-texas" },
+    ],
+  },
+  {
+    slug: "investment-services-companies",
+    title: "Investment Services Companies — What They Offer",
+    description:
+      "Investment services companies and investment services providers explained — products, advisory models, and how AWS Vision delivers online investment services.",
+    keywords: [
+      "investment services",
+      "investment services companies",
+      "investment service companies",
+      "investment services providers",
+      "investment service providers",
+      "investment planning services",
+      "investment planning service",
+      "investment advisory services",
+      "best investment services",
+      "investment service",
+      "investing firm",
+      "invest firm",
+    ],
+    category: "Company",
+    readTime: "7 min",
+    sections: [
+      {
+        heading: "What investment services companies do",
+        body: [
+          "They help clients open and manage investment-related accounts — from savings and term deposits to wealth or portfolio plans — with statements and support.",
+        ],
+      },
+      {
+        heading: "AWS Vision’s model",
+        body: [
+          "Online investment services for Texas and U.S. clients: remote KYC, published program terms, and a client portal. Brand: AWS Vision / awsvision.com (not Amazon AWS).",
+        ],
+      },
+      {
+        heading: "Next steps",
+        body: [
+          "Read /investment-management and /investment-advisory, then /signup.",
+        ],
+      },
+    ],
+    related: [
+      { label: "Investment management", href: "/investment-management" },
+      { label: "Best investment firms", href: "/guides/best-investment-firms" },
+      { label: "AWS Vision vs Amazon AWS", href: "/guides/aws-vision-financial-vs-amazon-aws" },
+      { label: "About", href: "/about" },
+    ],
+  },
+  {
+    slug: "aws-vision-banking-and-capital",
+    title: "AWS Vision, AWS Banking & AWS Capital — Brand Guide",
+    description:
+      "Searching AWS Vision, AWS banking, or AWS capital? Learn what AWS Vision Financial (awsvision.com) offers — and why we are not Amazon Web Services.",
+    keywords: [
+      "aws vision",
+      "AWS Vision",
+      "AWS banking",
+      "AWS capital",
+      "awsvision",
+      "awsvision.com",
+      "AWS Vision Financial",
+    ],
+    category: "Company",
+    readTime: "6 min",
+    sections: [
+      {
+        heading: "AWS Vision Financial is not Amazon AWS",
+        body: [
+          "Amazon Web Services (AWS) is cloud computing. AWS Vision Financial is an independent investment and wealth firm at awsvision.com — licensed financial services, not cloud hosting.",
+        ],
+      },
+      {
+        heading: "What “AWS banking” and “AWS capital” searches usually want",
+        body: [
+          "People looking for AWS banking or AWS capital often want our savings, investment, and wealth products — or they confuse us with Amazon. This page clarifies the brand and points you to the right product pages.",
+        ],
+      },
+      {
+        heading: "Where to go next",
+        body: [
+          "About page, /rates, /wealth-management, and /signup. See also our guide AWS Vision Financial vs Amazon AWS.",
+        ],
+      },
+    ],
+    related: [
+      { label: "AWS Vision vs Amazon AWS", href: "/guides/aws-vision-financial-vs-amazon-aws" },
+      { label: "About", href: "/about" },
+      { label: "Wealth management", href: "/wealth-management" },
+      { label: "Investment management", href: "/investment-management" },
     ],
   },
 ];
